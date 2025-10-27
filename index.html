@@ -1,0 +1,1524 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bee26 Cargo App</title>
+    
+    <style>
+        /* --- Basic Setup & Fonts --- */
+        :root {
+            --blue: #007aff;
+            --grey-light: #f0f0f5;
+            --grey-mid: #e5e5ea;
+            --grey-dark: #8a8a8e;
+            --text-primary: #1c1c1e;
+            --text-secondary: #636366;
+            --bg-white: #ffffff;
+            --border-radius: 12px;
+            --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            --sidebar-width: 240px;
+        }
+
+        body {
+            font-family: var(--font-family);
+            background-color: var(--grey-light);
+            color: var(--text-primary);
+            margin: 0;
+            display: flex; /* NEW: Enable flexbox for layout */
+        }
+
+        /* --- NEW SIDEBAR STYLES --- */
+        .sidebar {
+            width: var(--sidebar-width);
+            background-color: var(--bg-white);
+            border-right: 1px solid var(--grey-mid);
+            height: 100vh;
+            position: fixed; /* Fixed position */
+            top: 0;
+            left: 0;
+            padding: 1.5rem 0;
+            box-sizing: border-box;
+            z-index: 100;
+        }
+
+        .sidebar-header {
+            padding: 0 1.5rem 1.5rem 1.5rem;
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: var(--blue);
+            border-bottom: 1px solid var(--grey-light);
+        }
+
+        .sidebar-nav {
+            list-style: none;
+            padding: 0;
+            margin: 1rem 0 0 0;
+        }
+
+        .sidebar-nav li a {
+            display: block;
+            padding: 0.9rem 1.5rem;
+            margin: 0.25rem 1rem;
+            text-decoration: none;
+            font-weight: 500;
+            color: var(--text-secondary);
+            border-radius: 8px;
+            transition: background-color 0.2s ease, color 0.2s ease;
+        }
+        .sidebar-nav li a:hover {
+            background-color: var(--grey-light);
+        }
+        .sidebar-nav li a.active {
+            background-color: var(--blue);
+            color: var(--bg-white);
+            font-weight: 600;
+        }
+        
+        /* --- NEW MAIN CONTENT AREA STYLES --- */
+        .main-content-area {
+            margin-left: var(--sidebar-width); /* Offset by sidebar width */
+            width: calc(100% - var(--sidebar-width));
+            height: 100vh;
+            overflow-y: auto; /* Allow this area to scroll */
+            position: relative;
+            padding-bottom: 80px; /* Space for footer */
+            box-sizing: border-box;
+        }
+        
+        .tab-content {
+            display: none; /* Hide all tabs by default */
+        }
+        .tab-content.active {
+            display: block; /* Show only the active tab */
+        }
+        /* --- END NEW LAYOUT STYLES --- */
+
+        /* --- NEW CUSTOMER DATABASE STYLES --- */
+        #tab-customer-database .container { /* NEW: Override container width for this tab */
+            max-width: none; /* Make container full width */
+            padding: 0 1.5rem; /* Add horizontal padding */
+        }
+
+        .table-container {
+            width: 100%;
+            overflow-x: auto; /* Allow horizontal scroll on table */
+        }
+        .table-google-sheets {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.8rem; /* MODIFIED: Smaller font */
+            border: 1px solid var(--grey-mid);
+        }
+        .table-google-sheets th,
+        .table-google-sheets td {
+            border: 1px solid var(--grey-mid);
+            padding: 0.6rem; /* MODIFIED: Smaller padding */
+            text-align: left;
+            vertical-align: middle;
+            white-space: nowrap;
+        }
+        .table-google-sheets th {
+            background-color: #f9f9f9;
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+        /* NEW: Row number column style */
+        .table-google-sheets th:first-child,
+        .table-google-sheets td:first-child {
+            width: 30px; /* Fixed width for row number */
+            text-align: center;
+            color: var(--text-secondary);
+        }
+        .table-google-sheets tbody tr:nth-child(odd) {
+            background-color: #fcfcfc;
+        }
+        .table-google-sheets tbody tr:hover {
+            background-color: var(--grey-light);
+        }
+        .table-google-sheets td:last-child {
+            white-space: nowrap; /* Keep buttons together */
+        }
+        .btn-table {
+            font-size: 0.75rem; /* MODIFIED: Slightly smaller buttons */
+            padding: 0.2rem 0.5rem; /* MODIFIED: Smaller padding */
+            margin-right: 0.25rem;
+            border-radius: 6px;
+        }
+        .btn-use {
+            background-color: #e6f7ff;
+            color: #0056b3;
+            border: 1px solid #b3e0ff;
+        }
+        .btn-use:hover { background-color: #d0ebff; }
+        .btn-edit {
+            background-color: #fffbe6;
+            color: #d46b08;
+            border: 1px solid #ffe58f;
+        }
+        .btn-edit:hover { background-color: #fff1c2; }
+        .btn-delete-db {
+            background-color: #fff1f0;
+            color: #c70000;
+            border: 1px solid #ffccc7;
+        }
+        .btn-delete-db:hover { background-color: #ffe8e6; }
+
+        .customer-submit-group {
+            margin-top: 1.5rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid var(--grey-light);
+        }
+        /* --- END CUSTOMER DB STYLES --- */
+
+        /* --- Header & Footer (MODIFIED) --- */
+        header {
+            background-color: var(--bg-white);
+            padding: 1rem 1.5rem; /* MODIFIED: Use consistent padding */
+            border-bottom: 1px solid var(--grey-mid);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+        }
+
+        header .logo {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--blue);
+        }
+
+        header h1 {
+            font-size: 1.5rem;
+            color: var(--text-primary);
+            margin: 0; /* MODIFIED: Removed top margin */
+        }
+
+        footer {
+            /* MODIFIED: No longer fixed */
+            width: 100%;
+            background-color: #f8f8f8;
+            border-top: 1px solid var(--grey-mid);
+            text-align: center;
+            padding: 1rem;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            box-sizing: border-box;
+            margin-top: 2rem;
+        }
+
+        /* --- Main Layout & Cards (MODIFIED) --- */
+        /* This .container is now INSIDE the tab-content */
+        .container {
+            max-width: 900px;
+            margin: 2rem auto 0 auto; 
+            padding: 0 1.5rem; /* MODIFIED: Use consistent padding */
+            display: grid;
+            gap: 1.5rem;
+        }
+
+        .card {
+            background-color: var(--bg-white);
+            border-radius: var(--border-radius);
+            padding: 1.5rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.04);
+        }
+
+        .card h2 {
+            font-size: 1.25rem;
+            margin-top: 0;
+            padding-bottom: 0.75rem;
+            border-bottom: 1px solid var(--grey-light);
+            display: flex;
+            align-items: center;
+        }
+
+        .card h2 .icon {
+            margin-right: 0.75rem;
+            font-size: 1.5rem;
+        }
+
+        .card h3 {
+            font-size: 1.1rem;
+            color: var(--blue);
+            margin-top: 0;
+        }
+
+        .output-section {
+            margin-top: 2rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid var(--grey-light);
+        }
+        .output-section:first-of-type {
+            margin-top: 0;
+            padding-top: 0;
+            border-top: none;
+        }
+
+        /* --- Forms & Grids --- */
+        .form-grid, .item-form-grid, .form-grid-half {
+            display: grid;
+            gap: 1rem;
+        }
+
+        .form-grid {
+            grid-template-columns: 1fr 1fr;
+        }
+        .form-grid-half {
+            grid-template-columns: 1fr 1fr;
+            max-width: 500px;
+        }
+        .form-grid .full-width {
+            grid-column: 1 / -1;
+        }
+
+        .item-form-grid {
+            grid-template-columns: 2fr 1fr 1fr 1fr 1.5fr;
+            align-items: flex-end;
+            margin-top: 1rem;
+            border-top: 1px solid var(--grey-light);
+            padding-top: 1.5rem;
+        }
+        .item-form-grid .btn-add {
+            height: 44px; /* Align with inputs */
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .input-group label {
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+        }
+
+        .input-group input[type="text"],
+        .input-group input[type="tel"],
+        .input-group input[type="number"],
+        .input-group input[type="date"],
+        .input-group input[type="file"],
+        .input-group textarea,
+        .input-group select { 
+            width: 100%;
+            padding: 0.75rem;
+            font-size: 1rem;
+            border: 1px solid var(--grey-mid);
+            border-radius: 8px;
+            box-sizing: border-box; 
+            background-color: #fdfdfd;
+            font-family: var(--font-family); 
+        }
+        .input-group input[type="file"] {
+            padding: 0.5rem;
+            font-size: 0.9rem;
+        }
+        
+        .input-group input[disabled] { 
+            background-color: var(--grey-light);
+            color: var(--text-secondary);
+        }
+
+        .input-group input:focus,
+        .input-group textarea:focus,
+        .input-group select:focus { 
+            outline: none;
+            border-color: var(--blue);
+            box-shadow: 0 0 0 2px rgba(0,122,255,0.2);
+        }
+        
+        .info-grid {
+            display: grid;
+            grid-template-columns: 150px 1fr;
+            gap: 1rem;
+            font-size: 1rem;
+        }
+        .info-grid strong {
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+        .info-grid div {
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--grey-light);
+        }
+        .info-grid div:last-child,
+        .info-grid strong:last-child {
+             border-bottom: none;
+        }
+        
+        .search-bar {
+            width: 100%;
+            max-width: 400px;
+            margin-bottom: 1.5rem;
+        }
+
+        /* --- Buttons --- */
+        .btn {
+            font-family: var(--font-family);
+            font-size: 1rem;
+            font-weight: 600;
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            background-color: var(--blue);
+            color: white;
+            transition: background-color 0.2s ease;
+        }
+        .btn:hover {
+            background-color: #0056b3;
+        }
+
+        .btn-add {
+            width: 100%;
+        }
+
+        .btn-secondary {
+            background-color: var(--grey-mid);
+            color: var(--text-primary);
+        }
+        .btn-secondary:hover {
+            background-color: var(--grey-dark);
+            color: var(--bg-white);
+        }
+
+        .btn-delete {
+            background: none;
+            border: none;
+            color: #ff3b30;
+            font-size: 1.2rem;
+            cursor: pointer;
+            padding: 0.5rem;
+        }
+        .btn-delete:hover {
+            color: #c70000;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
+        
+        .history-buttons {
+            display: flex;
+            gap: 0.75rem;
+            margin-bottom: -0.5rem; /* Pull cards up slightly */
+        }
+        
+        .btn-history {
+            font-family: var(--font-family);
+            font-size: 0.9rem;
+            font-weight: 500;
+            padding: 0.5rem 1rem;
+            border: 1px solid var(--grey-mid);
+            border-radius: 8px;
+            cursor: pointer;
+            background-color: var(--bg-white);
+            color: var(--blue);
+            transition: background-color 0.2s ease;
+        }
+        .btn-history:hover:not(:disabled) {
+            background-color: var(--grey-light);
+        }
+        .btn-history:disabled {
+            color: var(--grey-dark);
+            cursor: not-allowed;
+            background-color: #f9f9f9;
+            border-color: var(--grey-light);
+        }
+
+        /* --- Table --- */
+        #itemTable {
+            width: 100%;
+            border-collapse: collapse; 
+            margin-bottom: 1rem;
+            border: 1px solid var(--grey-mid); 
+        }
+        #itemTable th, #itemTable td {
+            text-align: left;
+            padding: 0.75rem;
+            border: 1px solid var(--grey-mid); 
+            font-size: 0.9rem;
+            vertical-align: middle;
+        }
+        #itemTable th {
+            color: var(--text-secondary);
+            font-weight: 600;
+            background-color: #f9f9f9;
+        }
+        /* Column widths */
+        #itemTable th:nth-child(1), #itemTable td:nth-child(1) { width: 30%; } /* Description */
+        #itemTable th:nth-child(2), #itemTable td:nth-child(2) { width: 8%; } /* Qty */
+        #itemTable th:nth-child(3), #itemTable td:nth-child(3) { width: 12%; } /* Unit Wt */
+        #itemTable th:nth-child(4), #itemTable td:nth-child(4) { width: 12%; } /* Unit Val */
+        #itemTable th:nth-child(5), #itemTable td:nth-child(5) { width: 12%; } /* Total Wt */
+        #itemTable th:nth-child(6), #itemTable td:nth-child(6) { width: 12%; } /* Total Val */
+        #itemTable th:nth-child(8), #itemTable td:nth-child(8) { width: 5%; text-align: center; } /* Delete */
+
+
+        /* --- Summary Section --- */
+        .summary-grid {
+            display: grid;
+            grid-template-columns: auto 1fr;
+            gap: 0.75rem 1rem;
+            align-items: center;
+            max-width: 500px;
+        }
+        .summary-grid strong {
+            color: var(--text-secondary);
+            text-align: right;
+        }
+        .summary-total {
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+        .summary-input {
+            padding: 0.5rem;
+            font-size: 1rem;
+            border: 1px solid var(--grey-mid);
+            border-radius: 8px;
+            width: 100px;
+        }
+
+        /* --- Mobile-First Responsive --- */
+        @media (max-width: 1024px) { /* Widen breakpoint for sidebar */
+             :root {
+                --sidebar-width: 100%;
+            }
+            body {
+                flex-direction: column; /* Stack sidebar and content */
+            }
+            .sidebar {
+                height: auto;
+                position: relative; /* Change from fixed to relative */
+                width: 100%;
+                border-right: none;
+                border-bottom: 1px solid var(--grey-mid);
+                z-index: 1; /* Ensure it doesn't overlap content weirdly */
+            }
+            .sidebar-nav {
+                display: flex;
+                justify-content: space-around; /* Spread out links */
+                margin-top: 0;
+            }
+            .sidebar-nav li a {
+                margin: 0.25rem;
+                padding: 0.5rem 0.75rem;
+                text-align: center;
+            }
+            .sidebar-header {
+                text-align: center;
+                border-bottom: none;
+                padding-bottom: 0.5rem; /* Reduced padding */
+            }
+
+            .main-content-area {
+                margin-left: 0; /* Remove margin */
+                width: 100%;
+                height: auto;
+                overflow-y: visible;
+            }
+
+            header { padding: 1rem; } /* Reduce padding on mobile */
+            header h1 { font-size: 1.25rem; }
+            .container { padding: 0 1rem; } /* Reduce padding on mobile */
+            #tab-customer-database .container { padding: 0 1rem; } /* Consistency */
+
+            .card {
+                padding: 1rem;
+            }
+            .form-grid, .form-grid-half {
+                grid-template-columns: 1fr;
+            }
+            .item-form-grid {
+                grid-template-columns: 1fr; /* Stack add-item form */
+            }
+
+            #itemTable {
+                display: block;
+                overflow-x: auto;
+                white-space: nowrap;
+            }
+            #itemTable th, #itemTable td {
+                min-width: 100px;
+            }
+            #itemTable th:first-child, #itemTable td:first-child {
+                min-width: 200px; /* Give description more space */
+            }
+            .info-grid {
+                grid-template-columns: 100px 1fr;
+            }
+        }
+    </style>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf-autotable.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+</head>
+<body>
+
+    <nav class="sidebar">
+        <div class="sidebar-header">
+            📦 Bee26 Cargo
+        </div>
+        <ul class="sidebar-nav">
+            <li><a href="#" class="sidebar-link active" data-tab="tab-customer-details">Customer Details</a></li>
+            <li><a href="#" class="sidebar-link" data-tab="tab-customer-database">Customer Database</a></li>
+            <li><a href="#" class="sidebar-link" data-tab="tab-shipment-tracker">Shipment Tracker</a></li>
+            <li><a href="#" class="sidebar-link" data-tab="tab-payment-tracker">Payment Tracker</a></li>
+        </ul>
+    </nav>
+
+    <div class="main-content-area">
+
+        <header>
+            <h1>Personal Cargo Manager</h1>
+            </header>
+
+        <div class="tab-container">
+
+            <div id="tab-customer-details" class="tab-content active">
+                
+                <main class="container">
+                    <div class="history-buttons">
+                        <button id="undoBtn" class="btn-history" disabled>Undo</button>
+                        <button id="redoBtn" class="btn-history" disabled>Redo</button>
+                    </div>
+
+                    <section class="card">
+                        <h2><span class="icon">👤</span> Customer Details</h2>
+                        <div class="form-grid">
+                            <div class="input-group">
+                                <label for="senderName">Sender Name</label>
+                                <input type="text" id="senderName" placeholder="John Doe">
+                            </div>
+                            <div class="input-group">
+                                <label for="receiverName">Receiver Name</label>
+                                <input type="text" id="receiverName" placeholder="Jane Smith">
+                            </div>
+                            <div class="input-group">
+                                <label for="receiverPhone">Receiver Phone (Sri Lanka)</label>
+                                <input type="tel" id="receiverPhone" placeholder="+94 77 123 4567">
+                            </div>
+                            <div class="input-group full-width">
+                                <label for="receiverAddress">Receiver Address (Sri Lanka)</label>
+                                <textarea id="receiverAddress" rows="3" placeholder="No. 123, Main Street, Colombo 03"></textarea>
+                            </div>
+                            <div class="input-group full-width">
+                                <label for="fileUpload">Attach ID (NIC, Passport) - Optional</label>
+                                <input type="file" id="fileUpload" accept="image/*,.pdf">
+                            </div>
+                        </div>
+                        
+                        </section>
+            
+                    <section class="card">
+                        <h2><span class="icon">🛍️</span> Itemized List</h2>
+                        <table id="itemTable">
+                            <thead>
+                                <tr>
+                                    <th>Description</th>
+                                    <th>Qty</th>
+                                    <th>Unit Wt. (kg)</th>
+                                    <th>Unit Val. (CAD)</th>
+                                    <th>Total Wt.</th>
+                                    <th>Total Val.</th>
+                                    <th>Remarks</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody id="itemTbody">
+                                </tbody>
+                        </table>
+                        
+                        <form id="addItemForm" class="item-form-grid">
+                            <div class="input-group">
+                                <label>Description</label>
+                                <input type="text" id="itemDesc" placeholder="e.g., Men's T-Shirts" required>
+                            </div>
+                            <div class="input-group">
+                                <label>Quantity</label>
+                                <input type="number" id="itemQty" placeholder="10" min="1" step="1" required>
+                            </div>
+                            <div class="input-group">
+                                <label>Unit Weight (kg)</label>
+                                <input type="number" id="itemWeight" placeholder="0.5" min="0" step="0.1" required>
+                            </div>
+                            <div class="input-group">
+                                <label>Unit Value (CAD)</label>
+                                <input type="number" id="itemValue" placeholder="15.00" min="0" step="0.01" required>
+                            </div>
+                            <div class="input-group">
+                                <label>Remarks</label>
+                                <input type="text" id="itemRemarks" placeholder="Brand, color, etc.">
+                            </div>
+                            <button type="submit" class="btn btn-add">Add Item +</button>
+                        </form>
+                    </section>
+            
+                    <section class="card">
+                        <h2><span class="icon">📊</span> Shipment Summary & Outputs</h2>
+                        
+                        <div class="output-section">
+                            <h3>AWB Prep Info</h3>
+                            <div class="summary-grid">
+                                <div><strong>From:</strong></div>
+                                <div>Bee26 Cargo Services, Toronto</div>
+                                
+                                <div><strong>To:</strong></div>
+                                <div id="summaryReceiver">--</div>
+            
+                                <div><strong>Total Packages:</strong></div>
+                                <input type="number" id="totalPackages" class="summary-input" placeholder="e.g., 2">
+                                
+                                <div><strong>Total Weight:</strong></div>
+                                <div id="summaryWeight" class="summary-total">0.00 kg</div>
+                                
+                                <div><strong>Declared Value:</strong></div>
+                                <div id="summaryValue" class="summary-total">$0.00 CAD</div>
+                            </div>
+                        </div>
+            
+                        <div class="output-section">
+                            <h3>Packing List</h3>
+                            <p><strong>Declaration:</strong> Personal Use – Not for Resale</p>
+                            <div class="button-group">
+                                <button id="exportPackingListPDF" class="btn">Download PDF</button>
+                                <button id="exportPackingListExcel" class="btn btn-secondary">Download Excel</button>
+                            </div>
+                        </div>
+            
+                        <div class="output-section">
+                            <h3>Commercial Invoice</h3>
+                            <div class="form-grid-half">
+                                <div class="input-group">
+                                    <label for="invoiceNumber">Invoice Number</label>
+                                    <input type="text" id="invoiceNumber" placeholder="BEE26-1001">
+                                </div>
+                                <div class="input-group">
+                                    <label for="invoiceDate">Date</label>
+                                    <input type="date" id="invoiceDate">
+                                </div>
+                                <div class="input-group">
+                                    <label for="hsCode">HS Code (Optional)</label>
+                                    <input type="text" id="hsCode" placeholder="e.g., 6109.10">
+                                </div>
+                            </div>
+                            <div class="button-group">
+                                <button id="exportInvoicePDF" class="btn">Download PDF</button>
+                                <button id="exportInvoiceExcel" class="btn btn-secondary">Download Excel</button>
+                            </div>
+                        </div>
+            
+                    </section>
+
+                    <div class="customer-submit-group">
+                        <button id="submitCustomerBtn" class="btn">Submit Customer to Database</button>
+                    </div>
+
+                </main>
+                </div>
+
+            <div id="tab-customer-database" class="tab-content">
+                <main class="container"> 
+                    <section class="card">
+                        <h2><span class="icon">📂</span> Customer Database</h2>
+                        <div class="input-group search-bar">
+                            <label for="customerSearch">Search by Sender or Receiver Name</label>
+                            <input type="text" id="customerSearch" placeholder="Search...">
+                        </div>
+                    </section>
+
+                    <section class="card">
+                        <div class="table-container">
+                            <table id="customerTable" class="table-google-sheets">
+                                <thead>
+                                    <tr>
+                                        <th>#</th> 
+                                        <th>Sender Name</th>
+                                        <th>Receiver Name</th>
+                                        <th>Receiver Phone</th>
+                                        <th>Receiver Address</th>
+                                        <th>Date Added</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="customerTableTbody">
+                                    </tbody>
+                            </table>
+                        </div>
+                    </section>
+                </main>
+            </div>
+            
+            <div id="tab-shipment-tracker" class="tab-content">
+                <main class="container">
+                    <section class="card">
+                        <h2><span class="icon">✈️</span> Shipment Tracker</h2>
+                        <div class="input-group search-bar">
+                            <label for="shipmentSearch">Search by Customer Name or Invoice #</label>
+                            <input type="text" id="shipmentSearch" placeholder="Search...">
+                        </div>
+                    </section>
+                    
+                    <section class="card">
+                        <h3>Customer Info</h3>
+                        <div class="info-grid">
+                            <strong>Sender:</strong> <div id="stSenderName">--</div>
+                            <strong>Receiver:</strong> <div id="stReceiverName">--</div>
+                            <strong>Phone:</strong> <div id="stReceiverPhone">--</div>
+                            <strong>Address:</strong> <div id="stReceiverAddress">--</div>
+                        </div>
+                    </section>
+
+                    <section class="card">
+                        <h3>Flight Details</h3>
+                        <div class="form-grid">
+                            <div class="input-group">
+                                <label for="flightAirline">Airline</label>
+                                <input type="text" id="flightAirline" placeholder="e.g., Air Canada">
+                            </div>
+                            <div class="input-group">
+                                <label for="flightNumber">Flight Number</label>
+                                <input type="text" id="flightNumber" placeholder="e.g., AC123">
+                            </div>
+                            <div class="input-group">
+                                <label for="flightEtd">ETD (Est. Time of Departure)</label>
+                                <input type="datetime-local" id="flightEtd">
+                            </div>
+                            <div class="input-group">
+                                <label for="flightEta">ETA (Est. Time of Arrival)</label>
+                                <input type="datetime-local" id="flightEta">
+                            </div>
+                            <div class="input-group full-width">
+                                <label for="flightNotes">Tracking Notes</label>
+                                <textarea id="flightNotes" rows="3" placeholder="e.g., Arrived in CMB, pending customs..."></textarea>
+                            </div>
+                        </div>
+                    </section>
+
+                </main>
+            </div>
+            <div id="tab-payment-tracker" class="tab-content">
+                <main class="container">
+                    <section class="card">
+                        <h2><span class="icon">💳</span> Payment Tracker</h2>
+                         <div class="input-group search-bar">
+                            <label for="paymentSearch">Search by Customer Name or Invoice #</label>
+                            <input type="text" id="paymentSearch" placeholder="Search...">
+                        </div>
+                    </section>
+
+                    <section class="card">
+                        <h3>Payment Details</h3>
+                        <div class="form-grid">
+                             <div class="input-group">
+                                <label for="paymentInvoice">Invoice Number</label>
+                                <input type="text" id="paymentInvoice" placeholder="BEE26-1001" disabled>
+                            </div>
+                             <div class="input-group">
+                                <label for="paymentDate">Date</label>
+                                <input type="date" id="paymentDate" disabled>
+                            </div>
+                             <div class="input-group">
+                                <label for="paymentCustomer">Customer Name</label>
+                                <input type="text" id="paymentCustomer" placeholder="John Doe" disabled>
+                            </div>
+                            <div class="input-group">
+                                <label for="paymentTotal">Total Amount (CAD)</label>
+                                <input type="number" id="paymentTotal" placeholder="0.00" disabled>
+                            </div>
+                             <div class="input-group">
+                                <label for="paymentPaid">Amount Paid (CAD)</label>
+                                <input type="number" id="paymentPaid" placeholder="0.00" min="0" step="0.01">
+                            </div>
+                             <div class="input-group">
+                                <label for="paymentBalance">Balance (CAD)</label>
+                                <input type="number" id="paymentBalance" placeholder="0.00" disabled>
+                            </div>
+                             <div class="input-group">
+                                <label for="paymentMethod">Payment Method</label>
+                                <select id="paymentMethod">
+                                    <option value="">Select Method</option>
+                                    <option value="Cash">Cash</option>
+                                    <option value="E-Transfer">E-Transfer</option>
+                                    <option value="Credit Card">Credit Card</option>
+                                    <option value="Bank Deposit">Bank Deposit</option>
+                                </select>
+                            </div>
+                            <div class="input-group full-width">
+                                <label for="paymentNotes">Payment Notes</label>
+                                <textarea id="paymentNotes" rows="3" placeholder="e.g., Paid $100 cash on Oct 27..."></textarea>
+                            </div>
+                        </div>
+                    </section>
+                </main>
+            </div>
+            </div>
+        <footer>
+            <p>Bee26 Cargo Services • Toronto • +1 416-474-4994</p>
+        </footer>
+
+    </div>
+<script>
+        // Wait until the entire HTML page is loaded
+        document.addEventListener('DOMContentLoaded', () => {
+
+            // --- 1. Get all the important HTML elements ---
+            
+            // -- Tab 1 (Customer Details) --
+            const senderNameEl = document.getElementById('senderName');
+            const receiverNameEl = document.getElementById('receiverName');
+            const receiverPhoneEl = document.getElementById('receiverPhone');
+            const receiverAddressEl = document.getElementById('receiverAddress');
+            const totalPackagesEl = document.getElementById('totalPackages');
+            const invoiceNumberEl = document.getElementById('invoiceNumber');
+            const invoiceDateEl = document.getElementById('invoiceDate');
+            const hsCodeEl = document.getElementById('hsCode');
+            const submitCustomerBtn = document.getElementById('submitCustomerBtn'); 
+
+            const addItemForm = document.getElementById('addItemForm');
+            const itemTbody = document.getElementById('itemTbody');
+            
+            const summaryReceiver = document.getElementById('summaryReceiver');
+            const summaryWeight = document.getElementById('summaryWeight');
+            const summaryValue = document.getElementById('summaryValue');
+
+            const exportPackingListPDF = document.getElementById('exportPackingListPDF');
+            const exportPackingListExcel = document.getElementById('exportPackingListExcel');
+            const exportInvoicePDF = document.getElementById('exportInvoicePDF');
+            const exportInvoiceExcel = document.getElementById('exportInvoiceExcel');
+
+            const undoBtn = document.getElementById('undoBtn');
+            const redoBtn = document.getElementById('redoBtn');
+            
+            // -- Tab 2 (Customer Database) --
+            const customerSearchEl = document.getElementById('customerSearch');
+            const customerTableTbody = document.getElementById('customerTableTbody');
+
+            // -- Tab 3 (Shipment Tracker) --
+            const stSenderName = document.getElementById('stSenderName');
+            const stReceiverName = document.getElementById('stReceiverName');
+            const stReceiverPhone = document.getElementById('stReceiverPhone');
+            const stReceiverAddress = document.getElementById('stReceiverAddress');
+            const flightAirlineEl = document.getElementById('flightAirline');
+            const flightNumberEl = document.getElementById('flightNumber');
+            const flightEtdEl = document.getElementById('flightEtd');
+            const flightEtaEl = document.getElementById('flightEta');
+            const flightNotesEl = document.getElementById('flightNotes');
+
+            // -- Tab 4 (Payment Tracker) --
+            const paymentInvoiceEl = document.getElementById('paymentInvoice');
+            const paymentDateEl = document.getElementById('paymentDate');
+            const paymentCustomerEl = document.getElementById('paymentCustomer');
+            const paymentTotalEl = document.getElementById('paymentTotal');
+            const paymentPaidEl = document.getElementById('paymentPaid');
+            const paymentBalanceEl = document.getElementById('paymentBalance');
+            const paymentMethodEl = document.getElementById('paymentMethod');
+            const paymentNotesEl = document.getElementById('paymentNotes');
+
+            // -- Tab Navigation --
+            const sidebarLinks = document.querySelectorAll('.sidebar-link');
+            const tabContents = document.querySelectorAll('.tab-content');
+
+            // --- 2. State Variables ---
+            let items = [];
+            let historyStack = [];
+            let redoStack = [];
+            
+            let customerDatabase = [];
+            let currentEditCustomerId = null;
+
+
+            // --- 3. Core Functions ---
+
+            /**
+             * Redraws the item table based on the 'items' array
+             */
+            function renderTable() {
+                itemTbody.innerHTML = ''; // Clear the table first
+                let totalWeight = 0;
+                let totalValue = 0;
+                let totalQty = 0;
+
+                items.forEach((item, index) => {
+                    const itemTotalWeight = item.qty * item.weight;
+                    const itemTotalValue = item.qty * item.value;
+                    
+                    totalWeight += itemTotalWeight;
+                    totalValue += itemTotalValue;
+                    totalQty += item.qty;
+
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${item.desc}</td>
+                        <td>${item.qty}</td>
+                        <td>${item.weight.toFixed(2)}</td>
+                        <td>${item.value.toFixed(2)}</td>
+                        <td>${itemTotalWeight.toFixed(2)}</td>
+                        <td>${itemTotalValue.toFixed(2)}</td>
+                        <td>${item.remarks}</td>
+                        <td>
+                            <button class="btn-delete" data-index="${index}">🗑️</button>
+                        </td>
+                    `;
+                    itemTbody.appendChild(row);
+                });
+
+                updateSummary(totalQty, totalWeight, totalValue);
+            }
+            
+            // --- Customer Database Functions ---
+            
+            /**
+             * Renders the customer database table, with optional filter
+             */
+            function renderCustomerDatabaseTable(filter = '') {
+                customerTableTbody.innerHTML = '';
+                const searchTerm = filter.toLowerCase();
+                
+                const filteredDB = customerDatabase.filter(customer => {
+                    return customer.senderName.toLowerCase().includes(searchTerm) ||
+                           customer.receiverName.toLowerCase().includes(searchTerm);
+                });
+
+                if (filteredDB.length === 0) {
+                     // MODIFIED: Colspan updated to 7
+                     customerTableTbody.innerHTML = '<tr><td colspan="7">No customers found.</td></tr>';
+                     return;
+                }
+
+                filteredDB.forEach((customer, index) => { // Added index
+                    const row = document.createElement('tr');
+                    const timestamp = new Date(customer.id).toLocaleDateString();
+                    // MODIFIED: Added row number cell
+                    row.innerHTML = `
+                        <td>${index + 1}</td> 
+                        <td>${customer.senderName}</td>
+                        <td>${customer.receiverName}</td>
+                        <td>${customer.receiverPhone}</td>
+                        <td>${customer.receiverAddress.split('\n')[0]}...</td>
+                        <td>${timestamp}</td>
+                        <td>
+                            <button class="btn-table btn-use" data-id="${customer.id}">Auto-fill</button>
+                            <button class="btn-table btn-edit" data-id="${customer.id}">✏️ Edit</button>
+                            <button class="btn-table btn-delete-db" data-id="${customer.id}">🗑️ Delete</button>
+                        </td>
+                    `;
+                    customerTableTbody.appendChild(row);
+                });
+            }
+
+            /**
+             * Saves the customer database to local storage
+             */
+            function saveCustomerDB() {
+                localStorage.setItem('bee26CustomerDB', JSON.stringify(customerDatabase));
+            }
+            
+            /**
+             * Clears the main customer input form
+             */
+            function clearCustomerForm() {
+                senderNameEl.value = '';
+                receiverNameEl.value = '';
+                receiverPhoneEl.value = '';
+                receiverAddressEl.value = '';
+                // Clear file input - requires replacing the input element
+                const fileInput = document.getElementById('fileUpload');
+                fileInput.value = ''; // For modern browsers
+                 if (fileInput.value) { // For older browsers / security
+                     try {
+                        fileInput.type = 'text';
+                        fileInput.type = 'file';
+                     } catch(e) {}
+                 }
+            }
+            // --- End Customer DB Functions ---
+
+
+            /**
+             * Updates the "Shipment Summary" section AND all other tracker tabs
+             */
+            function updateSummary(totalQty, totalWeight, totalValue) {
+                const senderName = senderNameEl.value;
+                const receiverName = receiverNameEl.value;
+                const receiverPhone = receiverPhoneEl.value;
+                const receiverAddress = receiverAddressEl.value;
+                const receiverAddressShort = receiverAddress.split('\n')[0];
+                const invoiceNumber = invoiceNumberEl.value;
+                const invoiceDate = invoiceDateEl.value;
+
+                // Update AWB section
+                if (receiverName && receiverAddressShort) {
+                    summaryReceiver.textContent = `${receiverName}, ${receiverAddressShort}`;
+                } else if (receiverName) {
+                    summaryReceiver.textContent = receiverName;
+                } else {
+                    summaryReceiver.textContent = '--';
+                }
+                
+                summaryWeight.textContent = `${totalWeight.toFixed(2)} kg`;
+                summaryValue.textContent = `$${totalValue.toFixed(2)} CAD`;
+
+                // Update Shipment Tracker Tab
+                stSenderName.textContent = senderName || '--';
+                stReceiverName.textContent = receiverName || '--';
+                stReceiverPhone.textContent = receiverPhone || '--';
+                stReceiverAddress.textContent = receiverAddress || '--';
+
+                // Update Payment Tracker Tab
+                paymentInvoiceEl.value = invoiceNumber || '';
+                paymentDateEl.value = invoiceDate || '';
+                paymentCustomerEl.value = senderName || '';
+                paymentTotalEl.value = totalValue.toFixed(2);
+                calculatePaymentBalance(); // Recalculate balance
+            }
+            
+            /**
+             * Saves the CURRENT SHIPMENT data from ALL TABS to local storage
+             */
+            function saveData() {
+                const data = {
+                    // Tab 1
+                    senderName: senderNameEl.value,
+                    receiverName: receiverNameEl.value,
+                    receiverPhone: receiverPhoneEl.value,
+                    receiverAddress: receiverAddressEl.value,
+                    totalPackages: totalPackagesEl.value,
+                    invoiceNumber: invoiceNumberEl.value,
+                    invoiceDate: invoiceDateEl.value,
+                    hsCode: hsCodeEl.value,
+                    items: items,
+                    
+                    // Tab 3
+                    flightDetails: {
+                        airline: flightAirlineEl.value,
+                        number: flightNumberEl.value,
+                        etd: flightEtdEl.value,
+                        eta: flightEtaEl.value,
+                        notes: flightNotesEl.value,
+                    },
+
+                    // Tab 4
+                    paymentDetails: {
+                        paid: paymentPaidEl.value,
+                        method: paymentMethodEl.value,
+                        notes: paymentNotesEl.value,
+                    }
+                };
+                localStorage.setItem('bee26Data', JSON.stringify(data));
+            }
+
+            /**
+             * Loads all data from local storage on page start
+             */
+            function loadData() {
+                // Load current shipment data
+                const data = JSON.parse(localStorage.getItem('bee26Data'));
+                if (!data) {
+                    invoiceDateEl.valueAsDate = new Date();
+                } else {
+                    senderNameEl.value = data.senderName || '';
+                    receiverNameEl.value = data.receiverName || '';
+                    receiverPhoneEl.value = data.receiverPhone || '';
+                    receiverAddressEl.value = data.receiverAddress || '';
+                    totalPackagesEl.value = data.totalPackages || '';
+                    invoiceNumberEl.value = data.invoiceNumber || '';
+                    invoiceDateEl.value = data.invoiceDate || '';
+                    hsCodeEl.value = data.hsCode || '';
+                    items = data.items || [];
+                    
+                    if (!data.invoiceDate) {
+                        invoiceDateEl.valueAsDate = new Date();
+                    }
+                    if (data.flightDetails) {
+                        flightAirlineEl.value = data.flightDetails.airline || '';
+                        flightNumberEl.value = data.flightDetails.number || '';
+                        flightEtdEl.value = data.flightDetails.etd || '';
+                        flightEtaEl.value = data.flightDetails.eta || '';
+                        flightNotesEl.value = data.flightDetails.notes || '';
+                    }
+                     if (data.paymentDetails) {
+                        paymentPaidEl.value = data.paymentDetails.paid || '';
+                        paymentMethodEl.value = data.paymentDetails.method || '';
+                        paymentNotesEl.value = data.paymentDetails.notes || '';
+                    }
+                }
+                
+                // Load Customer Database
+                const db = JSON.parse(localStorage.getItem('bee26CustomerDB'));
+                if (db) {
+                    customerDatabase = db;
+                }
+
+                renderTable(); 
+                renderCustomerDatabaseTable(); 
+                
+                historyStack = [];
+                redoStack = [];
+                updateHistoryButtons();
+            }
+
+            // --- Payment Balance Calculator ---
+            function calculatePaymentBalance() {
+                const total = parseFloat(paymentTotalEl.value) || 0;
+                const paid = parseFloat(paymentPaidEl.value) || 0;
+                const balance = total - paid;
+                paymentBalanceEl.value = balance.toFixed(2);
+            }
+
+            // --- History Functions ---
+            function saveState() {
+                historyStack.push(JSON.parse(JSON.stringify(items)));
+                redoStack = [];
+                updateHistoryButtons();
+            }
+            function updateHistoryButtons() {
+                undoBtn.disabled = historyStack.length === 0;
+                redoBtn.disabled = redoStack.length === 0;
+            }
+            function undo() {
+                if (historyStack.length > 0) {
+                    redoStack.push(JSON.parse(JSON.stringify(items)));
+                    items = historyStack.pop();
+                    renderTable();
+                    saveData();
+                    updateHistoryButtons();
+                }
+            }
+            function redo() {
+                if (redoStack.length > 0) {
+                    historyStack.push(JSON.parse(JSON.stringify(items)));
+                    items = redoStack.pop();
+                    renderTable();
+                    saveData();
+                    updateHistoryButtons();
+                }
+            }
+            // --- End History ---
+
+
+            // --- 4. Event Listeners (Making buttons work) ---
+
+            // --- Tab Switching ---
+            sidebarLinks.forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    sidebarLinks.forEach(l => l.classList.remove('active'));
+                    tabContents.forEach(t => t.classList.remove('active'));
+                    link.classList.add('active');
+                    const tabId = link.getAttribute('data-tab');
+                    document.getElementById(tabId).classList.add('active');
+                });
+            });
+
+
+            // --- Tab 1 Listeners ---
+            addItemForm.addEventListener('submit', (e) => {
+                e.preventDefault(); 
+                saveState(); // Save history
+                const item = {
+                    desc: document.getElementById('itemDesc').value,
+                    qty: parseFloat(document.getElementById('itemQty').value),
+                    weight: parseFloat(document.getElementById('itemWeight').value),
+                    value: parseFloat(document.getElementById('itemValue').value),
+                    remarks: document.getElementById('itemRemarks').value
+                };
+                items.push(item);
+                renderTable(); 
+                saveData(); // Save to localStorage
+                addItemForm.reset(); 
+            });
+
+            itemTbody.addEventListener('click', (e) => {
+                if (e.target.classList.contains('btn-delete')) {
+                    if (confirm('Are you sure you want to delete this item?')) {
+                        saveState(); // Save history
+                        const index = e.target.getAttribute('data-index');
+                        items.splice(index, 1);
+                        renderTable();
+                        saveData(); // Save to localStorage
+                    }
+                }
+            });
+
+            // Auto-save for Tab 1 *shipment* fields
+            const fieldsToAutoSave = [
+                senderNameEl, receiverNameEl, receiverPhoneEl, receiverAddressEl,
+                totalPackagesEl, invoiceNumberEl, invoiceDateEl, hsCodeEl
+            ];
+            fieldsToAutoSave.forEach(field => {
+                field.addEventListener('input', () => {
+                    saveData();
+                    renderTable(); // This calls updateSummary
+                });
+            });
+
+            undoBtn.addEventListener('click', undo);
+            redoBtn.addEventListener('click', redo);
+
+            // Tab 1 Customer DB Submit Listener 
+            submitCustomerBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                const senderName = senderNameEl.value.trim();
+                const receiverName = receiverNameEl.value.trim();
+                
+                if (!senderName && !receiverName) {
+                    alert('Please enter at least a Sender or Receiver name to save to the database.');
+                    return;
+                }
+
+                if (currentEditCustomerId) {
+                    // --- EDIT MODE ---
+                    const customer = customerDatabase.find(c => c.id === currentEditCustomerId);
+                    customer.senderName = senderName;
+                    customer.receiverName = receiverName;
+                    customer.receiverPhone = receiverPhoneEl.value;
+                    customer.receiverAddress = receiverAddressEl.value;
+                } else {
+                    // --- NEW CUSTOMER MODE ---
+                    const newCustomer = {
+                        id: Date.now(),
+                        senderName: senderName,
+                        receiverName: receiverName,
+                        receiverPhone: receiverPhoneEl.value,
+                        receiverAddress: receiverAddressEl.value,
+                    };
+                    customerDatabase.push(newCustomer);
+                }
+                
+                saveCustomerDB();
+                renderCustomerDatabaseTable();
+                clearCustomerForm();
+                currentEditCustomerId = null;
+                submitCustomerBtn.textContent = 'Submit Customer to Database';
+                submitCustomerBtn.classList.remove('btn-secondary'); 
+                
+                document.querySelector('[data-tab="tab-customer-database"]').click();
+            });
+
+            // Tab 2 (Customer Database) Listeners 
+            customerSearchEl.addEventListener('input', (e) => {
+                renderCustomerDatabaseTable(e.target.value);
+            });
+            
+            customerTableTbody.addEventListener('click', (e) => {
+                const id = parseInt(e.target.dataset.id);
+                if (!id) return;
+
+                if (e.target.classList.contains('btn-delete-db')) {
+                    if (confirm('Are you sure you want to permanently delete this customer from the database?')) {
+                        customerDatabase = customerDatabase.filter(c => c.id !== id);
+                        saveCustomerDB();
+                        renderCustomerDatabaseTable(customerSearchEl.value); 
+                    }
+                }
+                
+                if (e.target.classList.contains('btn-edit')) {
+                    const customer = customerDatabase.find(c => c.id === id);
+                    if (customer) {
+                        senderNameEl.value = customer.senderName;
+                        receiverNameEl.value = customer.receiverName;
+                        receiverPhoneEl.value = customer.receiverPhone;
+                        receiverAddressEl.value = customer.receiverAddress;
+                        
+                        currentEditCustomerId = id;
+                        submitCustomerBtn.textContent = 'Save Changes to Database';
+                        submitCustomerBtn.classList.add('btn-secondary'); 
+                        
+                        document.querySelector('[data-tab="tab-customer-details"]').click();
+                    }
+                }
+                
+                if (e.target.classList.contains('btn-use')) {
+                    const customer = customerDatabase.find(c => c.id === id);
+                    if (customer) {
+                        senderNameEl.value = customer.senderName;
+                        receiverNameEl.value = customer.receiverName;
+                        receiverPhoneEl.value = customer.receiverPhone;
+                        receiverAddressEl.value = customer.receiverAddress;
+                        
+                        renderTable(); 
+                        saveData(); 
+                        
+                        document.querySelector('[data-tab="tab-customer-details"]').click();
+                    }
+                }
+            });
+
+
+            // --- Tab 3 (Shipment Tracker) Listeners (Auto-save) ---
+            const flightFieldsToAutoSave = [
+                flightAirlineEl, flightNumberEl, flightEtdEl, flightEtaEl, flightNotesEl
+            ];
+            flightFieldsToAutoSave.forEach(field => {
+                field.addEventListener('input', saveData);
+            });
+
+            // --- Tab 4 (Payment Tracker) Listeners (Auto-save & Calculate) ---
+            const paymentFieldsToAutoSave = [
+                paymentPaidEl, paymentMethodEl, paymentNotesEl
+            ];
+            paymentFieldsToAutoSave.forEach(field => {
+                field.addEventListener('input', () => {
+                    calculatePaymentBalance();
+                    saveData();
+                });
+            });
+
+
+            // --- 5. PDF & Excel Export Functions ---
+            function addPdfBranding(doc, title) {
+                doc.setFontSize(18);
+                doc.setFont("helvetica", "bold");
+                doc.text("📦 Bee26 Cargo Services", 14, 22);
+                doc.setFontSize(12);
+                doc.setFont("helvetica", "normal");
+                doc.setFontSize(16);
+                doc.setFont("helvetica", "bold");
+                doc.text(title, 105, 32, { align: "center" });
+                doc.setFontSize(9);
+                doc.setFont("helvetica", "normal");
+                doc.text("Bee26 Cargo Services • Toronto • +1 416-474-4994", 105, 285, { align: "center" });
+            }
+
+            function generatePDF(docType) {
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF();
+                
+                addPdfBranding(doc, docType);
+
+                doc.setFontSize(10);
+                doc.setFont("helvetica", "bold");
+                doc.text("FROM (Sender):", 14, 45);
+                doc.text("TO (Receiver):", 105, 45);
+
+                doc.setFont("helvetica", "normal");
+                doc.text(senderNameEl.value, 14, 50);
+                doc.text("Bee26 Cargo Services", 14, 55);
+                doc.text("Toronto, ON, Canada", 14, 60);
+
+                doc.text(receiverNameEl.value, 105, 50);
+                doc.text(receiverPhoneEl.value, 105, 55);
+                const receiverAddressLines = doc.splitTextToSize(receiverAddressEl.value, 80);
+                doc.text(receiverAddressLines, 105, 60);
+
+                let tableStartY = 75;
+                if (docType === 'Commercial Invoice') {
+                    doc.setFont("helvetica", "bold");
+                    doc.text("Invoice #: ", 14, tableStartY);
+                    doc.text("Date: ", 105, tableStartY);
+                    doc.setFont("helvetica", "normal");
+                    doc.text(invoiceNumberEl.value, 40, tableStartY);
+                    doc.text(invoiceDateEl.value, 120, tableStartY);
+                    
+                    if (hsCodeEl.value) {
+                        doc.setFont("helvetica", "bold");
+                        doc.text("HS Code (Overall): ", 14, tableStartY + 5);
+                        doc.setFont("helvetica", "normal");
+                        doc.text(hsCodeEl.value, 45, tableStartY + 5);
+                    }
+                    tableStartY += 15;
+                }
+
+                const tableHead = [
+                    ['Qty', 'Description', 'Remarks', 'Unit Value (CAD)', 'Total Value (CAD)', 'Unit Wt. (kg)', 'Total Wt. (kg)']
+                ];
+                const tableBody = items.map(item => [
+                    item.qty,
+                    item.desc,
+                    item.remarks,
+                    item.value.toFixed(2),
+                    (item.qty * item.value).toFixed(2),
+                    item.weight.toFixed(2),
+                    (item.qty * item.weight).toFixed(2)
+                ]);
+
+                doc.autoTable({
+                    head: tableHead,
+                    body: tableBody,
+                    startY: tableStartY,
+                    theme: 'grid'
+                });
+
+                const finalY = doc.autoTable.previous.finalY;
+                const totalWeight = items.reduce((sum, item) => sum + (item.qty * item.weight), 0);
+                const totalValue = items.reduce((sum, item) => sum + (item.qty * item.value), 0);
+                const totalQty = items.reduce((sum, item) => sum + item.qty, 0);
+
+                doc.setFontSize(11);
+                doc.setFont("helvetica", "bold");
+                doc.text(`Total Quantity: ${totalQty} pcs`, 14, finalY + 10);
+                doc.text(`Total Packages: ${totalPackagesEl.value || 'N/A'}`, 14, finalY + 17);
+                doc.text(`Total Net Weight: ${totalWeight.toFixed(2)} kg`, 105, finalY + 10);
+                doc.text(`Total Declared Value: $${totalValue.toFixed(2)} CAD`, 105, finalY + 17);
+                doc.setFontSize(10);
+                doc.setFont("helvetica", "bold");
+                doc.text("Declaration: Personal Use – Not for Resale", 14, finalY + 30);
+
+                const fileName = `${docType.replace(' ', '_')}_${invoiceNumberEl.value || 'Shipment'}.pdf`;
+                doc.save(fileName);
+            }
+
+            function generateExcel() {
+                const infoData = [
+                    ["Shipment Details", ""],
+                    ["Sender Name", senderNameEl.value],
+                    ["Receiver Name", receiverNameEl.value],
+                    ["Receiver Phone", receiverPhoneEl.value],
+                    ["Receiver Address", receiverAddressEl.value],
+                    ["", ""],
+                    ["Invoice #", invoiceNumberEl.value],
+                    ["Date", invoiceDateEl.value],
+                    ["Total Packages", totalPackagesEl.value],
+                    ["HS Code", hsCodeEl.value]
+                ];
+                const wsInfo = XLSX.utils.aoa_to_sheet(infoData);
+                
+                const itemsHeader = [
+                    'Description', 'Quantity', 'Unit Weight (kg)', 'Total Weight (kg)', 'Unit Value (CAD)', 'Total Value (CAD)', 'Remarks'
+                ];
+                const itemsBody = items.map(item => [
+                    item.desc,
+                    item.qty,
+                    item.weight,
+                    item.qty * item.weight,
+                    item.value,
+                    item.qty * item.value,
+                    item.remarks
+                ]);
+                
+                const totalQty = items.reduce((sum, item) => sum + item.qty, 0);
+                const totalWeight = items.reduce((sum, item) => sum + (item.qty * item.weight), 0);
+                const totalValue = items.reduce((sum, item) => sum + (item.qty * item.value), 0);
+                
+                const itemsFooter = [
+                    'TOTAL', totalQty, '', totalWeight.toFixed(2), '', totalValue.toFixed(2), ''
+                ];
+                
+                const wsItems = XLSX.utils.aoa_to_sheet([itemsHeader, ...itemsBody, [], itemsFooter]);
+
+                const wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, wsInfo, "Shipment Info");
+                XLSX.utils.book_append_sheet(wb, wsItems, "Packing List");
+
+                const fileName = `Bee26_Shipment_${invoiceNumberEl.value || ''}.xlsx`;
+                XLSX.writeFile(wb, fileName);
+            }
+
+            // --- 6. Connect buttons to export functions ---
+            exportPackingListPDF.addEventListener('click', () => generatePDF('Packing List'));
+            exportInvoicePDF.addEventListener('click', () => generatePDF('Commercial Invoice'));
+            
+            exportPackingListExcel.addEventListener('click', generateExcel);
+            exportInvoiceExcel.addEventListener('click', generateExcel);
+
+            // --- 7. Load data when the app starts ---
+            loadData();
+        });
+    </script>
+
+</body>
+</html>
