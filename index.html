@@ -486,6 +486,7 @@
             }
             body {
                 flex-direction: column; /* Stack sidebar and content */
+                font-size: 14px; /* Smaller base font for mobile */
             }
             .sidebar {
                 height: auto;
@@ -501,14 +502,16 @@
                 margin-top: 0;
             }
             .sidebar-nav li a {
-                margin: 0.25rem;
-                padding: 0.5rem 0.75rem;
+                margin: 0.1rem; /* Tighter margin */
+                padding: 0.4rem 0.5rem; /* Smaller padding */
                 text-align: center;
+                font-size: 0.8rem; /* Smaller nav font */
             }
             .sidebar-header {
                 text-align: center;
                 border-bottom: none;
                 padding-bottom: 0.5rem; /* Reduced padding */
+                font-size: 1.1rem; /* Smaller header font */
             }
 
             .main-content-area {
@@ -518,34 +521,78 @@
                 overflow-y: visible;
             }
 
-            header { padding: 1rem; } 
-            header h1 { font-size: 1.25rem; }
-            .container { padding: 0 1rem; } 
-            #tab-customer-database .container { padding: 0 1rem; } 
+            header { padding: 0.75rem 1rem; } /* Reduced header padding */
+            header h1 { font-size: 1.1rem; } /* Smaller main title */
+            .container { padding: 0 0.75rem; } /* Tighter container padding */
+            #tab-customer-database .container { padding: 0 0.75rem; } 
 
             .card {
-                padding: 1rem;
+                padding: 1rem; /* Reduced card padding */
             }
+            .card h2 { font-size: 1rem; }
+            .card h3 { font-size: 0.9rem; }
+
             .form-grid, .form-grid-half {
                 grid-template-columns: 1fr;
             }
             .item-form-grid {
                 grid-template-columns: 1fr; /* Stack add-item form */
             }
+            
+            /* Smaller forms */
+            .input-group label {
+                font-size: 0.8rem;
+                margin-bottom: 0.25rem;
+            }
+            .input-group input[type="text"],
+            .input-group input[type="tel"],
+            .input-group input[type="number"],
+            .input-group input[type="date"],
+            .input-group input[type="file"],
+            .input-group textarea,
+            .input-group select {
+                padding: 0.6rem;
+                font-size: 0.9rem;
+            }
+            .btn {
+                padding: 0.6rem 1rem;
+                font-size: 0.9rem;
+            }
+            .summary-input {
+                padding: 0.4rem;
+                font-size: 0.9rem;
+            }
 
+            /* Tighter, smaller tables */
             #itemTable {
                 display: block;
                 overflow-x: auto;
                 white-space: nowrap;
             }
             #itemTable th, #itemTable td {
-                min-width: 100px;
+                min-width: 80px; /* Adjust min width */
+                font-size: 0.8rem; /* Smaller table font */
+                padding: 0.5rem; /* Smaller padding */
             }
             #itemTable th:first-child, #itemTable td:first-child {
-                min-width: 200px; /* Give description more space */
+                min-width: 150px; /* Give description more space */
             }
+            
+            .table-google-sheets {
+                font-size: 0.7rem; /* Very small font for DB table */
+            }
+            .table-google-sheets th,
+            .table-google-sheets td {
+                padding: 0.4rem;
+            }
+            .btn-table {
+                font-size: 0.7rem;
+                padding: 0.1rem 0.3rem;
+            }
+
             .info-grid {
-                grid-template-columns: 100px 1fr;
+                grid-template-columns: 80px 1fr; /* Smaller label column */
+                font-size: 0.9rem;
             }
         }
     </style>
@@ -858,8 +905,12 @@
 
     </div> 
     
+    <!-- PDF & Excel Libraries (ADDED) -->
+    <!-- jsPDF Core Library -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <!-- jsPDF AutoTable Plugin (used for tables in PDFs) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+    <!-- SheetJS (XLSX) Library (used for Excel export) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     
     <script type="module">
@@ -1747,3 +1798,4 @@
 
 </body>
 </html>
+
