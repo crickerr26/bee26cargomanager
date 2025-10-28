@@ -2,13 +2,23 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
     <title>Bee26 Cargo App</title>
     
    <style>
         /* --- Basic Setup & Fonts --- */
         :root {
             --blue: #007aff;
+            --blue-light: #e6f2ff;
+            --green: #28a745;
+            --green-light: #e9f7eb;
+            --red: #c70000;
+            --red-light: #fff1f0;
+            --orange: #d46b08;
+            --orange-light: #fffbe6;
+            --purple: #5856d6;
+            --teal: #20c997;
+            
             --grey-light: #f0f0f5;
             --grey-mid: #e5e5ea;
             --grey-dark: #8a8a8e;
@@ -25,7 +35,7 @@
             background-color: var(--grey-light);
             color: var(--text-primary);
             margin: 0;
-            display: flex; /* Enable flexbox for layout */
+            overflow-x: hidden; /* Prevent horizontal scroll */
         }
 
         /* --- Sidebar Styles --- */
@@ -34,17 +44,18 @@
             background-color: var(--bg-white);
             border-right: 1px solid var(--grey-mid);
             height: 100vh;
-            position: fixed; /* Fixed position */
+            position: fixed; 
             top: 0;
-            left: 0;
+            left: 0; 
             padding: 1.5rem 0;
             box-sizing: border-box;
             z-index: 100;
+            transition: left 0.3s ease-in-out; 
         }
 
         .sidebar-header {
-            display: flex; /* ADDED: Flex for logo alignment */
-            align-items: center; /* ADDED: Center logo vertically */
+            display: flex; 
+            align-items: center; 
             padding: 0 1.5rem 1.5rem 1.5rem;
             font-size: 1.3rem;
             font-weight: 600;
@@ -52,11 +63,10 @@
             border-bottom: 1px solid var(--grey-light);
         }
         
-        /* NEW: Logo styles */
         .sidebar-logo {
-            width: 30px; /* Adjust size as needed */
+            width: 30px; 
             height: auto;
-            margin-right: 0.75rem; /* Space between logo and text */
+            margin-right: 0.75rem; 
         }
 
         .sidebar-nav {
@@ -84,64 +94,77 @@
             font-weight: 600;
         }
         
+        .sidebar-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.4);
+            z-index: 99;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
+        }
+        .sidebar-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
         /* --- Main Content Area Styles --- */
         .main-content-area {
-            margin-left: var(--sidebar-width); /* Offset by sidebar width */
+            margin-left: var(--sidebar-width); 
             width: calc(100% - var(--sidebar-width));
             height: 100vh;
-            overflow-y: auto; /* Allow this area to scroll */
+            overflow-y: auto; 
             position: relative;
-            padding-bottom: 80px; /* Space for footer */
+            padding-bottom: 80px; 
             box-sizing: border-box;
+            overflow-x: hidden; 
         }
         
         .tab-content {
-            display: none; /* Hide all tabs by default */
+            display: none; 
         }
         .tab-content.active {
-            display: block; /* Show only the active tab */
+            display: block; 
         }
         
         /* --- Customer Database Styles --- */
         #tab-customer-database .container { 
-            max-width: none; /* Make container full width */
-            padding: 0 1.5rem; /* Add horizontal padding */
+            max-width: none; 
+            padding: 0 1.5rem; 
         }
 
         .table-container {
             width: 100%;
-            /* overflow-x: auto; */ /* REMOVED: User requested no horizontal scroll */
         }
         
-        /* UPDATED: Customer DB Table Styles */
         .table-google-sheets {
             width: 100%;
             border-collapse: collapse;
-            font-size: 0.7rem; /* UPDATED: Smaller font size per request */
+            font-size: 0.7rem; 
             border: 1px solid var(--grey-mid);
-            /* table-layout: fixed; */ /* Let browser auto-layout first */
         }
         .table-google-sheets th,
         .table-google-sheets td {
             border: 1px solid var(--grey-mid);
-            padding: 0.3rem 0.4rem; /* UPDATED: Tighter padding */
+            padding: 0.3rem 0.4rem; 
             text-align: left;
             vertical-align: middle;
-            /* white-space: nowrap; */ /* REMOVED: Allow text wrapping */
-            word-wrap: break-word; /* ADDED: Force long words to break */
+            word-wrap: break-word; 
         }
         .table-google-sheets th {
             background-color: #f9f9f9;
-            font-weight: 700; /* UPDATED: Bolder heading per request */
+            font-weight: 700; 
             color: var(--text-secondary);
-            position: sticky; /* Keep headers visible on scroll */
+            position: sticky; 
             top: 0;
             z-index: 1;
         }
-        /* Row number column style */
         .table-google-sheets th:first-child,
         .table-google-sheets td:first-child {
-            width: 30px; /* Fixed width for row number */
+            width: 30px; 
             text-align: center;
             color: var(--text-secondary);
         }
@@ -151,29 +174,28 @@
         .table-google-sheets tbody tr:hover {
             background-color: var(--grey-light);
         }
-        .table-google-sheets td:last-child { /* Actions column */
-            white-space: nowrap; /* Keep buttons together */
+        .table-google-sheets td:last-child { 
+            white-space: nowrap; 
             text-align: center;
         }
         
-        /* NEW: Styles for inputs/selects inside the table */
         .table-google-sheets input[type="text"],
         .table-google-sheets input[type="number"],
         .table-google-sheets select {
             width: 100%;
-            box-sizing: border-box; /* Include padding/border in width */
-            font-size: 0.7rem; /* Match table font */
+            box-sizing: border-box; 
+            font-size: 0.7rem; 
             padding: 0.2rem;
             border: 1px solid var(--grey-mid);
             border-radius: 4px;
             font-family: var(--font-family);
         }
         .table-google-sheets input[type="number"] {
-            -moz-appearance: textfield; /* Hide number spinners */
+            -moz-appearance: textfield; 
         }
         .table-google-sheets input::-webkit-outer-spin-button,
         .table-google-sheets input::-webkit-inner-spin-button {
-            -webkit-appearance: none; /* Hide number spinners */
+            -webkit-appearance: none; 
             margin: 0;
         }
         .table-google-sheets input:focus,
@@ -183,48 +205,45 @@
             box-shadow: 0 0 0 1px var(--blue);
         }
         
-        /* NEW: Color styles for status dropdowns */
         .table-google-sheets select.payment-status-paid {
-            color: #28a745; /* Green */
-            border-color: #28a745;
+            color: var(--green);
+            border-color: var(--green);
             font-weight: 600;
         }
         .table-google-sheets select.payment-status-not-paid {
-            color: #c70000; /* Red */
-            border-color: #c70000;
+            color: var(--red);
+            border-color: var(--red);
             font-weight: 600;
         }
         .table-google-sheets select.delivery-status-pending {
-            color: #d46b08; /* Yellow/Orange */
-            border-color: #ffe58f;
+            color: var(--orange);
+            border-color: var(--orange-light);
         }
         .table-google-sheets select.delivery-status-shipped {
-            color: var(--blue); /* Blue */
+            color: var(--blue);
             border-color: var(--blue);
         }
         .table-google-sheets select.delivery-status-delivered {
-            color: #28a745; /* Green */
-            border-color: #28a745;
+            color: var(--green);
+            border-color: var(--green);
         }
-        /* END NEW DB TABLE STYLES */
 
         .btn-table {
-            font-size: 0.7rem; /* Smaller button font */ 
-            padding: 0.2rem 0.4rem; /* Smaller button padding */ 
+            font-size: 0.7rem; 
+            padding: 0.2rem 0.4rem; 
             margin-right: 0.2rem;
-            border-radius: 4px; /* Smaller radius */
+            border-radius: 4px; 
         }
-        /* END UPDATED Styles */
         
         .btn-edit {
-            background-color: #fffbe6;
-            color: #d46b08;
+            background-color: var(--orange-light);
+            color: var(--orange);
             border: 1px solid #ffe58f;
         }
         .btn-edit:hover { background-color: #fff1c2; }
         .btn-delete-db {
-            background-color: #fff1f0;
-            color: #c70000;
+            background-color: var(--red-light);
+            color: var(--red);
             border: 1px solid #ffccc7;
         }
         .btn-delete-db:hover { background-color: #ffe8e6; }
@@ -248,6 +267,26 @@
             color: var(--text-primary);
             margin: 0; 
         }
+
+        .hamburger-btn {
+            display: none; 
+            width: 30px;
+            height: 30px;
+            padding: 0;
+            background: none;
+            border: none;
+            cursor: pointer;
+            z-index: 10;
+        }
+        .hamburger-btn span {
+            display: block;
+            width: 100%;
+            height: 3px;
+            background-color: var(--text-primary);
+            margin: 5px 0;
+            border-radius: 3px;
+        }
+
 
         footer {
             width: 100%;
@@ -290,6 +329,14 @@
             margin-right: 0.75rem;
             font-size: 1.5rem;
         }
+        
+        .icon-customer { color: var(--blue); }
+        .icon-items { color: var(--purple); }
+        .icon-summary { color: var(--teal); }
+        .icon-database { color: var(--orange); }
+        .icon-shipment { color: var(--blue); }
+        .icon-payment { color: var(--green); }
+        
 
         .card h3 {
             font-size: 1.1rem;
@@ -314,7 +361,6 @@
             gap: 1rem;
         }
         
-        /* Form grid for main customer details */
         .form-grid {
             grid-template-columns: 1fr 1fr;
         }
@@ -323,14 +369,13 @@
             max-width: 500px;
         }
         .form-grid .full-width,
-        .item-form-grid .full-width { /* UPDATED */
+        .item-form-grid .full-width { 
             grid-column: 1 / -1;
         }
 
-        /* Form grid for adding items (UPDATED) */
         .item-form-grid {
-            grid-template-columns: 1fr 1fr; /* UPDATED: 2-column layout */
-            gap: 1rem; /* UPDATED: Consistent gap */
+            grid-template-columns: 1fr 1fr; 
+            gap: 1rem; 
             align-items: flex-end;
             margin-top: 1rem;
             border-top: 1px solid var(--grey-light);
@@ -343,7 +388,7 @@
         }
         .item-form-grid .btn-add {
             width: auto;
-            flex-grow: 1; /* Make Add/Update button fill space */
+            flex-grow: 1; 
         }
         .item-form-grid #cancelEditBtn {
             width: auto;
@@ -362,6 +407,15 @@
             margin-bottom: 0.5rem;
         }
 
+        /* NEW: Mandatory red dot */
+        .input-group label.required::after {
+            content: ' •';
+            color: var(--red);
+            font-weight: 700;
+            display: inline-block;
+            margin-left: 2px;
+        }
+
         .input-group input[type="text"],
         .input-group input[type="tel"],
         .input-group input[type="number"],
@@ -377,6 +431,8 @@
             box-sizing: border-box; 
             background-color: #fdfdfd;
             font-family: var(--font-family); 
+            border-left: 3px solid var(--grey-mid);
+            transition: border-color 0.2s ease;
         }
         .input-group input[type="file"] {
             padding: 0.5rem;
@@ -386,6 +442,7 @@
         .input-group input[disabled] { 
             background-color: var(--grey-light);
             color: var(--text-secondary);
+            border-left-color: var(--grey-dark);
         }
 
         .input-group input:focus,
@@ -393,8 +450,39 @@
         .input-group select:focus { 
             outline: none;
             border-color: var(--blue);
-            box-shadow: 0 0 0 2px rgba(0,122,255,0.2);
+            border-left: 3px solid var(--blue);
         }
+        
+        .input-group select.status-pending {
+            border-left-color: var(--orange);
+            background-color: var(--orange-light);
+        }
+        .input-group select.status-shipped,
+        .input-group select.status-in-transit {
+            border-left-color: var(--blue);
+            background-color: var(--blue-light);
+        }
+        .input-group select.status-delivered {
+            border-left-color: var(--green);
+            background-color: var(--green-light);
+        }
+        .input-group select.status-exception {
+            border-left-color: var(--red);
+            background-color: var(--red-light);
+        }
+        .input-group select.status-not-paid {
+            border-left-color: var(--red);
+            background-color: var(--red-light);
+        }
+        .input-group select.status-partially-paid {
+            border-left-color: var(--orange);
+            background-color: var(--orange-light);
+        }
+        .input-group select.status-paid {
+            border-left-color: var(--green);
+            background-color: var(--green-light);
+        }
+        
         
         .info-grid {
             display: grid;
@@ -443,44 +531,28 @@
         }
 
         .btn-secondary {
-            background-color: var(--grey-mid);
-            color: var(--text-primary);
+            background-color: var(--blue-light);
+            color: var(--blue);
+            border: 1px solid var(--blue-light);
         }
         .btn-secondary:hover {
-            background-color: var(--grey-dark);
-            color: var(--bg-white);
-        }
-        
-        .btn-print {
-            background-color: var(--grey-mid);
-            color: var(--text-primary);
-        }
-        .btn-print:hover {
-            background-color: var(--grey-dark);
-            color: var(--bg-white);
-        }
-
-        /* NEW: Toggle Button Styles */
-        .btn-toggle {
-            padding: 0.75rem;
-            font-size: 1rem;
-            font-weight: 600;
-            border: 1px solid var(--grey-mid);
-            border-radius: 8px;
-            cursor: pointer;
-            background-color: var(--grey-light);
-            color: var(--text-secondary);
-            text-align: center;
-            transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
-            width: 100%; /* Make it full width of its grid cell */
-            box-sizing: border-box; /* Include padding in width */
-        }
-        .btn-toggle.used {
             background-color: var(--blue);
             color: var(--bg-white);
             border-color: var(--blue);
         }
-        /* End Toggle Button Styles */
+        
+        .btn-print {
+            background-color: var(--blue-light);
+            color: var(--blue);
+            border: 1px solid var(--blue-light);
+        }
+        .btn-print:hover {
+            background-color: var(--blue);
+            color: var(--bg-white);
+            border-color: var(--blue);
+        }
+
+        /* .btn-toggle REMOVED, REPLACED BY SELECT */
 
         .btn-edit-item {
             background: none;
@@ -504,7 +576,7 @@
             padding: 0.5rem;
         }
         .btn-delete:hover {
-            color: #c70000;
+            color: var(--red);
         }
 
         .button-group {
@@ -516,7 +588,7 @@
         .history-buttons {
             display: flex;
             gap: 0.75rem;
-            margin-bottom: -0.5rem; /* Pull cards up slightly */
+            margin-bottom: -0.5rem; 
         }
         
         .btn-history {
@@ -561,14 +633,15 @@
             background-color: #f9f9f9;
         }
         
-        /* Item Table Column widths (UPDATED for 7 columns) */
-        #itemTable th:nth-child(1), #itemTable td:nth-child(1) { width: 30%; } /* Description */
-        #itemTable th:nth-child(2), #itemTable td:nth-child(2) { width: 20%; } /* Category */
-        #itemTable th:nth-child(3), #itemTable td:nth-child(3) { width: 8%; }  /* Qty */
-        #itemTable th:nth-child(4), #itemTable td:nth-child(4) { width: 12%; } /* Unit Val */
-        #itemTable th:nth-child(5), #itemTable td:nth-child(5) { width: 12%; } /* Total Val */
-        #itemTable th:nth-child(6), #itemTable td:nth-child(6) { width: 18%; } /* Remarks */
-        #itemTable th:nth-child(7), #itemTable td:nth-child(7) { width: 10%; text-align: center; } /* Actions */
+        /* UPDATED: Item Table Column widths (for 8 columns) */
+        #itemTable th:nth-child(1), #itemTable td:nth-child(1) { width: 25%; } /* Description */
+        #itemTable th:nth-child(2), #itemTable td:nth-child(2) { width: 15%; } /* Brand (NEW) */
+        #itemTable th:nth-child(3), #itemTable td:nth-child(3) { width: 15%; } /* Category */
+        #itemTable th:nth-child(4), #itemTable td:nth-child(4) { width: 8%; }  /* Qty */
+        #itemTable th:nth-child(5), #itemTable td:nth-child(5) { width: 10%; } /* Unit Val */
+        #itemTable th:nth-child(6), #itemTable td:nth-child(6) { width: 10%; } /* Total Val */
+        #itemTable th:nth-child(7), #itemTable td:nth-child(7) { width: 12%; } /* Remarks */
+        #itemTable th:nth-child(8), #itemTable td:nth-child(8) { width: 5%; text-align: center; } /* Actions */
 
 
         /* --- Summary Section --- */
@@ -597,53 +670,53 @@
 
         /* --- Mobile-First Responsive --- */
         @media (max-width: 1024px) { 
-             :root {
-                --sidebar-width: 100%;
-            }
             body {
-                flex-direction: column; /* Stack sidebar and content */
-                font-size: 14px; /* Smaller base font for mobile */
+                font-size: 14px; 
             }
+            
             .sidebar {
-                height: auto;
-                position: relative; /* Change from fixed to relative */
-                width: 100%;
+                left: calc(-1 * var(--sidebar-width)); 
+                z-index: 101; 
                 border-right: none;
-                border-bottom: 1px solid var(--grey-mid);
-                z-index: 1; /* Ensure it doesn't overlap content weirdly */
+                box-shadow: 2px 0 10px rgba(0,0,0,0.1);
             }
-            .sidebar-nav {
+            .sidebar.active {
+                left: 0; 
+            }
+            
+            header {
+                position: relative; 
+                padding: 0.75rem 1rem;
+                padding-left: 50px; 
+            }
+            header h1 { 
+                font-size: 1.1rem; 
+                line-height: 30px; 
+                height: 30px;
+            }
+
+            .hamburger-btn {
                 display: flex;
-                justify-content: space-around; /* Spread out links */
-                margin-top: 0;
-            }
-            .sidebar-nav li a {
-                margin: 0.1rem; /* Tighter margin */
-                padding: 0.4rem 0.5rem; /* Smaller padding */
-                text-align: center;
-                font-size: 0.8rem; /* Smaller nav font */
-            }
-            .sidebar-header {
-                text-align: center;
-                border-bottom: none;
-                padding-bottom: 0.5rem; /* Reduced padding */
-                font-size: 1.1rem; /* Smaller header font */
+                flex-direction: column;
+                justify-content: center;
+                position: absolute;
+                left: 1rem;
+                top: 50%;
+                transform: translateY(-50%);
             }
 
             .main-content-area {
-                margin-left: 0; /* Remove margin */
+                margin-left: 0; 
                 width: 100%;
                 height: auto;
                 overflow-y: visible;
             }
 
-            header { padding: 0.75rem 1rem; } /* Reduced header padding */
-            header h1 { font-size: 1.1rem; } /* Smaller main title */
-            .container { padding: 0 0.75rem; } /* Tighter container padding */
+            .container { padding: 0 0.75rem; } 
             #tab-customer-database .container { padding: 0 0.75rem; } 
 
             .card {
-                padding: 1rem; /* Reduced card padding */
+                padding: 1rem; 
             }
             .card h2 { font-size: 1rem; }
             .card h3 { font-size: 0.9rem; }
@@ -652,7 +725,7 @@
                 grid-template-columns: 1fr;
             }
             .item-form-grid {
-                grid-template-columns: 1fr; /* Stack add-item form */
+                grid-template-columns: 1fr; 
             }
             .item-form-grid .button-container {
                 flex-direction: column;
@@ -662,7 +735,6 @@
                 flex-grow: 0 !important;
             }
             
-            /* Smaller forms */
             .input-group label {
                 font-size: 0.8rem;
                 margin-bottom: 0.25rem;
@@ -673,8 +745,7 @@
             .input-group input[type="date"],
             .input-group input[type="file"],
             .input-group textarea,
-            .input-group select,
-            .btn-toggle { /* UPDATED */
+            .input-group select { 
                 padding: 0.6rem;
                 font-size: 0.9rem;
             }
@@ -687,43 +758,39 @@
                 font-size: 0.9rem;
             }
 
-            /* Tighter, smaller tables */
             #itemTable {
                 display: block;
                 overflow-x: auto;
                 white-space: nowrap;
             }
             #itemTable th, #itemTable td {
-                min-width: 80px; /* Adjust min width */
-                font-size: 0.8rem; /* Smaller table font */
-                padding: 0.5rem; /* Smaller padding */
+                min-width: 80px; 
+                font-size: 0.8rem; 
+                padding: 0.5rem; 
             }
             #itemTable th:first-child, #itemTable td:first-child {
-                min-width: 150px; /* Give description more space */
+                min-width: 150px; 
             }
             
-            /* UPDATED: Mobile Customer DB Table Styles */
-            /* Force horizontal scroll on mobile since table has too many columns to fit */
             .table-container {
                 overflow-x: auto;
             }
             .table-google-sheets {
-                font-size: 0.7rem; /* Even smaller font */
+                font-size: 0.7rem; 
             }
             .table-google-sheets th,
             .table-google-sheets td {
-                padding: 0.3rem 0.4rem; /* Even tighter padding */
-                min-width: 60px; /* Smaller min width */
-                white-space: nowrap; /* Force nowrap on mobile to work with scroll */
+                padding: 0.3rem 0.4rem; 
+                min-width: 60px; 
+                white-space: nowrap; 
             }
             .btn-table {
-                font-size: 0.65rem; /* Smaller button font */
-                padding: 0.1rem 0.3rem; /* Smaller button padding */
+                font-size: 0.65rem; 
+                padding: 0.1rem 0.3rem; 
             }
-            /* END UPDATED Mobile Styles */
 
             .info-grid {
-                grid-template-columns: 80px 1fr; /* Smaller label column */
+                grid-template-columns: 80px 1fr; 
                 font-size: 0.9rem;
             }
         }
@@ -731,7 +798,7 @@
 </head>
 <body>
 
-    <nav class="sidebar">
+    <nav class="sidebar" id="sidebar">
         <div class="sidebar-header">
             <img src="https://raw.githubusercontent.com/crickerr26/bee26cargomanager/main/BEE26.jpg" alt="Bee26 Cargo Logo" class="sidebar-logo">
             Bee26 Cargo
@@ -743,12 +810,19 @@
             <li><a href="#" class="sidebar-link" data-tab="tab-payment-tracker">Payment Tracker</a></li>
         </ul>
     </nav>
+    
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
     <div class="main-content-area">
 
         <header>
+            <button class="hamburger-btn" id="hamburgerBtn">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
             <h1>Personal Cargo Manager</h1>
-            </header>
+        </header>
 
         <div class="tab-container">
 
@@ -761,27 +835,27 @@
                     </div>
 
                     <section class="card">
-                        <h2><span class="icon">👤</span> Customer Details</h2>
+                        <h2><span class="icon icon-customer">👤</span> Customer Details</h2>
                         <div class="form-grid">
                             <div class="input-group">
-                                <label for="senderName">Sender Name</label>
-                                <input type="text" id="senderName" placeholder="John Doe">
+                                <label for="senderName" class="required">Sender Name</label>
+                                <input type="text" id="senderName" placeholder="John Doe" required>
                             </div>
                             <div class="input-group">
-                                <label for="receiverName">Receiver Name</label>
-                                <input type="text" id="receiverName" placeholder="Jane Smith">
+                                <label for="receiverName" class="required">Receiver Name</label>
+                                <input type="text" id="receiverName" placeholder="Jane Smith" required>
                             </div>
                             <div class="input-group">
-                                <label for="senderPhone">Sender Phone (Canada)</label>
-                                <input type="tel" id="senderPhone" placeholder="+1 416 123 4567">
+                                <label for="senderPhone" class="required">Sender Phone (Canada)</label>
+                                <input type="tel" id="senderPhone" placeholder="+1 416 123 4567" required>
                             </div>
                             <div class="input-group">
-                                <label for="receiverPhone">Receiver Phone (Sri Lanka)</label>
-                                <input type="tel" id="receiverPhone" placeholder="+94 77 123 4567">
+                                <label for="receiverPhone" class="required">Receiver Phone (Sri Lanka)</label>
+                                <input type="tel" id="receiverPhone" placeholder="+94 77 123 4567" required>
                             </div>
                             <div class="input-group full-width">
-                                <label for="receiverAddress">Receiver Address (Sri Lanka)</label>
-                                <textarea id="receiverAddress" rows="3" placeholder="No. 123, Main Street, Colombo 03"></textarea>
+                                <label for="receiverAddress" class="required">Receiver Address (Sri Lanka)</label>
+                                <textarea id="receiverAddress" rows="3" placeholder="No. 123, Main Street, Colombo 03" required></textarea>
                             </div>
                             <div class="input-group full-width">
                                 <label for="fileUpload">Attach ID (NIC, Passport) - Optional</label>
@@ -796,12 +870,12 @@
                         </section>
             
                     <section class="card">
-                        <h2><span class="icon">🛍️</span> Itemized List</h2>
+                        <h2><span class="icon icon-items">🛍️</span> Itemized List</h2>
                         <table id="itemTable">
                             <thead>
                                 <tr>
                                     <th>Description</th>
-                                    <th>Category</th>
+                                    <th>Brand</th> <th>Category</th>
                                     <th>Qty</th>
                                     <th>Unit Val. (CAD)</th>
                                     <th>Total Val.</th>
@@ -815,19 +889,19 @@
                         
                         <form id="addItemForm" class="item-form-grid">
                             <div class="input-group full-width">
-                                <label>Description</label>
+                                <label class="required">Description</label>
                                 <input type="text" id="itemDesc" placeholder="e.g., Men's T-Shirts" required>
                             </div>
                             
                             <div class="input-group">
-                                <label>Brand</label>
-                                <input type="text" id="itemBrand" list="brandList" placeholder="e.g., Nike, Sony (optional)">
+                                <label class="required">Brand</label>
+                                <input type="text" id="itemBrand" list="brandList" placeholder="e.g., Nike, Sony">
                                 <datalist id="brandList">
                                     </datalist>
                             </div>
 
                             <div class="input-group">
-                                <label>Category</label>
+                                <label class="required">Category</label>
                                 <select id="itemCategory" required>
                                     <option value="">Select category...</option>
                                     <option value="Packaged Food">Packaged Food</option>
@@ -852,16 +926,19 @@
                             </div>
                             
                             <div class="input-group">
-                                <label>Condition</label>
-                                <button type="button" id="itemConditionBtn" class="btn-toggle">New</button>
+                                <label class="required">Condition</label>
+                                <select id="itemCondition" required>
+                                    <option value="New">New</option>
+                                    <option value="Used">Used</option>
+                                </select>
                             </div>
 
                             <div class="input-group">
-                                <label>Quantity</label>
+                                <label class="required">Quantity</label>
                                 <input type="number" id="itemQty" placeholder="10" min="1" step="1" required>
                             </div>
                             <div class="input-group">
-                                <label>Unit Value (CAD)</label>
+                                <label class="required">Unit Value (CAD)</label>
                                 <input type="number" id="itemValue" placeholder="15.00" min="0" step="0.01" required>
                             </div>
                             <div class="input-group">
@@ -877,7 +954,7 @@
                     </section>
             
                     <section class="card">
-                        <h2><span class="icon">📊</span> Shipment Summary & Outputs</h2>
+                        <h2><span class="icon icon-summary">📊</span> Shipment Summary & Outputs</h2>
                         
                         <div class="output-section">
                             <h3>AWB Prep Info</h3>
@@ -944,7 +1021,7 @@
             <div id="tab-customer-database" class="tab-content">
                 <main class="container"> 
                     <section class="card">
-                        <h2><span class="icon">📂</span> Customer Database</h2>
+                        <h2><span class="icon icon-database">📂</span> Customer Database</h2>
                         <div class="input-group search-bar">
                             <label for="customerSearch">Search by Sender or Receiver Name</label>
                             <input type="text" id="customerSearch" placeholder="Search...">
@@ -977,7 +1054,7 @@
             <div id="tab-shipment-tracker" class="tab-content">
                 <main class="container">
                     <section class="card">
-                        <h2><span class="icon">✈️</span> Shipment Tracker</h2>
+                        <h2><span class="icon icon-shipment">✈️</span> Shipment Tracker</h2>
                         <div class="input-group search-bar">
                             <label for="shipmentSearch">Search by Customer Name or Invoice #</label>
                             <input type="text" id="shipmentSearch" placeholder="Search...">
@@ -1035,7 +1112,7 @@
             <div id="tab-payment-tracker" class="tab-content">
                 <main class="container">
                     <section class="card">
-                        <h2><span class="icon">💳</span> Payment Tracker</h2>
+                        <h2><span class="icon icon-payment">💳</span> Payment Tracker</h2>
                          <div class="input-group search-bar">
                             <label for="paymentSearch">Search by Customer Name or Invoice #</label>
                             <input type="text" id="paymentSearch" placeholder="Search...">
@@ -1078,7 +1155,7 @@
                                     <option value="Credit Card">Credit Card</option>
                                     <option value="Bank Deposit">Bank Deposit</option>
                                 </select>
-                            </div>
+                             </div>
                              <div class="input-group">
                                 <label for="paymentStatus">Payment Status</label>
                                 <select id="paymentStatus">
@@ -1145,12 +1222,8 @@
 
     <script type="module"> 
         
-        // Ensure DOM is ready before accessing elements or Firebase functions
-        // The DOMContentLoaded listener is crucial here
         document.addEventListener('DOMContentLoaded', () => {
 
-            // Access Firebase Database Functions made global in the previous script
-            // Ensure these are accessed *inside* DOMContentLoaded
             const db = window.firebaseDB;
             const dbRef = window.firebaseDBRef;
             const dbSet = window.firebaseDBSet;
@@ -1161,11 +1234,10 @@
             const dbUpdate = window.firebaseDBUpdate;
             const dbOnValue = window.firebaseDBOnValue;
             
-            // Defensive check if Firebase failed to initialize
             if (!db) {
                 console.error("Firebase Database reference (db) is not available!");
                 alert("Error: Cannot connect to the database. Please check Firebase setup.");
-                return; // Stop script execution if DB isn't ready
+                return; 
             }
 
 
@@ -1174,10 +1246,10 @@
             // -- Tab 1 (Customer Details) --
             const senderNameEl = document.getElementById('senderName');
             const receiverNameEl = document.getElementById('receiverName');
-            const senderPhoneEl = document.getElementById('senderPhone'); // NEW
+            const senderPhoneEl = document.getElementById('senderPhone'); 
             const receiverPhoneEl = document.getElementById('receiverPhone');
             const receiverAddressEl = document.getElementById('receiverAddress');
-            const customerRemarksEl = document.getElementById('customerRemarks'); // NEW
+            const customerRemarksEl = document.getElementById('customerRemarks'); 
             const totalPackagesEl = document.getElementById('totalPackages');
             const invoiceNumberEl = document.getElementById('invoiceNumber');
             const invoiceDateEl = document.getElementById('invoiceDate');
@@ -1189,11 +1261,11 @@
             const addItemSubmitBtn = document.getElementById('addItemSubmitBtn');
             const cancelEditBtn = document.getElementById('cancelEditBtn');
             
-            // UPDATED: Get new item form elements
             const itemDescEl = document.getElementById('itemDesc');
             const itemBrandEl = document.getElementById('itemBrand');
             const itemCategoryEl = document.getElementById('itemCategory');
-            const itemConditionBtn = document.getElementById('itemConditionBtn');
+            // UPDATED: Changed from itemConditionBtn to itemConditionEl
+            const itemConditionEl = document.getElementById('itemCondition');
             const itemRemarksEl = document.getElementById('itemRemarks');
             
             const summaryReceiver = document.getElementById('summaryReceiver');
@@ -1225,7 +1297,7 @@
             const flightNumberEl = document.getElementById('flightNumber');
             const flightEtdEl = document.getElementById('flightEtd');
             const flightEtaEl = document.getElementById('flightEta');
-            const deliveryStatusEl = document.getElementById('deliveryStatus'); // NEW
+            const deliveryStatusEl = document.getElementById('deliveryStatus'); 
             const flightNotesEl = document.getElementById('flightNotes');
 
             // -- Tab 4 (Payment Tracker) --
@@ -1236,25 +1308,29 @@
             const paymentPaidEl = document.getElementById('paymentPaid');
             const paymentBalanceEl = document.getElementById('paymentBalance');
             const paymentMethodEl = document.getElementById('paymentMethod');
-            const paymentStatusEl = document.getElementById('paymentStatus'); // NEW
+            const paymentStatusEl = document.getElementById('paymentStatus'); 
             const paymentNotesEl = document.getElementById('paymentNotes');
 
             // -- Tab Navigation --
             const sidebarLinks = document.querySelectorAll('.sidebar-link');
             const tabContents = document.querySelectorAll('.tab-content');
 
+            const hamburgerBtn = document.getElementById('hamburgerBtn');
+            const sidebar = document.getElementById('sidebar');
+            const sidebarOverlay = document.getElementById('sidebarOverlay');
+
             // --- 2. State Variables ---
             let items = [];
             let historyStack = [];
             let redoStack = [];
             
-            let customerDatabase = []; // This will be filled by Firebase
-            let knownBrands = new Set(); // NEW: For brand auto-suggest
+            let customerDatabase = []; 
+            let knownBrands = new Set(); 
             
             let currentEditCustomerId = null;
             let currentEditItemIndex = null;
-            let isAutoSaving = false; // Flag to prevent auto-save loops
-            let isDataLoaded = false; // Flag to prevent auto-save on initial load
+            let isAutoSaving = false; 
+            let isDataLoaded = false; 
 
 
             // --- 3. Core Functions ---
@@ -1268,23 +1344,22 @@
                 let totalValue = 0;
                 let totalQty = 0;
 
-                // Ensure items is an array before iterating
                 if (!Array.isArray(items)) {
                     items = []; 
                     console.warn("'items' was not an array, reset to empty array.");
                 }
 
                 items.forEach((item, index) => {
-                    // Provide default values if item properties are missing/invalid
                     const qty = parseFloat(item.qty) || 0;
-                    const weight = parseFloat(item.weight) || 0; // Still need this for summary calculation
+                    const weight = parseFloat(item.weight) || 0; 
                     const value = parseFloat(item.value) || 0;
                     const desc = item.desc || '';
+                    // UPDATED: Handle brand
+                    const brand = item.brand || '-'; // Default to dash if not present
                     const category = item.category || 'N/A';
                     const remarks = item.remarks || '';
-                    // const brand = item.brand || ''; // Brand is not shown in table, but saved in item obj
 
-                    const itemTotalWeight = qty * weight; // Still need this for summary calculation
+                    const itemTotalWeight = qty * weight; 
                     const itemTotalValue = qty * value;
                     
                     totalWeight += itemTotalWeight;
@@ -1292,8 +1367,10 @@
                     totalQty += qty;
 
                     const row = document.createElement('tr');
+                    // UPDATED: Added Brand column <td>${brand}</td>
                     row.innerHTML = `
                         <td>${desc}</td>
+                        <td>${brand}</td>
                         <td>${category}</td>
                         <td>${qty}</td>
                         <td>${value.toFixed(2)}</td>
@@ -1313,13 +1390,9 @@
             
             // --- Customer Database Functions ---
             
-            /**
-             * NEW: Helper function to apply color classes to table dropdowns
-             */
             function updateSelectColor(selectElement) {
                 if (!selectElement) return;
                 const value = selectElement.value;
-                // Clear existing status classes
                 selectElement.classList.remove(
                     'payment-status-paid', 'payment-status-not-paid',
                     'delivery-status-pending', 'delivery-status-shipped', 'delivery-status-delivered'
@@ -1341,38 +1414,44 @@
                     }
                 }
             }
+            
+            function updateFormSelectColor(selectElement) {
+                if (!selectElement) return;
+                selectElement.classList.remove(
+                    'status-pending', 'status-shipped', 'status-in-transit', 'status-delivered', 'status-exception',
+                    'status-not-paid', 'status-partially-paid', 'status-paid'
+                );
+                
+                if (selectElement.value) {
+                    const statusClass = 'status-' + selectElement.value.toLowerCase().replace(' ', '-');
+                    selectElement.classList.add(statusClass);
+                }
+            }
 
 
-            /**
-             * Renders the customer database table, with optional filter
-             * UPDATED: Now renders editable inputs and dropdowns
-             */
             function renderCustomerDatabaseTable(filter = '') {
                 customerTableTbody.innerHTML = '';
                 const searchTerm = filter.toLowerCase();
                 
-                // Ensure customerDatabase is an array
                 if (!Array.isArray(customerDatabase)) {
                     customerDatabase = [];
                     console.warn("'customerDatabase' was not an array, reset to empty array.");
                 }
                 
                 const filteredDB = customerDatabase.filter(customer => {
-                    if (!customer) return false; // Skip null/undefined entries
+                    if (!customer) return false; 
                     const senderMatch = customer.senderName && customer.senderName.toLowerCase().includes(searchTerm);
                     const receiverMatch = customer.receiverName && customer.receiverName.toLowerCase().includes(searchTerm);
                     return senderMatch || receiverMatch;
                 });
 
                 if (filteredDB.length === 0) {
-                     // UPDATED colspan
                      customerTableTbody.innerHTML = `<tr><td colspan="13">No customers found${filter ? ' matching your search' : ''}.</td></tr>`;
                      return;
                 }
 
                 filteredDB.forEach((customer, index) => { 
                     const row = document.createElement('tr');
-                    // Format the dateAdded field
                     let timestamp = 'N/A';
                     if (customer.dateAdded) {
                         try {
@@ -1380,14 +1459,12 @@
                         } catch (e) { /* ignore invalid date */ }
                     }
                     
-                    // Set defaults for fields
                     const paymentStatus = customer.paymentStatus || 'Not Paid';
                     const amount = customer.amount || '';
                     const deliveryStatus = customer.deliveryStatus || 'Pending';
                     const trackingNumber = customer.trackingNumber || '';
                     const customerRemarks = customer.customerRemarks || '';
                     
-                    // UPDATED: Build row with editable inputs and selects
                     row.innerHTML = `
                         <td>${index + 1}</td> 
                         <td>${customer.senderName || ''}</td>
@@ -1426,24 +1503,19 @@
                     customerTableTbody.appendChild(row);
                 });
                 
-                // NEW: After populating, go back and apply colors to all selects
                 customerTableTbody.querySelectorAll('select.db-field-update').forEach(select => {
                     updateSelectColor(select);
                 });
             }
             
-            /**
-             * Clears the main customer input form (UPDATED to clear everything)
-             */
             function clearCustomerForm() {
                 console.log("Clearing entire form...");
-                // Clear Customer Details
                 senderNameEl.value = '';
                 receiverNameEl.value = '';
-                senderPhoneEl.value = ''; // NEW
+                senderPhoneEl.value = ''; 
                 receiverPhoneEl.value = '';
                 receiverAddressEl.value = '';
-                customerRemarksEl.value = ''; // NEW
+                customerRemarksEl.value = ''; 
                 const fileInput = document.getElementById('fileUpload');
                 fileInput.value = ''; 
                 if (fileInput.value) { 
@@ -1453,53 +1525,44 @@
                     } catch(e) {}
                 }
                 
-                // Clear Item List and Form
-                items = []; // Clear items array
-                renderTable(); // Update table display
-                clearEditState(); // Reset item form
+                items = []; 
+                renderTable(); 
+                clearEditState(); 
 
-                // Clear Summary & Outputs
                 invoiceNumberEl.value = '';
-                invoiceDateEl.valueAsDate = new Date(); // Reset date to today
+                invoiceDateEl.valueAsDate = new Date(); 
                 hsCodeEl.value = '';
                 totalPackagesEl.value = '';
                 summaryWeightInput.value = '';
                 summaryValueInput.value = '';
                 
-                // Clear Shipment Tracker
                 flightAirlineEl.value = '';
                 flightNumberEl.value = '';
                 flightEtdEl.value = '';
                 flightEtaEl.value = '';
-                deliveryStatusEl.value = ''; // NEW
+                deliveryStatusEl.value = ''; 
                 flightNotesEl.value = '';
                 
-                // Clear Payment Tracker
                 paymentPaidEl.value = '';
                 paymentMethodEl.value = '';
-                paymentStatusEl.value = 'Not Paid'; // NEW - Reset to default
+                paymentStatusEl.value = 'Not Paid'; 
                 paymentNotesEl.value = '';
-                calculatePaymentBalance(); // Recalculate (should be 0)
+                calculatePaymentBalance(); 
 
-                // Reset Customer DB Edit State
+                updateFormSelectColor(deliveryStatusEl);
+                updateFormSelectColor(paymentStatusEl);
+
                 currentEditCustomerId = null;
                 submitCustomerBtn.textContent = 'Submit Customer to Database';
                 submitCustomerBtn.classList.remove('btn-secondary');
                  
-                // Save the empty state to Firebase
-                // Set isDataLoaded temporarily false to allow saving empty state
                 const wasDataLoaded = isDataLoaded;
-                isDataLoaded = true; // Force allow save
+                isDataLoaded = true; 
                 saveData(); 
-                isDataLoaded = wasDataLoaded; // Restore original state
+                isDataLoaded = wasDataLoaded; 
                 console.log("Form cleared and empty state saved.");
             }
-            // --- End Customer DB Functions ---
 
-
-            /**
-             * Updates the "Shipment Summary" section AND all other tracker tabs
-             */
             function updateSummary(totalQty, totalWeight, totalValue) {
                 const senderName = senderNameEl.value;
                 const receiverName = receiverNameEl.value;
@@ -1509,7 +1572,6 @@
                 const invoiceNumber = invoiceNumberEl.value;
                 const invoiceDate = invoiceDateEl.value;
 
-                // Update AWB section
                 if (receiverName && receiverAddressShort) {
                     summaryReceiver.textContent = `${receiverName}, ${receiverAddressShort}`;
                 } else if (receiverName) {
@@ -1521,8 +1583,6 @@
                 const currentWeightInputVal = parseFloat(summaryWeightInput.value);
                 const currentValueInputVal = parseFloat(summaryValueInput.value);
 
-                // Only update summary inputs if they are empty or match the calculated total
-                // This prevents overwriting manual overrides
                 if (!summaryWeightInput.value || isNaN(currentWeightInputVal) || currentWeightInputVal === totalWeight) {
                     summaryWeightInput.value = totalWeight.toFixed(2); 
                 }
@@ -1530,14 +1590,11 @@
                      summaryValueInput.value = totalValue.toFixed(2);
                 }
 
-
-                // Update Shipment Tracker Tab
                 stSenderName.textContent = senderName || '--';
                 stReceiverName.textContent = receiverName || '--';
                 stReceiverPhone.textContent = receiverPhone || '--';
                 stReceiverAddress.textContent = receiverAddress || '--';
 
-                // Update Payment Tracker Tab
                 paymentInvoiceEl.value = invoiceNumber || '';
                 paymentDateEl.value = invoiceDate || '';
                 paymentCustomerEl.value = senderName || '';
@@ -1546,9 +1603,6 @@
                 calculatePaymentBalance(); 
             }
             
-            /**
-             * NEW: Updates the brand datalist
-             */
             function updateBrandDatalist() {
                 const datalist = document.getElementById('brandList');
                 if (!datalist) return;
@@ -1560,25 +1614,19 @@
                 });
             }
 
-            /**
-             * Saves the CURRENT SHIPMENT data from ALL TABS to Firebase RTDB
-             */
             function saveData() {
-                // Only save if data has been loaded and not in the middle of another save
-                // OR if explicitly clearing the form (isDataLoaded forced true in clearCustomerForm)
                 if (isAutoSaving || !isDataLoaded) return; 
 
-                isAutoSaving = true; // Set flag
+                isAutoSaving = true; 
                 try {
                      const validItems = Array.isArray(items) ? items.filter(item => item !== null && item !== undefined) : [];
-                    // UPDATED: Include new fields in data object
                     const data = {
                         senderName: senderNameEl.value,
                         receiverName: receiverNameEl.value,
-                        senderPhone: senderPhoneEl.value, // NEW
+                        senderPhone: senderPhoneEl.value, 
                         receiverPhone: receiverPhoneEl.value,
                         receiverAddress: receiverAddressEl.value,
-                        customerRemarks: customerRemarksEl.value, // NEW
+                        customerRemarks: customerRemarksEl.value, 
                         totalPackages: totalPackagesEl.value,
                         invoiceNumber: invoiceNumberEl.value,
                         invoiceDate: invoiceDateEl.value,
@@ -1591,18 +1639,17 @@
                             number: flightNumberEl.value,
                             etd: flightEtdEl.value,
                             eta: flightEtaEl.value,
-                            deliveryStatus: deliveryStatusEl.value, // NEW
+                            deliveryStatus: deliveryStatusEl.value, 
                             notes: flightNotesEl.value,
                         },
                         paymentDetails: {
                             paid: paymentPaidEl.value,
                             method: paymentMethodEl.value,
-                            status: paymentStatusEl.value, // NEW
+                            status: paymentStatusEl.value, 
                             notes: paymentNotesEl.value,
                         }
                     };
                     
-                    // Save to a specific node in Firebase, e.g., 'currentShipment'
                     dbSet(dbRef(db, 'currentShipment'), data)
                         .then(() => {
                             // console.log("Form auto-saved to Firebase");
@@ -1611,33 +1658,28 @@
                             console.error("Error auto-saving to Firebase:", error);
                         })
                         .finally(() => {
-                            isAutoSaving = false; // Release flag
+                            isAutoSaving = false; 
                         });
 
                 } catch (error) {
                     console.error("Error preparing data for Firebase save:", error);
-                    isAutoSaving = false; // Release flag on error
+                    isAutoSaving = false; 
                 }
             }
 
-            /**
-             * Loads all data from Firebase on page start
-             */
             function loadData() {
                  console.log("Attempting to load data from Firebase...");
                  items = []; 
                  customerDatabase = [];
 
                  try {
-                    // --- 1. Load and listen for Customer Database changes ---
                     const customersRef = dbRef(db, 'customers');
                     dbOnValue(customersRef, (snapshot) => {
                         console.log("Firebase Customer DB snapshot received");
                         if (snapshot.exists()) {
                             const dbData = snapshot.val();
-                            // Convert Firebase object (with keys) to an array
                             customerDatabase = Object.keys(dbData).map(key => ({
-                                id: key, // The Firebase key is the ID
+                                id: key, 
                                 ...dbData[key]
                             }));
                         } else {
@@ -1648,39 +1690,35 @@
                     }, (error) => {
                         console.error("Error loading customer database:", error);
                         alert("Error: Could not load customer database from Firebase.");
-                        // UPDATED colspan
                         customerTableTbody.innerHTML = `<tr><td colspan="13" style="color: red;">Error loading database.</td></tr>`;
                     });
 
-                    // --- 2. Load and listen for Current Shipment Form data ---
                     const shipmentRef = dbRef(db, 'currentShipment');
                     dbOnValue(shipmentRef, (snapshot) => {
                         console.log("Firebase currentShipment snapshot received");
-                        isAutoSaving = true; // Prevent save-loop on load
+                        isAutoSaving = true; 
                         
                         if (snapshot.exists()) {
                             const data = snapshot.val();
-                            // UPDATED: Load new fields
                             senderNameEl.value = data.senderName || '';
                             receiverNameEl.value = data.receiverName || '';
-                            senderPhoneEl.value = data.senderPhone || ''; // NEW
+                            senderPhoneEl.value = data.senderPhone || ''; 
                             receiverPhoneEl.value = data.receiverPhone || '';
                             receiverAddressEl.value = data.receiverAddress || '';
-                            customerRemarksEl.value = data.customerRemarks || ''; // NEW
+                            customerRemarksEl.value = data.customerRemarks || ''; 
                             totalPackagesEl.value = data.totalPackages || '';
                             invoiceNumberEl.value = data.invoiceNumber || '';
                             invoiceDateEl.value = data.invoiceDate || '';
                             hsCodeEl.value = data.hsCode || '';
                             items = Array.isArray(data.items) ? data.items.filter(item => item) : []; 
                             
-                            // NEW: Populate knownBrands from loaded items
                             knownBrands.clear();
                             items.forEach(item => {
-                                if (item && item.brand) {
+                                if (item && item.brand && item.brand !== '-') { // Don't add dash to suggestions
                                     knownBrands.add(item.brand);
                                 }
                             });
-                            updateBrandDatalist(); // Update the datalist
+                            updateBrandDatalist(); 
                             
                             summaryWeightInput.value = data.summaryWeightOverride !== undefined ? data.summaryWeightOverride : ''; 
                             summaryValueInput.value = data.summaryValueOverride !== undefined ? data.summaryValueOverride : '';     
@@ -1690,57 +1728,51 @@
                                 flightNumberEl.value = data.flightDetails.number || '';
                                 flightEtdEl.value = data.flightDetails.etd || '';
                                 flightEtaEl.value = data.flightDetails.eta || '';
-                                deliveryStatusEl.value = data.flightDetails.deliveryStatus || ''; // NEW
+                                deliveryStatusEl.value = data.flightDetails.deliveryStatus || ''; 
                                 flightNotesEl.value = data.flightDetails.notes || '';
                             }
                             if (data.paymentDetails) {
                                 paymentPaidEl.value = data.paymentDetails.paid || '';
                                 paymentMethodEl.value = data.paymentDetails.method || '';
-                                paymentStatusEl.value = data.paymentDetails.status || 'Not Paid'; // NEW
+                                paymentStatusEl.value = data.paymentDetails.status || 'Not Paid'; 
                                 paymentNotesEl.value = data.paymentDetails.notes || '';
                             }
 
-                            // Check if the loaded data represents a cleared state (e.g., empty sender name after a clear operation)
-                            // If so, ensure everything is visually cleared again.
-                            // UPDATED: Check for empty sender/receiver OR empty items array
                             if (!data.senderName && !data.receiverName && (!data.items || data.items.length === 0)) {
                                 console.log("Listener received cleared state, ensuring form is reset.");
-                                // Ensure items array is empty 
                                 items = []; 
                             }
                         } else {
                             console.log("No previous shipment data found in Firebase.");
-                            // If node truly doesn't exist, clear everything locally
-                             items = []; // Ensure items array is empty if no data node
-                            // clearCustomerForm(); // Let's avoid calling this here to prevent potential loops, just clear items
+                             items = []; 
                         }
                         
-                        if (!invoiceDateEl.value) { // Set default date if none loaded
+                        if (!invoiceDateEl.value) { 
                             invoiceDateEl.valueAsDate = new Date();
                         }
                         
-                        renderTable(); // Render items table (will be empty if items is [])
-                        // historyStack = []; // Let's not clear history on every load for now
-                        // redoStack = [];
-                        // updateHistoryButtons();
+                        renderTable(); 
+                        
+                        updateFormSelectColor(deliveryStatusEl);
+                        updateFormSelectColor(paymentStatusEl);
                         
                         setTimeout(() => {
-                           isAutoSaving = false; // Release lock
-                           isDataLoaded = true; // Allow auto-saving to begin
+                           isAutoSaving = false; 
+                           isDataLoaded = true; 
                            console.log("Listener finished processing snapshot. Auto-save enabled.");
-                        }, 150); // Reduced delay slightly 
+                        }, 150); 
                         
                     }, (error) => {
                         console.error("Error loading current shipment data:", error);
                         alert("Error: Could not load current shipment data from Firebase.");
                         isAutoSaving = false;
-                        isDataLoaded = true; // Allow saving even if load failed
+                        isDataLoaded = true; 
                     });
 
                  } catch (generalError) { 
                      console.error("General error during loadData setup:", generalError);
                      alert("An unexpected error occurred while loading data. Check console.");
-                     isDataLoaded = true; // Allow saving even if load failed
+                     isDataLoaded = true; 
                  }
             }
 
@@ -1751,7 +1783,6 @@
                 const balance = total - paid;
                 paymentBalanceEl.value = balance.toFixed(2);
                 
-                // NEW: Update Payment Status dropdown based on balance
                 if (paid <= 0) {
                     paymentStatusEl.value = 'Not Paid';
                 } else if (balance <= 0) {
@@ -1759,6 +1790,8 @@
                 } else {
                     paymentStatusEl.value = 'Partially Paid';
                 }
+                
+                updateFormSelectColor(paymentStatusEl);
             }
 
             // --- History Functions ---
@@ -1794,6 +1827,21 @@
 
             // --- 4. Event Listeners (Making buttons work) ---
 
+            // --- Mobile Navigation Listeners ---
+            if (hamburgerBtn && sidebar && sidebarOverlay) {
+                hamburgerBtn.addEventListener('click', () => {
+                    sidebar.classList.add('active');
+                    sidebarOverlay.classList.add('active');
+                });
+
+                sidebarOverlay.addEventListener('click', () => {
+                    sidebar.classList.remove('active');
+                    sidebarOverlay.classList.remove('active');
+                });
+            } else {
+                console.error("Mobile navigation elements not found!");
+            }
+            
             // --- Tab Switching ---
             sidebarLinks.forEach(link => {
                 link.addEventListener('click', (e) => {
@@ -1803,18 +1851,22 @@
                     link.classList.add('active');
                     const tabId = link.getAttribute('data-tab');
                     document.getElementById(tabId).classList.add('active');
+                    
+                    if (sidebar && sidebarOverlay) {
+                        sidebar.classList.remove('active');
+                        sidebarOverlay.classList.remove('active');
+                    }
                 });
             });
 
 
             // --- Tab 1 Listeners ---
 
-            // --- Helper function to reset item edit state ---
             function clearEditState() {
                 currentEditItemIndex = null;
-                addItemForm.reset(); // This will clear all fields
-                itemConditionBtn.classList.remove('used'); // NEW: Reset button state
-                itemConditionBtn.textContent = 'New';
+                addItemForm.reset(); 
+                // UPDATED: Reset condition select
+                itemConditionEl.value = 'New';
                 addItemSubmitBtn.textContent = 'Add Item +';
                 addItemSubmitBtn.classList.remove('btn-secondary');
                 cancelEditBtn.style.display = 'none';
@@ -1822,17 +1874,26 @@
 
             addItemForm.addEventListener('submit', (e) => {
                 e.preventDefault(); 
-                saveState(); // Save history
+                saveState(); 
+                
+                // UPDATED: Logic for Brand (default to dash) and Condition (add to remarks)
+                
+                const brandValue = itemBrandEl.value.trim();
+                const conditionValue = itemConditionEl.value;
+                
+                // Clean remarks of old (New) or (Used) tags
+                let remarksValue = itemRemarksEl.value.replace(/\(Used\)/g, '').replace(/\(New\)/g, '').trim();
+                // Add new condition tag
+                remarksValue = `${remarksValue} (${conditionValue})`.trim();
 
-                // UPDATED: Added category
                 const item = {
                     desc: itemDescEl.value,
-                    brand: itemBrandEl.value.trim(), // NEW
+                    brand: brandValue === '' ? '-' : brandValue, // Set to dash if empty
                     category: itemCategoryEl.value,
-                    qty: parseFloat(document.getElementById('itemQty').value) || 1, // Default qty to 1
-                    weight: 0, // Set weight to 0 by default for summary calculations
-                    value: parseFloat(document.getElementById('itemValue').value) || 0, // Default value to 0
-                    remarks: itemRemarksEl.value
+                    qty: parseFloat(document.getElementById('itemQty').value) || 1, 
+                    weight: 0, 
+                    value: parseFloat(document.getElementById('itemValue').value) || 0, 
+                    remarks: remarksValue // Use the processed remarks
                 };
                 
                 if (item.category === "") {
@@ -1840,8 +1901,8 @@
                     return;
                 }
                 
-                // NEW: Add brand to known brands
-                if (item.brand) {
+                // Add brand to known brands list (if it's not the dash)
+                if (item.brand && item.brand !== '-') {
                     knownBrands.add(item.brand);
                     updateBrandDatalist();
                 }
@@ -1849,56 +1910,24 @@
                  if (!Array.isArray(items)) items = []; 
 
                 if (currentEditItemIndex !== null && currentEditItemIndex >= 0 && currentEditItemIndex < items.length) {
-                    // --- UPDATE EXISTING ITEM ---
                     items[currentEditItemIndex] = item;
                 } else {
-                    // --- ADD NEW ITEM ---
                     items.push(item);
                 }
 
                 renderTable(); 
-                saveData(); // Save to Firebase
-                clearEditState(); // Reset form and buttons
+                saveData(); 
+                clearEditState(); 
             });
             
-            // NEW: Condition Button Toggle Listener
-            itemConditionBtn.addEventListener('click', () => {
-                let remarks = itemRemarksEl.value;
-                
-                // Remove existing condition tags
-                remarks = remarks.replace(/\(Used\)/g, '').replace(/\(New\)/g, '').trim();
+            // REMOVED: itemConditionBtn listener
 
-                if (itemConditionBtn.classList.contains('used')) {
-                    // Switch to New
-                    itemConditionBtn.classList.remove('used');
-                    itemConditionBtn.textContent = 'New';
-                    if (remarks) {
-                        itemRemarksEl.value = remarks + ' (New)';
-                    } else {
-                        itemRemarksEl.value = '(New)';
-                    }
-                } else {
-                    // Switch to Used
-                    itemConditionBtn.classList.add('used');
-                    itemConditionBtn.textContent = 'Used';
-                    if (remarks) {
-                        itemRemarksEl.value = remarks + ' (Used)';
-                    } else {
-                        itemRemarksEl.value = '(Used)';
-                    }
-                }
-                saveData(); // Auto-save when condition changes
-            });
-            
-            // NEW: Auto-Category Suggest Listener
             itemDescEl.addEventListener('input', (e) => {
                 const desc = e.target.value.toLowerCase();
-                // Don't overwrite if user already selected a category
                 if (itemCategoryEl.value !== "") {
                     return;
                 }
                 
-                // Simple keyword matching
                 if (desc.includes('shoe') || desc.includes('shirt') || desc.includes('pants') || desc.includes('clothing') || desc.includes('jacket')) {
                     itemCategoryEl.value = 'Footwear & Clothing';
                 } else if (desc.includes('camera') || desc.includes('phone') || desc.includes('laptop') || desc.includes('charger') || desc.includes('cable') || desc.includes('gimbal')) {
@@ -1938,40 +1967,38 @@
                  if (!Array.isArray(items)) items = []; 
 
                 if (e.target.classList.contains('btn-delete')) {
-                    // --- DELETE ITEM ---
                     if (confirm('Are you sure you want to delete this item?')) {
-                        saveState(); // Save history
+                        saveState(); 
                         const index = parseInt(e.target.dataset.index);
                          if (!isNaN(index) && index >= 0 && index < items.length) {
                              items.splice(index, 1);
                              renderTable();
-                             saveData(); // Save to Firebase
-                             clearEditState(); // Reset form if deleting the item being edited
+                             saveData(); 
+                             clearEditState(); 
                          } else {
                              console.error("Invalid index for deleting item:", index);
                          }
                     }
                 } else if (e.target.classList.contains('btn-edit-item')) {
-                    // --- EDIT ITEM ---
                     const index = parseInt(e.target.dataset.index);
                      if (!isNaN(index) && index >= 0 && index < items.length) { 
                         const item = items[index];
                         
-                        // UPDATED: Populate all new fields
                         itemDescEl.value = item.desc || '';
-                        itemBrandEl.value = item.brand || ''; // NEW
+                        // UPDATED: Handle brand dash
+                        itemBrandEl.value = (item.brand === '-') ? '' : (item.brand || ''); 
                         itemCategoryEl.value = item.category || '';
                         document.getElementById('itemQty').value = item.qty || 1;
                         document.getElementById('itemValue').value = item.value || 0;
-                        itemRemarksEl.value = item.remarks || '';
                         
-                        // NEW: Set condition button state
-                        if (item.remarks && item.remarks.includes('(Used)')) {
-                            itemConditionBtn.classList.add('used');
-                            itemConditionBtn.textContent = 'Used';
+                        // UPDATED: Handle remarks and condition
+                        const remarks = item.remarks || '';
+                        if (remarks.includes('(Used)')) {
+                            itemConditionEl.value = 'Used';
+                            itemRemarksEl.value = remarks.replace(/\(Used\)/g, '').trim();
                         } else {
-                            itemConditionBtn.classList.remove('used');
-                            itemConditionBtn.textContent = 'New';
+                            itemConditionEl.value = 'New';
+                            itemRemarksEl.value = remarks.replace(/\(New\)/g, '').trim();
                         }
                         
                         currentEditItemIndex = index;
@@ -1987,22 +2014,27 @@
                 }
             });
 
-            // Auto-save for Tab 1 *shipment* fields
-            // UPDATED: Added new fields to auto-save
             const fieldsToAutoSave = [
                 senderNameEl, receiverNameEl, senderPhoneEl, receiverPhoneEl, 
                 receiverAddressEl, customerRemarksEl,
                 totalPackagesEl, invoiceNumberEl, invoiceDateEl, hsCodeEl,
                 summaryWeightInput, summaryValueInput, 
-                itemRemarksEl // Item remarks still auto-save
+                itemRemarksEl,
+                // UPDATED: Add item condition to auto-save
+                itemConditionEl 
             ];
             fieldsToAutoSave.forEach(field => {
-                field.addEventListener('input', () => {
+                // UPDATED: Use 'change' for select, 'input' for others
+                const eventType = (field.tagName === 'SELECT') ? 'change' : 'input';
+                field.addEventListener(eventType, () => {
                      if (field.id === 'summaryValueInput') {
-                         calculatePaymentBalance(); // Recalculate balance if declared value changes
+                         calculatePaymentBalance(); 
                      }
-                     // Always save data
-                     saveData();
+                     // Don't save if it's one of the item form fields,
+                     // as that logic is handled by the submit button
+                     if (!field.closest('#addItemForm')) {
+                        saveData();
+                     }
                 });
             });
 
@@ -2010,19 +2042,22 @@
             redoBtn.addEventListener('click', redo);
             cancelEditBtn.addEventListener('click', clearEditState); 
 
-            // Tab 1 Customer DB Submit Listener 
-            // UPDATED: To add default fields for NEW customers
             submitCustomerBtn.addEventListener('click', async (e) => {
                 e.preventDefault();
+                
+                // UPDATED: Check for required fields
+                if (!senderNameEl.checkValidity() || !receiverNameEl.checkValidity() || 
+                    !senderPhoneEl.checkValidity() || !receiverPhoneEl.checkValidity() || 
+                    !receiverAddressEl.checkValidity()) {
+                    alert('Please fill out all required customer fields (marked with a red dot).');
+                    // Find first invalid field and focus it
+                    [senderNameEl, receiverNameEl, senderPhoneEl, receiverPhoneEl, receiverAddressEl].find(el => !el.checkValidity())?.focus();
+                    return;
+                }
+
                 const senderName = senderNameEl.value.trim();
                 const receiverName = receiverNameEl.value.trim();
                 
-                if (!senderName && !receiverName) {
-                    alert('Please enter at least a Sender or Receiver name to save to the database.');
-                    return;
-                }
-                
-                // This is the base data from the form
                 const baseCustomerData = {
                     senderName: senderName,
                     receiverName: receiverName,
@@ -2030,21 +2065,17 @@
                     receiverPhone: receiverPhoneEl.value,
                     receiverAddress: receiverAddressEl.value,
                     customerRemarks: customerRemarksEl.value,
-                    dateAdded: new Date().toISOString() // Add/update date
+                    dateAdded: new Date().toISOString() 
                 };
 
-                submitCustomerBtn.disabled = true; // Prevent double-click
+                submitCustomerBtn.disabled = true; 
 
                 try {
                     if (currentEditCustomerId) {
-                        // --- EDIT MODE ---
-                        // Only update fields from the form
                         const customerRef = dbRef(db, 'customers/' + currentEditCustomerId);
                         await dbUpdate(customerRef, baseCustomerData);
                         alert('Customer updated successfully!');
                     } else {
-                        // --- NEW CUSTOMER MODE ---
-                        // Add new fields with defaults
                         const fullCustomerData = {
                             ...baseCustomerData,
                             paymentStatus: 'Not Paid',
@@ -2057,10 +2088,8 @@
                         alert('Customer added successfully!');
                     }
                     
-                    // UPDATED: Call the full form clearing function
                     clearCustomerForm(); 
                     
-                    // Try switching tab
                     const dbTabLink = document.querySelector('[data-tab="tab-customer-database"]');
                     if (dbTabLink) dbTabLink.click(); 
                     else console.error("Could not find database tab link to switch.");
@@ -2069,7 +2098,7 @@
                      console.error("Error saving customer to Firebase:", error);
                      alert("Error: Could not save customer. Check console for details.");
                 } finally {
-                    submitCustomerBtn.disabled = false; // Re-enable button
+                    submitCustomerBtn.disabled = false; 
                 }
             });
 
@@ -2078,13 +2107,12 @@
                 renderCustomerDatabaseTable(e.target.value);
             });
             
-            // UPDATED: 'click' listener to handle Edit/Delete
             customerTableTbody.addEventListener('click', (e) => {
                 const button = e.target.closest('button');
                 if (!button) return; 
 
                 const id = button.dataset.id;
-                if (!id) return; // Exit if no id
+                if (!id) return; 
 
                 if (!Array.isArray(customerDatabase)) customerDatabase = [];
 
@@ -2093,7 +2121,6 @@
                         dbRemove(dbRef(db, 'customers/' + id))
                             .then(() => {
                                 console.log("Customer deleted");
-                                // The onValue listener will automatically re-render the table
                             })
                             .catch((error) => {
                                 console.error("Error deleting customer:", error);
@@ -2103,19 +2130,14 @@
                 }
                 
                 if (button.classList.contains('btn-edit')) {
-                    // "Edit" now just populates the Tab 1 form
                     const customer = customerDatabase.find(c => c && c.id === id); 
                     if (customer) {
-                        // UPDATED: Populate new fields when editing
                         senderNameEl.value = customer.senderName || '';
                         receiverNameEl.value = customer.receiverName || '';
-                        senderPhoneEl.value = customer.senderPhone || ''; // NEW
+                        senderPhoneEl.value = customer.senderPhone || ''; 
                         receiverPhoneEl.value = customer.receiverPhone || '';
                         receiverAddressEl.value = customer.receiverAddress || '';
-                        customerRemarksEl.value = customer.customerRemarks || ''; // NEW
-                        
-                        // NOTE: Payment/Tracking data is edited inline in the table
-                        // not on this form.
+                        customerRemarksEl.value = customer.customerRemarks || ''; 
                         
                         currentEditCustomerId = id;
                         submitCustomerBtn.textContent = 'Save Changes to Database';
@@ -2129,10 +2151,8 @@
                 }
             });
             
-            // NEW: 'change' listener for inline table edits
             customerTableTbody.addEventListener('change', (e) => {
                 const target = e.target;
-                // Check if it's one of our new editable fields
                 if (target.classList.contains('db-field-update')) {
                     const customerId = target.dataset.id;
                     const fieldName = target.name;
@@ -2143,20 +2163,16 @@
                         return;
                     }
 
-                    // Update the color if it's a select
                     if (target.tagName === 'SELECT') {
                         updateSelectColor(target);
                     }
                     
-                    // Prepare the update for Firebase
                     const updateData = {};
                     updateData[fieldName] = value;
                     
-                    // Special case: If remarks are edited here, also update the main form
-                    // if it's the same customer (though this is less common)
                     if (fieldName === 'customerRemarks' && customerId === currentEditCustomerId) {
                          customerRemarksEl.value = value;
-                         saveData(); // Save the main form as well
+                         saveData(); 
                     }
 
                     const customerRef = dbRef(db, 'customers/' + customerId);
@@ -2173,24 +2189,31 @@
 
 
             // --- Tab 3 (Shipment Tracker) Listeners (Auto-save) ---
-            // UPDATED: Added deliveryStatusEl to auto-save
             const flightFieldsToAutoSave = [
                 flightAirlineEl, flightNumberEl, flightEtdEl, flightEtaEl, deliveryStatusEl, flightNotesEl
             ];
             flightFieldsToAutoSave.forEach(field => {
-                field.addEventListener('input', saveData);
+                const eventType = (field.tagName === 'SELECT') ? 'change' : 'input';
+                field.addEventListener(eventType, () => {
+                    if (field.id === 'deliveryStatus') {
+                        updateFormSelectColor(field);
+                    }
+                    saveData();
+                });
             });
 
             // --- Tab 4 (Payment Tracker) Listeners (Auto-save & Calculate) ---
-            // UPDATED: Added paymentStatusEl to auto-save
             const paymentFieldsToAutoSave = [
                 paymentPaidEl, paymentMethodEl, paymentStatusEl, paymentNotesEl
             ];
             paymentFieldsToAutoSave.forEach(field => {
-                field.addEventListener('input', () => {
-                    // Update balance ONLY when Amount Paid changes
+                const eventType = (field.tagName === 'SELECT') ? 'change' : 'input';
+                field.addEventListener(eventType, () => {
                     if(field.id === 'paymentPaid') {
                         calculatePaymentBalance(); 
+                    }
+                    if (field.id === 'paymentStatus') {
+                        updateFormSelectColor(field);
                     }
                     saveData();
                 });
@@ -2199,13 +2222,10 @@
 
             // --- 5. PDF & Excel Export Functions ---
 
-            // NEW: Function to fetch logo as Base64
-            let fetchedLogoBase64 = null; // Store fetched logo
+            let fetchedLogoBase64 = null; 
             async function fetchLogoAsBase64() {
-                // If already fetched, return it
                 if (fetchedLogoBase64) return fetchedLogoBase64; 
                 
-                // Use the GitHub raw URL for your logo
                 const logoUrl = 'https://raw.githubusercontent.com/crickerr26/bee26cargomanager/main/BEE26.jpg'; 
                 try {
                     const response = await fetch(logoUrl);
@@ -2217,7 +2237,6 @@
                     return new Promise((resolve, reject) => {
                         const reader = new FileReader();
                         reader.onloadend = () => {
-                             // Store and resolve the Base64 string
                             fetchedLogoBase64 = reader.result; 
                             resolve(fetchedLogoBase64);
                         };
@@ -2226,20 +2245,17 @@
                     });
                 } catch (error) {
                     console.error('Error fetching or converting logo:', error);
-                    // Return null or a placeholder if fetch fails
                     return null; 
                 }
             }
 
 
-            // Simple footer function - adds footer text
             function addPdfFooter(doc) {
                  if (!doc || typeof doc.setFontSize !== 'function') return;
                  try {
                      doc.setFontSize(9);
                      doc.setFont("helvetica", "normal");
                      const pageHeight = doc.internal.pageSize.height || doc.internal.pageSize.getHeight();
-                     // Add page numbers
                      const pageCount = doc.internal.getNumberOfPages();
                      for (let i = 1; i <= pageCount; i++) {
                          doc.setPage(i);
@@ -2252,66 +2268,60 @@
             }
 
 
-            // --- UPDATED PDF GENERATION (Async to fetch logo) ---
             async function generatePDF(docType, action = 'save') { 
                 try { 
-                    // --- Basic Setup ---
                     if (typeof window.jspdf === 'undefined' || typeof window.jspdf.jsPDF === 'undefined') {
                         alert("Error: jsPDF library not loaded."); 
                         return; 
                     }
                     const jsPDF = window.jspdf.jsPDF;
-                    const doc = new jsPDF('p', 'pt', 'a4'); // Use points for finer control, standard A4
+                    const doc = new jsPDF('p', 'pt', 'a4'); 
                     if (typeof doc.autoTable !== 'function') { 
                         alert("Error: jsPDF AutoTable plugin not loaded.");
                         return; 
                     }
                     
-                    // NEW: Fetch logo before generating PDF content
                     const logoBase64Data = await fetchLogoAsBase64(); 
 
-                    // --- Variables ---
                     const pageHeight = doc.internal.pageSize.height || doc.internal.pageSize.getHeight();
                     const pageWidth = doc.internal.pageSize.width || doc.internal.pageSize.getWidth();
-                    const leftMargin = 40; // Approx 14mm in points
+                    const leftMargin = 40; 
                     const rightMargin = 40;
                     const topMargin = 40; 
                     const bottomMargin = 40; 
                     const contentWidth = pageWidth - leftMargin - rightMargin;
                     const halfWidth = contentWidth / 2;
                     const senderX = leftMargin;
-                    const receiverX = leftMargin + halfWidth + 15; // Increased gap between columns
-                    const receiverWidth = halfWidth - 15; // Width for receiver block
-                    const senderWidth = halfWidth - 5;   // Width for sender block
+                    const receiverX = leftMargin + halfWidth + 15; 
+                    const receiverWidth = halfWidth - 15; 
+                    const senderWidth = halfWidth - 5;   
                     let currentY = topMargin; 
-                    const lineSpacing = 10; // Use points for line spacing (adjust as needed)
-                    const sectionSpacing = 15; // Space between header sections and table
+                    const lineSpacing = 10; 
+                    const sectionSpacing = 15; 
 
-                     // --- Section 1: Logo and Title ---
-                    const titleY = currentY + 7; // Start title slightly lower
-                    const titleX = pageWidth / 2; // Center of page
-                    
-                    // UPDATED: Use fetched logo data
+                    // --- UPDATED: Section 1: Logo and Title ---
                     if (logoBase64Data) { 
                         try {
-                            const imgWidth = 20; // Smaller logo in points
-                            const imgHeight = 20; 
-                            doc.setFontSize(16); // Set title font size before measuring
-                            const titleWidth = doc.getTextWidth(docType); 
-                            const logoX = titleX - (titleWidth / 2) - imgWidth - 5; // Position left of title
-                            doc.addImage(logoBase64Data, 'JPEG', logoX, titleY - (imgHeight/2) + 2, imgWidth, imgHeight); 
+                            // UPDATED: Enlarged logo
+                            const imgWidth = 40; 
+                            const imgHeight = 40; 
+                            doc.addImage(logoBase64Data, 'JPEG', leftMargin, currentY, imgWidth, imgHeight); 
+                            currentY += imgHeight + 10; // Move Y below logo
                         } catch (imgError) { console.error("Error adding PDF logo:", imgError); }
-                    } else { console.warn("Logo Base64 data not available for PDF."); }
+                    } else { 
+                        console.warn("Logo Base64 data not available for PDF."); 
+                    }
 
                     doc.setFontSize(16);
                     doc.setFont("helvetica", "bold");
-                    doc.text(docType, titleX, titleY, { align: "center" }); 
-                    currentY = titleY + 15; // Move Y further below title area
+                    // UPDATED: Heading below logo, left-aligned
+                    doc.text(docType, leftMargin, currentY); 
+                    currentY += 20; // Space after heading
 
 
                     // --- Section 2: Sender Address & Invoice Details ---
                     let senderBlockY = currentY; 
-                    doc.setFontSize(9); // Standard text size
+                    doc.setFontSize(9); 
                     doc.setFont("helvetica", "bold");
                     doc.text("BEE26 CARGO SERVICES", leftMargin, senderBlockY);
                     senderBlockY += lineSpacing;
@@ -2332,7 +2342,7 @@
                     });
                     
                     if (invoiceNumberEl.value) {
-                         senderBlockY += lineSpacing * 0.5; // Tighter space
+                         senderBlockY += lineSpacing * 0.5; 
                          doc.setFont("helvetica", "bold");
                          doc.text(`Invoice #: ${invoiceNumberEl.value}`, leftMargin, senderBlockY);
                          senderBlockY += lineSpacing; 
@@ -2342,13 +2352,13 @@
                          doc.setFont("helvetica", "bold");
                          doc.text("Date: ", leftMargin, senderBlockY);
                          doc.setFont("helvetica", "normal");
-                         doc.text(invoiceDateEl.value || '', leftMargin + 30, senderBlockY); // Adjust position
+                         doc.text(invoiceDateEl.value || '', leftMargin + 30, senderBlockY); 
                          senderBlockY += lineSpacing; 
                     }
 
 
                     // --- Section 3: Receiver Address & Optional HS Code ---
-                    let receiverBlockY = currentY; // Start receiver block parallel to sender block start
+                    let receiverBlockY = currentY; 
                     doc.setFontSize(10);
                     doc.setFont("helvetica", "bold");
                     doc.text("TO (Receiver):", receiverX, receiverBlockY);
@@ -2360,7 +2370,7 @@
                     receiverBlockY += lineSpacing;
                     doc.text(receiverPhoneEl.value || '', receiverX, receiverBlockY); 
                     receiverBlockY += lineSpacing;
-                    const receiverAddressLines = doc.splitTextToSize(receiverAddressEl.value || '', receiverWidth); // Use receiverWidth
+                    const receiverAddressLines = doc.splitTextToSize(receiverAddressEl.value || '', receiverWidth); 
                     doc.text(receiverAddressLines, receiverX, receiverBlockY);
                     receiverBlockY += (receiverAddressLines.length * lineSpacing); 
                     
@@ -2369,12 +2379,12 @@
                          doc.setFont("helvetica", "bold");
                          doc.text("HS Code (Overall): ", receiverX, receiverBlockY); 
                          doc.setFont("helvetica", "normal");
-                         doc.text(hsCodeEl.value, receiverX + 80, receiverBlockY); // Adjust position
+                         doc.text(hsCodeEl.value, receiverX + 80, receiverBlockY); 
                          receiverBlockY += lineSpacing * 1.5; 
                     }
 
                     // --- Section 4: Table ---
-                    let tableStartY = Math.max(senderBlockY, receiverBlockY) + sectionSpacing; // Use sectionSpacing
+                    let tableStartY = Math.max(senderBlockY, receiverBlockY) + sectionSpacing; 
 
                     // UPDATED: Added Brand to table header
                     const tableHead = [ 
@@ -2388,7 +2398,7 @@
                           return [
                              index + 1, 
                              item.desc || '',
-                             item.brand || '', // NEW
+                             item.brand || '-', // Default to dash
                              item.category || '',
                              qty,
                              value.toFixed(2),
@@ -2403,7 +2413,7 @@
                         startY: tableStartY,
                         theme: 'grid',
                         headStyles: { fillColor: [230, 230, 230], textColor: 0, fontStyle: 'bold', fontSize: 8 }, 
-                        styles: { fontSize: 8, cellPadding: 2, overflow: 'linebreak' }, // Allow line breaks
+                        styles: { fontSize: 8, cellPadding: 2, overflow: 'linebreak' }, 
                         // UPDATED: Column styles for new brand column
                         columnStyles: { 
                             0: { cellWidth: 20, halign: 'center' },  // #
@@ -2419,23 +2429,22 @@
                     });
 
                     // --- Section 5: Summary ---
-                    const finalY = doc.autoTable.previous.finalY; // More reliable way to get end Y
+                    const finalY = doc.autoTable.previous.finalY; 
                     
-                    const calculatedTotalWeight = /*...*/ safeItems.reduce((sum, item) => sum + ((parseFloat(item.qty) || 0) * (parseFloat(item.weight) || 0)), 0);
-                    const calculatedTotalValue = /*...*/ safeItems.reduce((sum, item) => sum + ((parseFloat(item.qty) || 0) * (parseFloat(item.value) || 0)), 0);
-                    const totalQty = /*...*/ safeItems.reduce((sum, item) => sum + (parseFloat(item.qty) || 0), 0);
-                    const displayWeight = /*...*/ !isNaN(parseFloat(summaryWeightInput.value)) ? parseFloat(summaryWeightInput.value).toFixed(2) : calculatedTotalWeight.toFixed(2);
-                    const displayValue = /*...*/ !isNaN(parseFloat(summaryValueInput.value)) ? parseFloat(summaryValueInput.value).toFixed(2) : calculatedTotalValue.toFixed(2);
+                    const calculatedTotalWeight = safeItems.reduce((sum, item) => sum + ((parseFloat(item.qty) || 0) * (parseFloat(item.weight) || 0)), 0);
+                    const calculatedTotalValue = safeItems.reduce((sum, item) => sum + ((parseFloat(item.qty) || 0) * (parseFloat(item.value) || 0)), 0);
+                    const totalQty = safeItems.reduce((sum, item) => sum + (parseFloat(item.qty) || 0), 0);
+                    const displayWeight = !isNaN(parseFloat(summaryWeightInput.value)) ? parseFloat(summaryWeightInput.value).toFixed(2) : calculatedTotalWeight.toFixed(2);
+                    const displayValue = !isNaN(parseFloat(summaryValueInput.value)) ? parseFloat(summaryValueInput.value).toFixed(2) : calculatedTotalValue.toFixed(2);
 
                     doc.setFontSize(10); 
                     doc.setFont("helvetica", "bold");
                     let summaryY = finalY + sectionSpacing; 
                     const summaryRightX = pageWidth - rightMargin; 
                     
-                     // Check if summary needs to go on new page
-                     if (summaryY > pageHeight - bottomMargin - (lineSpacing * 6)) { // Estimate summary height
+                     if (summaryY > pageHeight - bottomMargin - (lineSpacing * 6)) { 
                          doc.addPage();
-                         summaryY = topMargin; // Start summary on new page
+                         summaryY = topMargin; 
                      }
 
                     doc.text(`Total Quantity:`, leftMargin, summaryY);
@@ -2457,17 +2466,15 @@
                     // --- Section 6: Declaration ---
                     doc.setFontSize(9); 
                     doc.setFont("helvetica", "bold");
-                    let declarationY = summaryY + sectionSpacing * 1.5; // More space before declaration
-                    if (declarationY > pageHeight - bottomMargin) { // Check against bottom margin only
+                    let declarationY = summaryY + sectionSpacing * 1.5; 
+                    if (declarationY > pageHeight - bottomMargin) { 
                         doc.addPage();
                         declarationY = topMargin; 
                     }
                     doc.text("Declaration: Personal Use – Not for Resale", leftMargin, declarationY);
 
-                    // --- Add Page Numbers and Footer ---
-                    addPdfFooter(doc); // Call footer function *after* all content is added
+                    addPdfFooter(doc); 
 
-                    // --- Output ---
                     const fileName = `${docType.replace(/ /g, '_')}_${invoiceNumberEl.value || 'Shipment'}.pdf`; 
                     if (action === 'open') {
                         doc.output('dataurlnewwindow'); 
@@ -2482,7 +2489,7 @@
             }
 
 
-            function generateExcel() { /* ... Excel generation code ... */ 
+            function generateExcel() { 
                  try { 
                     if (typeof XLSX === 'undefined') {
                          console.error("XLSX (SheetJS) library not loaded correctly.");
@@ -2508,16 +2515,15 @@
                     const itemsHeader = [
                         'Description', 'Brand', 'Category', 'Quantity', 'Unit Weight (kg)', 'Total Weight (kg)', 'Unit Value (CAD)', 'Total Value (CAD)', 'Remarks'
                     ];
-                    // Ensure items is an array before mapping
                      const safeItems = Array.isArray(items) ? items : [];
                      // UPDATED: Added Brand to body
                      const itemsBody = safeItems.map(item => {
                          const qty = parseFloat(item.qty) || 0;
-                         const weight = parseFloat(item.weight) || 0; // Keep weight for Excel
+                         const weight = parseFloat(item.weight) || 0; 
                          const value = parseFloat(item.value) || 0;
                          return [
                             item.desc || '',
-                            item.brand || '', // NEW
+                            item.brand || '-', // Default to dash
                             item.category || '',
                             qty,
                             weight,
@@ -2529,10 +2535,9 @@
                      });
                     
                     const totalQty = safeItems.reduce((sum, item) => sum + (parseFloat(item.qty) || 0), 0);
-                    const calculatedTotalWeight = safeItems.reduce((sum, item) => sum + ((parseFloat(item.qty) || 0) * (parseFloat(item.weight) || 0)), 0); // Keep calculated weight for Excel
+                    const calculatedTotalWeight = safeItems.reduce((sum, item) => sum + ((parseFloat(item.qty) || 0) * (parseFloat(item.weight) || 0)), 0); 
                     const calculatedTotalValue = safeItems.reduce((sum, item) => sum + ((parseFloat(item.qty) || 0) * (parseFloat(item.value) || 0)), 0);
 
-                    // Use input values if present and valid number, otherwise use calculated values for Excel footer
                     const displayWeight = !isNaN(parseFloat(summaryWeightInput.value)) ? parseFloat(summaryWeightInput.value).toFixed(2) : calculatedTotalWeight.toFixed(2);
                     const displayValue = !isNaN(parseFloat(summaryValueInput.value)) ? parseFloat(summaryValueInput.value).toFixed(2) : calculatedTotalValue.toFixed(2);
                     
@@ -2556,7 +2561,6 @@
              }
 
             // --- 6. Connect buttons to export/print functions ---
-            // Ensure buttons exist before adding listeners
             if (exportPackingListPDF) exportPackingListPDF.addEventListener('click', () => generatePDF('Packing List', 'save')); 
             if (exportInvoicePDF) exportInvoicePDF.addEventListener('click', () => generatePDF('Commercial Invoice', 'save')); 
             
