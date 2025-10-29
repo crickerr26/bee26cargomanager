@@ -1,0 +1,1516 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pro Dashboard - Bee26 Cargo</title>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
+      import { getDatabase, ref, set, get, push, remove, update, onValue } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-database.js";
+      
+      // --- YOUR FIREBASE CONFIG ---
+      const firebaseConfig = {
+        apiKey: "AIzaSyAMZHYef6CXhkfJNdewMQ8M2gifGgS07k",
+        authDomain: "bee26cargoservices-2651f.firebaseapp.com",
+        projectId: "bee26cargoservices-2651f",
+        storageBucket: "bee26cargoservices-2651f.appspot.com", // Corrected storage bucket
+        messagingSenderId: "508829616627",
+        appId: "1:508829616627:web:062d3f033cad60a9089686",
+        measurementId: "G-YSB8DJ5PE6",
+        databaseURL: "https://bee26cargoservices-2651f-default-rtdb.firebaseio.com" // Explicitly add Database URL
+      };
+
+      // --- Initialize Firebase ---
+      const app = initializeApp(firebaseConfig);
+      const database = getDatabase(app);
+
+      // --- Expose Firebase functions ---
+      window.db = database;
+      window.dbRef = ref;
+      window.dbSet = set;
+      window.dbGet = get;
+      window.dbPush = push;
+      window.dbRemove = remove; // <-- Make sure dbRemove is exposed
+      window.dbUpdate = update;
+      window.dbOnValue = onValue;
+      
+    </script>
+
+
+    <style>
+        /* --- 1. Root Variables --- */
+        :root {
+            --blue: #007aff;
+            --blue-light: #e6f2ff;
+            --green: #28a745;
+            --green-light: #e9f7eb;
+            --red: #c70000;
+            --red-light: #fff1f0;
+            --orange: #d46b08;
+            --orange-light: #fffbe6;
+            --purple: #5856d6;
+            --teal: #20c997;
+
+            --grey-light: #f0f0f5;
+            --grey-mid: #e5e5ea;
+            --grey-dark: #8a8a8e;
+            --text-primary: #1c1c1e;
+            --text-secondary: #636366;
+            --bg-white: #ffffff;
+            --border-radius: 12px;
+            --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            
+            --sidebar-dark: #1a202c;
+            --sidebar-text: #e2e8f0;
+            --sidebar-text-hover: #ffffff;
+            --sidebar-width-collapsed: 80px;
+            --sidebar-width-expanded: 250px;
+        }
+
+        /* --- 2. Basic Setup --- */
+        body {
+            font-family: var(--font-family);
+            background-color: var(--grey-light);
+            color: var(--text-primary);
+            margin: 0;
+            overflow-x: hidden;
+        }
+
+        /* --- 3. Sidebar --- */
+        .sidebar {
+            width: var(--sidebar-width-expanded); /* CHANGED: Always expanded */
+            height: 100vh;
+            background-color: var(--sidebar-dark);
+            border-right: 1px solid var(--sidebar-dark);
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 100;
+            transition: width 0.3s ease-in-out;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        /* .sidebar:hover { width: var(--sidebar-width-expanded); } */ /* REMOVED */
+        .sidebar-logo { display: flex; align-items: center; justify-content: center; height: 70px; font-size: 1.5rem; font-weight: 700; color: var(--bg-white); flex-shrink: 0; }
+        .sidebar-logo .logo-text { opacity: 1; visibility: visible; transition: opacity 0.2s ease 0.1s; margin-left: 10px; } /* CHANGED: Always visible */
+        /* .sidebar:hover .sidebar-logo .logo-text { opacity: 1; visibility: visible; } */ /* REMOVED */
+        .sidebar-nav { list-style: none; padding: 0 1rem; margin: 1rem 0 0 0; flex-grow: 1; }
+        .sidebar-nav li a { display: flex; align-items: center; padding: 0.9rem 0.75rem; text-decoration: none; font-weight: 500; color: var(--sidebar-text); border-radius: 8px; transition: background-color 0.2s ease, color 0.2s ease; white-space: nowrap; cursor: pointer; }
+        .sidebar-nav li a:hover { background-color: #2d3748; color: var(--sidebar-text-hover); }
+        .sidebar-nav li a.active { background-color: var(--blue); color: var(--bg-white); font-weight: 600; }
+        .nav-icon { font-size: 1.5rem; width: 30px; text-align: center; flex-shrink: 0; transition: transform 0.2s ease; }
+        .nav-text { margin-left: 1.25rem; opacity: 1; visibility: visible; transition: opacity 0.2s ease 0.1s; } /* CHANGED: Always visible */
+        /* .sidebar:hover .nav-text { opacity: 1; visibility: visible; } */ /* REMOVED */
+        /* .sidebar:hover .nav-icon { transform: scale(0.9); } */ /* REMOVED */
+        .sidebar-bottom { padding: 0 1rem 1rem 1rem; }
+
+        /* --- 4. Main Content Area --- */
+        .main-content { margin-left: var(--sidebar-width-expanded); width: calc(100% - var(--sidebar-width-expanded)); padding: 2rem; box-sizing: border-box; transition: margin-left 0.3s ease-in-out; opacity: 1; } /* CHANGED */
+        /* .sidebar:hover ~ .main-content { margin-left: var(--sidebar-width-expanded); width: calc(100% - var(--sidebar-width-expanded)); } */ /* REMOVED */
+        .page-content { display: none; }
+        .page-content.active { display: block; }
+        header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 2rem; }
+        header h1 { font-size: 2.5rem; margin: 0; color: var(--text-primary); }
+        header p { font-size: 1.1rem; color: var(--text-secondary); margin: 0; }
+        .header-left { display: flex; flex-direction: column; }
+        .card { background-color: var(--bg-white); border-radius: var(--border-radius); padding: 1.5rem; box-shadow: 0 4px 12px rgba(0,0,0,0.05); margin-bottom: 1.5rem; }
+        .card h2 { font-size: 1.5rem; margin-top: 0; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid var(--grey-light); }
+        .btn { font-family: var(--font-family); font-size: 1rem; font-weight: 600; padding: 0.75rem 1.5rem; border: none; border-radius: 8px; cursor: pointer; transition: background-color 0.2s ease, transform 0.2s ease; }
+        .btn-primary { background-color: var(--blue); color: white; }
+        .btn-primary:hover { background-color: #0056b3; transform: translateY(-2px); }
+        .btn-secondary { background-color: var(--grey-mid); color: var(--text-primary); }
+        .btn-secondary:hover { background-color: var(--grey-dark); color: var(--bg-white); }
+        .btn-danger { background-color: var(--red-light); color: var(--red); }
+        .btn-danger:hover { background-color: var(--red); color: var(--bg-white); }
+        .btn-small { font-size: 0.8rem; padding: 0.4rem 0.8rem; }
+        .btn:disabled { background-color: var(--grey-mid); cursor: not-allowed; transform: none; }
+
+        /* --- 5. Dashboard Page (Stats Grid) --- */
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.5rem; }
+        .stat-card { background-color: var(--bg-white); border-radius: var(--border-radius); padding: 1.5rem; box-shadow: 0 4px 12px rgba(0,0,0,0.05); display: flex; align-items: flex-start; gap: 1rem; transition: transform 0.2s ease, box-shadow 0.2s ease; }
+        .stat-card:hover { transform: translateY(-5px); box-shadow: 0 8px 16px rgba(0,0,0,0.08); }
+        .stat-icon { font-size: 2rem; padding: 0.75rem; border-radius: 8px; }
+        .icon-pending { background-color: var(--orange-light); color: var(--orange); }
+        .icon-transit { background-color: var(--blue-light); color: var(--blue); }
+        .icon-delivered { background-color: var(--green-light); color: var(--green); }
+        .icon-payment { background-color: var(--red-light); color: var(--red); }
+        .stat-info h3 { margin: 0 0 0.25rem 0; font-size: 1rem; color: var(--text-secondary); font-weight: 500; }
+        .stat-info .stat-value { margin: 0; font-size: 2.25rem; font-weight: 600; color: var(--text-primary); }
+        
+        /* --- 6. Styled Table (Used on multiple pages) --- */
+        .table-container { width: 100%; overflow-x: auto; }
+        .styled-table { width: 100%; border-collapse: collapse; font-size: 0.95rem; }
+        .styled-table th, .styled-table td { padding: 1rem; text-align: left; border-bottom: 1px solid var(--grey-mid); vertical-align: middle; } /* Added vertical-align */
+        .styled-table th { color: var(--text-secondary); font-weight: 600; background-color: #fcfcfc; }
+        .styled-table tbody tr:last-child td { border-bottom: none; }
+        .styled-table tbody tr:hover { background-color: var(--grey-light); }
+        .table-actions { display: flex; gap: 0.5rem; }
+        .status-badge { display: inline-block; padding: 0.25rem 0.75rem; font-size: 0.8rem; font-weight: 600; border-radius: 12px; }
+        .status-Pending { background-color: var(--orange-light); color: var(--orange); }
+        .status-Shipped { background-color: var(--blue-light); color: var(--blue); }
+        .status-Delivered { background-color: var(--green-light); color: var(--green); }
+        .status-Not-Paid { background-color: var(--red-light); color: var(--red); }
+        .status-Paid { background-color: var(--green-light); color: var(--green); }
+        .status-Partially-Paid { background-color: var(--orange-light); color: var(--orange); }
+
+        /* --- 7. New Shipment Wizard --- */
+        .stepper { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; padding: 1rem; background-color: var(--bg-white); border-radius: var(--border-radius); box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+        .step { display: flex; align-items: center; flex-direction: column; flex-grow: 1; position: relative; }
+        .step:not(:last-child)::after { content: ''; position: absolute; top: 15px; left: 50%; width: 100%; height: 3px; background-color: var(--grey-mid); z-index: 1; }
+        .step-icon { width: 30px; height: 30px; border-radius: 50%; background-color: var(--grey-mid); color: var(--text-secondary); display: flex; align-items: center; justify-content: center; font-weight: 600; z-index: 2; transition: background-color 0.3s ease, color 0.3s ease; }
+        .step-label { margin-top: 0.5rem; font-size: 0.85rem; color: var(--text-secondary); font-weight: 500; transition: color 0.3s ease, font-weight 0.3s ease; }
+        .step.active .step-icon { background-color: var(--blue); color: var(--bg-white); }
+        .step.active .step-label { color: var(--blue); font-weight: 600; }
+        .step.completed .step-icon { background-color: var(--green); color: var(--bg-white); }
+        .step.completed .step-label { color: var(--text-primary); }
+        .step.completed:not(:last-child)::after { background-color: var(--green); }
+        .step-content { display: none; }
+        .step-content.active { display: block; }
+        .wizard-nav { display: flex; justify-content: space-between; margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--grey-mid); }
+
+        /* --- 8. Forms --- */
+        .form-grid-two-col { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; }
+        .form-grid-three-col { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; }
+        .input-group { display: flex; flex-direction: column; gap: 0.5rem; }
+        .input-group label { font-size: 0.9rem; font-weight: 500; color: var(--text-secondary); }
+        .input-group input[type="text"], .input-group input[type="tel"], .input-group input[type="email"], .input-group input[type="number"], .input-group input[type="date"], .input-group select, .input-group textarea { width: 100%; padding: 0.75rem; font-size: 1rem; border: 1px solid var(--grey-mid); border-radius: 8px; box-sizing: border-box; background-color: #fdfdfd; font-family: var(--font-family); transition: border-color 0.2s ease, box-shadow 0.2s ease; }
+        .input-group input:focus, .input-group select:focus, .input-group textarea:focus { outline: none; border-color: var(--blue); box-shadow: 0 0 0 2px var(--blue-light); }
+        .input-group textarea { resize: vertical; min-height: 80px; }
+
+        /* --- 9. Summary/Review Page --- */
+        .summary-grid { display: grid; grid-template-columns: 180px 1fr; gap: 0.75rem 1rem; font-size: 1rem; }
+        .summary-grid strong { font-weight: 600; color: var(--text-secondary); text-align: right; }
+        .summary-grid span { word-break: break-word; }
+        .doc-buttons { display: flex; gap: 1rem; flex-wrap: wrap; }
+        .review-section { margin-bottom: 1.5rem; padding-bottom: 1.5rem; border-bottom: 1px solid var(--grey-mid); }
+        .review-section:last-child { border-bottom: none; }
+        .review-section h3 { font-size: 1.2rem; color: var(--blue); margin-top: 0; }
+
+        /* --- 10. Modal --- */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; display: none; align-items: center; justify-content: center; }
+        .modal-overlay.active { display: flex; }
+        .modal-content { background: var(--bg-white); border-radius: var(--border-radius); padding: 2rem; width: 90%; max-width: 700px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid var(--grey-mid); }
+        .modal-header h2 { margin: 0; }
+        .modal-header .close-btn { font-size: 2rem; font-weight: 300; cursor: pointer; background: none; border: none; line-height: 1; padding: 0; }
+        .modal-footer { display: flex; justify-content: flex-end; gap: 1rem; margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--grey-mid); }
+        
+        /* --- 11. Payments Page Specific --- */
+        .filters-bar { display: flex; gap: 1rem; margin-bottom: 1.5rem; flex-wrap: wrap; }
+        .payment-summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
+        .payment-summary-card { background-color: var(--bg-white); border-radius: var(--border-radius); padding: 1rem; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+        .payment-summary-card h3 { margin: 0 0 0.5rem 0; font-size: 0.9rem; color: var(--text-secondary); font-weight: 500; }
+        .payment-summary-card .value { font-size: 1.5rem; font-weight: 600; color: var(--text-primary); }
+        .payments-table input, .payments-table select {
+            width: 100%;
+            padding: 0.5rem;
+            font-size: 0.9rem;
+            border: 1px solid var(--grey-mid);
+            border-radius: 6px;
+            box-sizing: border-box;
+            background-color: #fdfdfd;
+        }
+        .payments-table input:focus, .payments-table select:focus {
+            outline: none;
+            border-color: var(--blue);
+            box-shadow: 0 0 0 1px var(--blue-light);
+        }
+        .payments-table td.number-cell { text-align: right; } /* Align numbers */
+        .payments-table td.balance-due { font-weight: 600; }
+        .payments-table td.balance-due.zero { color: var(--green); }
+        .payments-table td.balance-due.negative { color: var(--red); }
+
+
+        /* --- 12. Responsive (Mobile) --- */
+        @media (max-width: 768px) {
+            .sidebar { width: 100%; height: 65px; bottom: 0; top: auto; left: 0; flex-direction: row; border-top: 1px solid #2d3748; }
+            /* .sidebar:hover { width: 100%; } */ /* REMOVED */
+            .sidebar-logo, .sidebar-bottom { display: none; }
+            .sidebar-nav { display: flex; flex-direction: row; justify-content: space-around; width: 100%; height: 100%; margin: 0; padding: 0 0.5rem; }
+            .sidebar-nav li { flex-grow: 1; }
+            .sidebar-nav li a { flex-direction: column; justify-content: center; height: 100%; padding: 0.5rem 0.25rem; }
+            .nav-icon { font-size: 1.25rem; width: auto; }
+            .nav-text { opacity: 1; visibility: visible; font-size: 0.7rem; margin-left: 0; margin-top: 0.25rem; }
+            /* .sidebar:hover .nav-text { opacity: 1; } */ /* REMOVED */
+            /* .sidebar:hover .nav-icon { transform: none; } */ /* REMOVED */
+            .main-content { margin-left: 0; width: 100%; padding: 1rem; padding-bottom: 80px; }
+            /* .sidebar:hover ~ .main-content { margin-left: 0; width: 100%; } */ /* REMOVED */
+            header { flex-direction: column; align-items: flex-start; gap: 0.5rem; }
+            header h1 { font-size: 1.8rem; }
+            header p { font-size: 1rem; margin-bottom: 1rem; }
+            .stats-grid, .form-grid-two-col, .form-grid-three-col, .payment-summary-grid { grid-template-columns: 1fr; }
+            .stepper { padding: 1rem 0.5rem; }
+            .step-label { font-size: 0.7rem; text-align: center; }
+            .summary-grid { grid-template-columns: 100px 1fr; }
+            .summary-grid strong { text-align: left; }
+            .modal-content { width: 95%; padding: 1.5rem; }
+            .modal-footer { flex-direction: column; }
+            .modal-footer .btn { width: 100%; }
+            .filters-bar { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+
+    <nav class="sidebar">
+        <div class="sidebar-logo">
+            <img src="https://raw.githubusercontent.com/crickerr26/bee26cargomanager/main/BEE26.png" alt="Bee26 Cargo Logo" style="height: 40px; width: auto;">
+        </div>
+        <ul class="sidebar-nav">
+            <li><a class="nav-link active" data-page="page-dashboard"><span class="nav-icon">🏠</span><span class="nav-text">Dashboard</span></a></li>
+            <li><a class="nav-link" data-page="page-new-shipment"><span class="nav-icon">➕</span><span class="nav-text">New Shipment</span></a></li>
+            <li><a class="nav-link" data-page="page-all-shipments"><span class="nav-icon">🚚</span><span class="nav-text">All Shipments</span></a></li>
+            <li><a class="nav-link" data-page="page-customers"><span class="nav-icon">👥</span><span class="nav-text">Customers</span></a></li>
+            <li><a class="nav-link" data-page="page-payments"><span class="nav-icon">💳</span><span class="nav-text">Payments</span></a></li>
+        </ul>
+        <div class="sidebar-bottom">
+            <ul class="sidebar-nav" style="margin: 0;"><li><a href="#"><span class="nav-icon">⚙️</span><span class="nav-text">Settings</span></a></li></ul>
+        </div>
+    </nav>
+
+    <main class="main-content">
+
+        <header>
+            <div class="header-left">
+                <h1 id="page-title">Dashboard</h1>
+                <p id="page-subtitle">Welcome back, here's an overview of your business.</p>
+            </div>
+            <button class="btn btn-primary" id="header-action-btn">+ Create New Shipment</button>
+        </header>
+
+        <div id="page-dashboard" class="page-content active">
+            <div class="stats-grid">
+                <div class="stat-card"><span class="stat-icon icon-pending">📦</span><div class="stat-info"><h3>Pending Shipments</h3><div class="stat-value" id="stat-pending">0</div></div></div>
+                <div class="stat-card"><span class="stat-icon icon-transit">✈️</span><div class="stat-info"><h3>In Transit</h3><div class="stat-value" id="stat-transit">0</div></div></div>
+                <div class="stat-card"><span class="stat-icon icon-delivered">✅</span><div class="stat-info"><h3>Delivered (All Time)</h3><div class="stat-value" id="stat-delivered">0</div></div></div>
+                <div class="stat-card"><span class="stat-icon icon-payment">💰</span><div class="stat-info"><h3>Payments Due</h3><div class="stat-value" id="stat-due">$0</div></div></div>
+            </div>
+            <div class="card">
+                <h2>Recent Activity</h2>
+                <div class="table-container">
+                    <table class="styled-table">
+                        <thead><tr><th>Invoice #</th><th>Sender</th><th>Receiver</th><th>Status</th><th>Total</th></tr></thead>
+                        <tbody id="recent-activity-tbody">
+                            <tr><td colspan="5" style="text-align: center;">Loading data from Firebase...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div id="page-new-shipment" class="page-content">
+             <div class="stepper">
+                <div class="step active" data-step="1"><div class="step-icon">1</div><div class="step-label">Customer Info</div></div>
+                <div class="step" data-step="2"><div class="step-icon">2</div><div class="step-label">Item Details</div></div>
+                <div class="step" data-step="3"><div class="step-icon">3</div><div class="step-label">Shipment & Payment</div></div>
+                <div class="step" data-step="4"><div class="step-icon">4</div><div class="step-label">Review & Docs</div></div>
+            </div>
+            <div id="step-1" class="step-content active">
+                 <div class="card">
+                    <h2>Sender Details (Canada)</h2>
+                    <div class="form-grid-two-col">
+                        <div class="input-group"><label for="senderName">Full Name</label><input type="text" id="senderName" placeholder="John Doe"></div>
+                        <div class="input-group"><label for="senderPhone">Phone Number</label><input type="tel" id="senderPhone" placeholder="+1 416-123-4567"></div>
+                    </div>
+                </div>
+                <div class="card">
+                    <h2>Receiver Details (Sri Lanka)</h2>
+                    <div class="form-grid-two-col">
+                        <div class="input-group"><label for="receiverName">Full Name</label><input type="text" id="receiverName" placeholder="Jane Smith"></div>
+                        <div class="input-group"><label for="receiverPhone">Phone Number</label><input type="tel" id="receiverPhone" placeholder="+94 77-123-4567"></div>
+                        <div class="input-group"><label for="receiverAddress">Address</label><textarea id="receiverAddress" rows="3" placeholder="No. 123, Main Street, Colombo 03"></textarea></div>
+                        <div class="input-group"><label for="customerRemarks">Customer Remarks</label><textarea id="customerRemarks" rows="3" placeholder="Notes about this customer..."></textarea></div>
+                    </div>
+                </div>
+            </div>
+            <div id="step-2" class="step-content">
+                 <div class="card">
+                    <h2>Itemized List</h2>
+                    <div class="table-container">
+                        <table class="styled-table">
+                            <thead><tr><th>Description</th><th>Condition</th><th>Brand</th><th>Country</th><th>Qty</th><th>Unit Value</th><th>Total Value</th><th>Actions</th></tr></thead>
+                            <tbody id="itemTableTbody">
+                                <tr><td colspan="8" style="text-align: center;">No items added yet.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="wizard-nav" style="justify-content: flex-end;">
+                        <button class="btn btn-primary" id="addNewItemBtn">+ Add New Item</button>
+                    </div>
+                </div>
+            </div>
+             <div id="step-3" class="step-content">
+                 <div class="card">
+                    <h2>Shipment Details</h2>
+                    <div class="form-grid-two-col">
+                        <div class="input-group"><label for="totalPackages">Total Packages</label><input type="number" id="totalPackages" placeholder="e.g., 2" min="0"></div>
+                        <div class="input-group"><label for="totalWeight">Total Weight (kg)</label><input type="text" id="totalWeight" placeholder="e.g., 14.5"></div>
+                        <div class="input-group"><label for="invoiceNumber">Invoice Number</label><input type="text" id="invoiceNumber" placeholder="BEE26-1025"></div>
+                        <div class="input-group"><label for="invoiceDate">Date</label><input type="date" id="invoiceDate"></div>
+                        <div class="input-group"><label for="deliveryStatus">Delivery Status</label><select id="deliveryStatus"><option value="Pending">Pending</option><option value="Shipped">Shipped</option><option value="Delivered">Delivered</option></select></div>
+                        <div class="input-group"><label for="hsCode">HS Code (Optional)</label><input type="text" id="hsCode" placeholder="e.g., 6109.10"></div>
+                    </div>
+                </div>
+                <div class="card">
+                    <h2>Payment Details</h2>
+                    <div class="form-grid-two-col">
+<div class="input-group"><label for="paymentTotal">Service Fee / Customer Payment (CAD)</label><input type="number" id="paymentTotal" placeholder="0.00" min="0" step="0.01"></div>
+                        <div class="input-group"><label for="paymentStatus">Payment Status</label><select id="paymentStatus"><option value="Not-Paid">Not Paid</option><option value="Paid">Paid</option><option value="Partially-Paid">Partially Paid</option></select></div>
+                        <div class="input-group"><label for="amountPaid">Amount Paid (CAD)</label><input type="number" id="amountPaid" placeholder="0.00" min="0" step="0.01"></div>
+                         <div class="input-group"><label for="paymentMethod">Payment Method</label><select id="paymentMethod"><option value="">N/A</option><option value="Cash">Cash</option><option value="E-Transfer">E-Transfer</option><option value="Card">Card</option></select></div>
+                    </div>
+                </div>
+            </div>
+            <div id="step-4" class="step-content">
+                <div class="card">
+                    <h2>Review Shipment</h2>
+                    <div class="review-section">
+                        <h3>Customer</h3>
+                        <div class="form-grid-two-col">
+                            <div><strong>Sender</strong><div class="summary-grid"><strong>Name:</strong> <span id="review-senderName">--</span><strong>Phone:</strong> <span id="review-senderPhone">--</span></div></div>
+                            <div><strong>Receiver</strong><div class="summary-grid"><strong>Name:</strong> <span id="review-receiverName">--</span><strong>Phone:</strong> <span id="review-receiverPhone">--</span><strong>Address:</strong> <span id="review-receiverAddress" style="white-space: pre-wrap;">--</span></div></div>
+                        </div>
+                    </div>
+                    <div class="review-section">
+                        <h3>Shipment & Payment</h3>
+                        <div class="form-grid-two-col">
+                            <div><strong>Shipment</strong><div class="summary-grid"><strong>Invoice #:</strong> <span id="review-invoiceNumber">--</span><strong>Packages:</strong> <span id="review-totalPackages">--</span><strong>Weight:</strong> <span id="review-totalWeight">--</span><strong>Status:</strong> <span id="review-deliveryStatus">--</span></div></div>
+                            <div><strong>Payment</strong><div class="summary-grid"><strong>Total:</strong> <span id="review-paymentTotal">--</span><strong>Status:</strong> <span id="review-paymentStatus">--</span><strong>Paid:</strong> <span id="review-amountPaid">--</span><strong>Method:</strong> <span id="review-paymentMethod">--</span></div></div>
+                        </div>
+                    </div>
+                    <div class="review-section">
+                        <h3>Itemized List (<span id="review-itemCount">0</span> items) - Total Declared Value: <strong id="review-declaredTotal" style="color:var(--blue);">$0.00</strong></h3>
+                        <div class="table-container">
+                            <table class="styled-table">
+                                <thead><tr><th>Description</th><th>Condition</th><th>Brand</th><th>Country</th><th>Category</th><th>Qty</th><th>Total Value</th></tr></thead>
+                                <tbody id="review-itemTableTbody">
+                                    <tr><td colspan="7" style="text-align: center;">--</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <div class="card">
+                    <h2>Generate Documents</h2>
+                    <div class="doc-buttons">
+                        <button class="btn btn-secondary" id="printPackingListBtn">Print Packing List</button>
+                        <button class="btn btn-primary" id="exportInvoicePDF">Download Invoice (PDF)</button>
+                        <button class="btn btn-secondary" id="exportPackingListExcel">Download Excel</button>
+                    </div>
+                </div>
+            </div>
+            <div class="wizard-nav">
+                <button class="btn btn-secondary" id="prev-step" disabled>← Back</button>
+                <button class="btn btn-primary" id="next-step">Next: Add Items →</button>
+            </div>
+        </div> 
+        
+        <div id="page-all-shipments" class="page-content">
+             <div class="card">
+                <h2>All Shipments</h2>
+                <div class="table-container">
+                    <table class="styled-table">
+                        <thead><tr><th>Invoice #</th><th>Date</th><th>Sender</th><th>Receiver</th><th>Status</th><th>Payment</th><th>Actions</th></tr></thead>
+                        <tbody id="shipmentsTableTbody">
+                            <tr><td colspan="7" style="text-align: center;">Loading data from Firebase...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div id="page-customers" class="page-content">
+             <div class="card">
+                <h2>Customer List</h2>
+                <div class="table-container">
+                    <table class="styled-table">
+                        <thead><tr><th>Name (Sender)</th><th>Phone</th><th>Last Shipment</th><th>Total Shipments</th><th>Actions</th></tr></thead>
+                        <tbody id="customersTableTbody">
+                            <tr><td colspan="5" style="text-align: center;">Loading data from Firebase...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div id="page-payments" class="page-content">
+            <div class="card">
+                <h2>Filter Payments</h2>
+                <div class="filters-bar">
+                     <div class="input-group" style="flex-grow: 1;">
+                        <label for="paymentSearch">Search Invoice # / Customer Name</label>
+                        <input type="text" id="paymentSearch" placeholder="Search...">
+                    </div>
+                    <div class="input-group">
+                        <label for="paymentStatusFilter">Filter by Status</label>
+                        <select id="paymentStatusFilter">
+                            <option value="All">All Statuses</option>
+                            <option value="Not-Paid">Not Paid</option>
+                            <option value="Partially-Paid">Partially Paid</option>
+                            <option value="Paid">Paid</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="payment-summary-grid">
+                <div class="payment-summary-card">
+                    <h3>Total Amount Due</h3>
+                    <div class="value" id="payment-summary-due">$0.00</div>
+                </div>
+                <div class="payment-summary-card">
+                    <h3>Total Amount Paid</h3>
+                    <div class="value" id="payment-summary-paid">$0.00</div>
+                </div>
+                <div class="payment-summary-card">
+                    <h3>Shipments Displayed</h3>
+                    <div class="value" id="payment-summary-count">0</div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>Payment Tracker</h2>
+                <div class="table-container">
+                    <table class="styled-table payments-table">
+                        <thead>
+                            <tr>
+                                <th>Invoice #</th>
+                                <th>Date</th>
+                                <th>Sender</th>
+                                <th>Total Amt</th>
+                                <th style="width: 120px;">Amt Paid</th> 
+                                <th>Balance Due</th>
+                                <th style="width: 150px;">Pay Status</th> 
+                                <th style="width: 150px;">Pay Method</th> 
+                            </tr>
+                        </thead>
+                        <tbody id="paymentsTableTbody">
+                            <tr><td colspan="8" style="text-align: center;">Loading data from Firebase...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div class="modal-overlay" id="addItemModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modal-title">Add New Item</h2>
+                <button class="close-btn" id="closeModalBtn">&times;</button>
+            </div>
+            <form id="addItemForm">
+                <div class="form-grid-two-col">
+                    <div class="input-group">
+                        <label for="modalItemDesc">Description</label>
+                        <input type="text" id="modalItemDesc" placeholder="e.g., Men's T-Shirts" required>
+                    </div>
+                     <div class="input-group">
+                        <label for="modalItemCat">Category</label>
+                        <select id="modalItemCat" required>
+                            <option value="">Select category...</option>
+                            <optgroup label="Apparel & Textiles">
+                                <option value="Clothing">Clothing</option>
+                                <option value="Footwear & Shoes">Footwear & Shoes</option>
+                                <option value="Fabrics & Textiles">Fabrics & Textiles</option>
+                            </optgroup>
+                            <optgroup label="Electronics & Media">
+                                <option value="Computers & Laptops">Computers & Laptops</option>
+                                <option value="Phones & Accessories">Phones & Accessories</option>
+                                <option value="Cameras & Equipment">Cameras & Equipment</option>
+                                <option value="Batteries / Power Banks">Batteries / Power Banks</option>
+                                <option value="Books & Media">Books & Media</option>
+                            </optgroup>
+                            <optgroup label="Food & Perishables">
+                                <option value="Packaged Food (Non-Perishable)">Packaged Food (Non-Perishable)</option>
+                                <option value="Perishables (Special Handling)">Perishables (Special Handling)</option>
+                                <option value="Liquids & Beverages">Liquids & Beverages</option>
+                            </optgroup>
+                            <optgroup label="Health & Beauty">
+                                <option value="Cosmetics & Toiletries">Cosmetics & Toiletries</option>
+                                <option value"Medicines & Vitamins">Medicines & Vitamins</option>
+                            </optgroup>
+                            <optgroup label="Household & Goods">
+                                <option value="Kitchenware">Kitchenware</option>
+                                <option value="Home Decor">Home Decor</option>
+                                <option value="Tools & Hardware">Tools & Hardware</option>
+                                <option value="Household Supplies">Household Supplies</option>
+                            </optgroup>
+                            <optgroup label="Personal Items & Gifts">
+                                <option value="Toys & Hobbies">Toys & Hobbies</option>
+                                <option value="Jewelry & Accessories">Jewelry & Accessories</option>
+                                <option value="Gifts & Souvenirs">Gifts & Souvenirs</option>
+                                <option value="Sports Equipment">Sports Equipment</option>
+                            </optgroup>
+                            <optgroup label="Documents & Special">
+                                <option value="Documents">Documents</option>
+                                <option value="Fragile Items">Fragile Items</option>
+                                <option value="Restricted / Special Handling">Restricted / Special Handling</option>
+                            </optgroup>
+                            <optgroup label="Other">
+                                <option value="General Merchandise">General Merchandise</option>
+                                <option value="Other">Other</option>
+                            </optgroup>
+                        </select>
+                    </div>
+                     <div class="input-group">
+                        <label for="modalItemQty">Quantity</label>
+                        <input type="number" id="modalItemQty" placeholder="1" min="1" required>
+                    </div>
+                    <div class="input-group">
+                        <label for="modalItemValue">Unit Value (CAD)</label>
+                        <input type="number" id="modalItemValue" placeholder="15.00" min="0" step="0.01" required>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="modalItemCondition">Condition</label>
+                        <select id="modalItemCondition" required>
+                            <option value="New">New</option>
+                            <option value="Used">Used</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <label for="modalItemBrand">Brand Name</label>
+                        <input type="text" id="modalItemBrand" placeholder="e.g., Nike, Apple, etc.">
+                    </div>
+                    <div class="input-group" style="grid-column: 1 / -1;"> <label for="modalItemCountry">Manufacture Country</label>
+                        <select id="modalItemCountry">
+                            <option value="">Select country...</option>
+                            <option value="Canada">🇨🇦 Canada</option>
+                            <option value="Sri Lanka">🇱🇰 Sri Lanka</option>
+                            <option value="USA">🇺🇸 USA</option>
+                            <option value="UK">🇬🇧 UK</option>
+                            <option value="India">🇮🇳 India</option>
+                            <option value="China">🇨🇳 China</option>
+                            <option value="Germany">🇩🇪 Germany</option>
+                            <option value="Japan">🇯🇵 Japan</option>
+                            <option value="South Korea">🇰🇷 South Korea</option>
+                            <option value="Australia">🇦🇺 Australia</option>
+                            <option value="Bangladesh">🇧🇩 Bangladesh</option>
+                            <option value="Vietnam">🇻🇳 Vietnam</option>
+                            <option value="Turkey">🇹🇷 Turkey</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" id="cancelModalBtn">Cancel</button>
+                    <button type="submit" class="btn btn-primary" id="saveItemBtn">Save Item</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+
+    <script type="text/javascript"> 
+        document.addEventListener('DOMContentLoaded', () => {
+
+            // --- 0. Get Firebase Functions ---
+            const db = window.db;
+            const dbRef = window.dbRef;
+            const dbUpdate = window.dbUpdate;
+            const dbPush = window.dbPush;
+            const dbOnValue = window.dbOnValue;
+            const dbRemove = window.dbRemove; // <-- ADDED THIS
+
+            if (!db || !dbRef || !dbUpdate || !dbPush || !dbOnValue || !dbRemove) { // <-- ADDED dbRemove
+                alert("FATAL ERROR: Firebase Database functions not found. Check initialization.");
+                return;
+            }
+
+            // --- App State ---
+            let local_items = []; 
+            let local_shipments_cache = []; 
+            let currentEditItemId = null;
+            let currentEditShipmentId = null; 
+            let wizardCurrentStep = 1;
+
+            // --- 1. Page Navigation (Sidebar) ---
+            const navLinks = document.querySelectorAll('.nav-link');
+            const pages = document.querySelectorAll('.page-content');
+            const pageTitle = document.getElementById('page-title');
+            const pageSubtitle = document.getElementById('page-subtitle');
+            const headerActionBtn = document.getElementById('header-action-btn');
+
+            const pageMeta = { /* ... pageMeta object remains the same ... */ 
+                 'page-dashboard': { title: 'Dashboard', subtitle: "Welcome back, here's an overview of your business.", actionText: '+ Create New Shipment', actionPage: 'page-new-shipment' },
+                'page-new-shipment': { title: 'New Shipment', subtitle: 'Create a new shipment using the steps below.', actionText: null },
+                'page-all-shipments': { title: 'All Shipments', subtitle: 'Search, filter, and manage all shipments.', actionText: '+ Create New Shipment', actionPage: 'page-new-shipment' },
+                'page-customers': { title: 'Customers', subtitle: 'Manage your list of senders and receivers.', actionText: '+ Add New Customer', actionPage: 'page-new-shipment' }, // Maybe change action later
+                'page-payments': { title: 'Payments', subtitle: 'Track all pending and completed payments.', actionText: null }
+            };
+
+            function navigateToPage(pageId) {
+                // BUGGY LOGIC WAS HERE. This logic is now fixed.
+                if (pageId === 'page-new-shipment' && (headerActionBtn.textContent.includes('Create') || headerActionBtn.textContent.includes('Add'))) {
+                    clearWizard(); 
+                }
+                pages.forEach(p => p.classList.remove('active'));
+                document.getElementById(pageId).classList.add('active');
+                navLinks.forEach(l => l.classList.remove('active'));
+                document.querySelector(`.nav-link[data-page="${pageId}"]`)?.classList.add('active');
+                
+                const meta = pageMeta[pageId];
+                
+                // This check prevents the title from being reset to "New Shipment" when editing.
+                if (meta && pageTitle.textContent !== 'Edit Shipment') { 
+                    pageTitle.textContent = meta.title;
+                    pageSubtitle.textContent = meta.subtitle;
+                } else if (meta) {
+                    // It is the "Edit Shipment" page, just update the button
+                    pageSubtitle.textContent = pageSubtitle.textContent || meta.subtitle; // Keep the "Editing Invoice..." subtitle
+                }
+
+                if (meta) { // This part always runs to set the button correctly
+                    if (meta.actionText) {
+                        headerActionBtn.textContent = meta.actionText;
+                        headerActionBtn.style.display = 'block';
+                        headerActionBtn.dataset.page = meta.actionPage;
+                    } else {
+                        headerActionBtn.style.display = 'none';
+                    }
+                }
+
+                // Data render functions are called by the onValue listener or filter changes
+                 if (pageId === 'page-payments') {
+                    renderPaymentsTable(); // Re-render payment table when navigating to it
+                }
+            }
+
+            navLinks.forEach(link => {
+                link.addEventListener('click', (e) => {
+                    // When manually clicking a nav link, if we leave the edit page, reset the title
+                    if(pageTitle.textContent === 'Edit Shipment' && e.currentTarget.dataset.page !== 'page-new-shipment') {
+                         pageTitle.textContent = ''; // Allow navigateToPage to set it
+                    }
+                    navigateToPage(e.currentTarget.dataset.page)
+                });
+            });
+            headerActionBtn.addEventListener('click', (e) => navigateToPage(e.currentTarget.dataset.page));
+
+
+            // --- 2. New Shipment Wizard ---
+            const wizard = document.getElementById('page-new-shipment');
+            const prevBtn = wizard.querySelector('#prev-step');
+            const nextBtn = wizard.querySelector('#next-step');
+            const steps = wizard.querySelectorAll('.step');
+            const stepContents = wizard.querySelectorAll('.step-content');
+            const totalSteps = 4;
+
+            const nextLabels = [/* ... nextLabels array remains the same ... */
+                 'Next: Add Items →',
+                'Next: Shipment →',
+                'Next: Review →',
+                'Save & Finish Shipment'
+            ];
+
+            function updateWizard(jumpToStep = null) { /* ... updateWizard function remains the same ... */ 
+                wizardCurrentStep = jumpToStep !== null ? jumpToStep : wizardCurrentStep;
+                stepContents.forEach((content, index) => {
+                    content.classList.toggle('active', (index + 1) === wizardCurrentStep);
+                });
+                steps.forEach((step, index) => {
+                    const stepNum = index + 1;
+                    step.classList.toggle('active', stepNum === wizardCurrentStep);
+                    step.classList.toggle('completed', stepNum < wizardCurrentStep);
+                });
+                prevBtn.disabled = (wizardCurrentStep === 1);
+                if (currentEditShipmentId !== null) { 
+                    nextBtn.textContent = (wizardCurrentStep === totalSteps) ? 'Update Shipment' : nextLabels[wizardCurrentStep - 1];
+                } else { 
+                    nextBtn.textContent = nextLabels[wizardCurrentStep - 1];
+                }
+                if (wizardCurrentStep === 4) {
+                    populateReviewStep();
+                }
+            }
+
+            nextBtn.addEventListener('click', async () => { 
+                if (wizardCurrentStep < totalSteps) {
+                    wizardCurrentStep++;
+                    updateWizard();
+                } else {
+                    nextBtn.disabled = true;
+                    nextBtn.textContent = "Saving...";
+                    await saveShipment(); 
+                    nextBtn.disabled = false; 
+                }
+            });
+
+            prevBtn.addEventListener('click', () => {
+                if (wizardCurrentStep > 1) {
+                    wizardCurrentStep--;
+                    updateWizard();
+                }
+            });
+
+            function clearWizard() { /* ... clearWizard function remains the same ... */ 
+                 const formInputs = wizard.querySelectorAll('input, textarea, select');
+                formInputs.forEach(input => {
+                    if (input.type === 'select-one') {
+                        input.selectedIndex = 0; 
+                    } else if (input.type !== 'date') { // Don't clear date by default
+                        input.value = ''; 
+                    }
+                });
+                document.getElementById('deliveryStatus').value = 'Pending';
+                document.getElementById('paymentStatus').value = 'Not-Paid';
+                document.getElementById('invoiceDate').valueAsDate = new Date(); // Reset date
+                
+                local_items = []; 
+                currentEditItemId = null;
+                currentEditShipmentId = null; 
+
+                // Reset page title if it was in edit mode
+                if (pageTitle.textContent === 'Edit Shipment') {
+                     const meta = pageMeta['page-new-shipment'];
+                     pageTitle.textContent = meta.title;
+                     pageSubtitle.textContent = meta.subtitle;
+                }
+
+                wizardCurrentStep = 1;
+                renderItemTable();
+                updateWizard();
+            }
+
+            // --- 3. Item CRUD (Manages local_items array) ---
+            const modal = document.getElementById('addItemModal');
+            const addNewItemBtn = document.getElementById('addNewItemBtn');
+            const closeModalBtn = document.getElementById('closeModalBtn');
+            const cancelModalBtn = document.getElementById('cancelModalBtn');
+            const addItemForm = document.getElementById('addItemForm');
+            const itemTableTbody = document.getElementById('itemTableTbody');
+            
+            addNewItemBtn.addEventListener('click', () => { /* ... unchanged ... */ 
+                currentEditItemId = null;
+                addItemForm.reset();
+                document.getElementById('modal-title').textContent = 'Add New Item';
+                document.getElementById('saveItemBtn').textContent = 'Save Item';
+                modal.classList.add('active');
+            });
+            
+            function closeModal() { modal.classList.remove('active'); }
+            closeModalBtn.addEventListener('click', closeModal);
+            cancelModalBtn.addEventListener('click', closeModal);
+            
+            addItemForm.addEventListener('submit', (e) => { /* ... unchanged ... */ 
+                e.preventDefault();
+                const item = {
+                    desc: document.getElementById('modalItemDesc').value,
+                    category: document.getElementById('modalItemCat').value,
+                    qty: parseFloat(document.getElementById('modalItemQty').value),
+                    value: parseFloat(document.getElementById('modalItemValue').value),
+                    condition: document.getElementById('modalItemCondition').value,
+                    brand: document.getElementById('modalItemBrand').value,
+                    country: document.getElementById('modalItemCountry').value
+                };
+                if (currentEditItemId !== null) {
+                    local_items[currentEditItemId] = item; 
+                } else {
+                    local_items.push(item); 
+                }
+                renderItemTable();
+                closeModal();
+            });
+
+            function renderItemTable() { /* ... unchanged ... */ 
+                itemTableTbody.innerHTML = '';
+                if (local_items.length === 0) {
+                    itemTableTbody.innerHTML = '<tr><td colspan="8" style="text-align: center;">No items added yet.</td></tr>';
+                    return;
+                }
+                local_items.forEach((item, index) => {
+                    const totalVal = (item.qty * item.value).toFixed(2);
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${item.desc}</td>
+                        <td>${item.condition || '--'}</td>
+                        <td>${item.brand || '--'}</td>
+                        <td>${item.country || '--'}</td>
+                        <td>${item.qty}</td>
+                        <td>$${item.value.toFixed(2)}</td>
+                        <td>$${totalVal}</td>
+                        <td class="table-actions">
+                            <button class="btn btn-secondary btn-small edit-item-btn" data-index="${index}">Edit</button>
+                            <button class="btn btn-danger btn-small delete-item-btn" data-index="${index}">Del</button>
+                        </td>
+                    `;
+                    itemTableTbody.appendChild(row);
+                });
+            }
+
+            itemTableTbody.addEventListener('click', (e) => { /* ... unchanged ... */ 
+                const index = e.target.dataset.index;
+                if (e.target.classList.contains('delete-item-btn')) {
+                    if (confirm('Are you sure you want to delete this item?')) {
+                        local_items.splice(index, 1);
+                        renderItemTable();
+                    }
+                }
+                if (e.target.classList.contains('edit-item-btn')) {
+                    const item = local_items[index];
+                    currentEditItemId = index;
+                    document.getElementById('modal-title').textContent = 'Edit Item';
+                    document.getElementById('saveItemBtn').textContent = 'Update Item';
+                    document.getElementById('modalItemDesc').value = item.desc;
+                    document.getElementById('modalItemCat').value = item.category;
+                    document.getElementById('modalItemQty').value = item.qty;
+                    document.getElementById('modalItemValue').value = item.value;
+                    document.getElementById('modalItemCondition').value = item.condition || 'New';
+                    document.getElementById('modalItemBrand').value = item.brand || '';
+                    document.getElementById('modalItemCountry').value = item.country || '';
+                    modal.classList.add('active');
+                }
+            });
+
+
+            // --- 4. Shipment Save, Review, and Load (FIREBASE CONNECTED) ---
+            
+            // =============================================
+            // --- THIS IS THE FIXED populateReviewStep FUNCTION ---
+            // =============================================
+            function populateReviewStep() { 
+                // Customer
+                document.getElementById('review-senderName').textContent = document.getElementById('senderName').value || '--';
+                document.getElementById('review-senderPhone').textContent = document.getElementById('senderPhone').value || '--';
+                document.getElementById('review-receiverName').textContent = document.getElementById('receiverName').value || '--';
+                document.getElementById('review-receiverPhone').textContent = document.getElementById('receiverPhone').value || '--';
+                document.getElementById('review-receiverAddress').textContent = document.getElementById('receiverAddress').value || '--';
+                // Shipment
+                document.getElementById('review-invoiceNumber').textContent = document.getElementById('invoiceNumber').value || '--';
+                document.getElementById('review-totalPackages').textContent = document.getElementById('totalPackages').value || '--';
+                document.getElementById('review-totalWeight').textContent = document.getElementById('totalWeight').value ? document.getElementById('totalWeight').value + ' kg' : '--';
+                document.getElementById('review-deliveryStatus').innerHTML = `<span class="status-badge status-${document.getElementById('deliveryStatus').value}">${document.getElementById('deliveryStatus').value}</span>`;
+                
+                // Payment (Service Fee)
+                const paymentTotal = parseFloat(document.getElementById('paymentTotal').value) || 0;
+                const amountPaid = parseFloat(document.getElementById('amountPaid').value) || 0; 
+                const paymentMethod = document.getElementById('paymentMethod').value || 'N/A'; 
+
+                document.getElementById('review-paymentTotal').textContent = `$${paymentTotal.toFixed(2)}`;
+                document.getElementById('review-paymentStatus').innerHTML = `<span class="status-badge status-${document.getElementById('paymentStatus').value.replace(' ','-')}">${document.getElementById('paymentStatus').value.replace('-',' ')}</span>`;
+                document.getElementById('review-amountPaid').textContent = `$${amountPaid.toFixed(2)}`; 
+                document.getElementById('review-paymentMethod').textContent = paymentMethod; 
+                
+                // Items & Declared Value
+                document.getElementById('review-itemCount').textContent = local_items.length;
+                const reviewTbody = document.getElementById('review-itemTableTbody');
+                reviewTbody.innerHTML = '';
+                let declaredTotal = 0; // <-- FIX
+                
+                if (local_items.length === 0) {
+                    reviewTbody.innerHTML = '<tr><td colspan="7" style="text-align: center;">--</td></tr>';
+                } else {
+                    local_items.forEach(item => {
+                        const itemTotal = (parseFloat(item.qty) || 0) * (parseFloat(item.value) || 0); // <-- FIX
+                        declaredTotal += itemTotal; // <-- FIX
+                        reviewTbody.innerHTML += `
+                            <tr>
+                                <td>${item.desc}</td>
+                                <td>${item.condition || '--'}</td>
+                                <td>${item.brand || '--'}</td>
+                                <td>${item.country || '--'}</td>
+                                <td>${item.category}</td>
+                                <td>${item.qty}</td>
+                                <td>$${itemTotal.toFixed(2)}</td>
+                            </tr>
+                        `;
+                    });
+                }
+                document.getElementById('review-declaredTotal').textContent = `$${declaredTotal.toFixed(2)}`; // <-- FIX
+            }
+
+            async function saveShipment() { /* ... updated to include amountPaid and paymentMethod ... */ 
+                const shipment = {
+                    senderName: document.getElementById('senderName').value,
+                    senderPhone: document.getElementById('senderPhone').value,
+                    receiverName: document.getElementById('receiverName').value,
+                    receiverPhone: document.getElementById('receiverPhone').value,
+                    receiverAddress: document.getElementById('receiverAddress').value,
+                    customerRemarks: document.getElementById('customerRemarks').value,
+                    totalPackages: document.getElementById('totalPackages').value,
+                    totalWeight: document.getElementById('totalWeight').value,
+                    invoiceNumber: document.getElementById('invoiceNumber').value,
+                    invoiceDate: document.getElementById('invoiceDate').value,
+                    deliveryStatus: document.getElementById('deliveryStatus').value,
+                    hsCode: document.getElementById('hsCode').value,
+                    paymentTotal: document.getElementById('paymentTotal').value,
+                    paymentStatus: document.getElementById('paymentStatus').value,
+                    amountPaid: document.getElementById('amountPaid').value || '0', // Save amount paid
+                    paymentMethod: document.getElementById('paymentMethod').value || '', // Save method
+                    items: [...local_items] 
+                };
+
+                try {
+                    if (currentEditShipmentId !== null) {
+                        const shipmentRef = dbRef(db, 'shipments/' + currentEditShipmentId);
+                        await dbUpdate(shipmentRef, shipment);
+                        alert('Shipment ' + shipment.invoiceNumber + ' updated!');
+                    } else {
+                        const shipmentListRef = dbRef(db, 'shipments');
+                        await dbPush(shipmentListRef, shipment);
+                        alert('Shipment ' + shipment.invoiceNumber + ' saved!');
+                    }
+                    clearWizard();
+                    navigateToPage('page-all-shipments');
+                } catch (error) {
+                    console.error("Error saving shipment to Firebase:", error);
+                    alert("Error: Could not save shipment. See console for details.");
+                }
+            }
+
+            // =============================================
+            // --- THIS IS THE FIXED loadShipmentForEdit FUNCTION from previous fix ---
+            // =============================================
+            function loadShipmentForEdit(shipmentId) { 
+                const shipment = local_shipments_cache.find(s => s.id === shipmentId);
+                if (!shipment) { alert("Error: Could not find shipment to load."); return; }
+                
+                clearWizard(); // This is the *only* clear we want.
+                currentEditShipmentId = shipmentId; 
+                
+                // Populate all fields
+                document.getElementById('senderName').value = shipment.senderName || '';
+                document.getElementById('senderPhone').value = shipment.senderPhone || '';
+                document.getElementById('receiverName').value = shipment.receiverName || '';
+                document.getElementById('receiverPhone').value = shipment.receiverPhone || '';
+                document.getElementById('receiverAddress').value = shipment.receiverAddress || '';
+                document.getElementById('customerRemarks').value = shipment.customerRemarks || '';
+                document.getElementById('totalPackages').value = shipment.totalPackages || '';
+                document.getElementById('totalWeight').value = shipment.totalWeight || '';
+                document.getElementById('invoiceNumber').value = shipment.invoiceNumber || '';
+                document.getElementById('invoiceDate').value = shipment.invoiceDate || '';
+                document.getElementById('deliveryStatus').value = shipment.deliveryStatus || 'Pending';
+                document.getElementById('hsCode').value = shipment.hsCode || '';
+                document.getElementById('paymentTotal').value = shipment.paymentTotal || '';
+                document.getElementById('paymentStatus').value = shipment.paymentStatus || 'Not-Paid';
+                document.getElementById('amountPaid').value = shipment.amountPaid || '0';
+                document.getElementById('paymentMethod').value = shipment.paymentMethod || '';
+                
+                local_items = [...(shipment.items || [])]; 
+                renderItemTable(); 
+
+                // --- FIX: Manually navigate without calling navigateToPage() ---
+                const pageId = 'page-new-shipment';
+                
+                // 1. Manually switch visible page
+                pages.forEach(p => p.classList.remove('active'));
+                document.getElementById(pageId).classList.add('active');
+                
+                // 2. Manually switch active nav link
+                navLinks.forEach(l => l.classList.remove('active'));
+                document.querySelector(`.nav-link[data-page="${pageId}"]`)?.classList.add('active');
+                
+                // 3. Manually set header text
+                const meta = pageMeta[pageId];
+                if (meta) {
+                    // We overwrite the default meta title/subtitle for "Edit" mode
+                    pageTitle.textContent = 'Edit Shipment'; 
+                    pageSubtitle.textContent = 'Editing Invoice #' + (shipment.invoiceNumber || 'N/A');
+                    
+                    // We use the meta action button text (which is 'null' for this page)
+                    if (meta.actionText) {
+                        headerActionBtn.textContent = meta.actionText;
+                        headerActionBtn.style.display = 'block';
+                        headerActionBtn.dataset.page = meta.actionPage;
+                    } else {
+                        headerActionBtn.style.display = 'none';
+                    }
+                }
+                // --- END FIX ---
+                
+                updateWizard(1); // Set wizard to step 1
+            }
+
+
+            // --- 5. Data Table Rendering (Reads from local_shipments_cache) ---
+            const shipmentsTableTbody = document.getElementById('shipmentsTableTbody');
+            const customersTableTbody = document.getElementById('customersTableTbody');
+            const recentActivityTbody = document.getElementById('recent-activity-tbody');
+            const paymentsTableTbody = document.getElementById('paymentsTableTbody'); // Get payments table body
+
+            // =============================================
+            // --- THIS IS THE UPDATED renderShipmentsTable FUNCTION ---
+            // =============================================
+            function renderShipmentsTable() { 
+                 shipmentsTableTbody.innerHTML = '';
+                if (local_shipments_cache.length === 0) {
+                    shipmentsTableTbody.innerHTML = '<tr><td colspan="7" style="text-align: center;">No shipments created yet.</td></tr>';
+                    return;
+                }
+                const sortedShipments = [...local_shipments_cache].sort((a, b) => new Date(b.invoiceDate) - new Date(a.invoiceDate));
+                sortedShipments.forEach(shipment => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${shipment.invoiceNumber}</td>
+                        <td>${shipment.invoiceDate}</td>
+                        <td>${shipment.senderName}</td>
+                        <td>${shipment.receiverName}</td>
+                        <td><span class="status-badge status-${shipment.deliveryStatus}">${shipment.deliveryStatus}</span></td>
+                        <td><span class="status-badge status-${shipment.paymentStatus.replace(' ','-')}">${shipment.paymentStatus.replace('-',' ')}</span></td>
+                        <td class="table-actions">
+                            <button class="btn btn-secondary btn-small view-shipment-btn" data-id="${shipment.id}">View</button>
+                            <button class="btn btn-primary btn-small edit-shipment-btn" data-id="${shipment.id}">Edit</button>
+                            <button class="btn btn-danger btn-small delete-shipment-btn" data-id="${shipment.id}">Delete</button>
+                        </td>
+                    `;
+                    shipmentsTableTbody.appendChild(row);
+                });
+            }
+
+            // =============================================
+            // --- THIS IS THE UPDATED addEventListener FUNCTION ---
+            // =============================================
+            shipmentsTableTbody.addEventListener('click', (e) => {
+                const shipmentId = e.target.dataset.id;
+                if (!shipmentId) return; // Ignore clicks without a data-id
+
+                if (e.target.classList.contains('view-shipment-btn') || e.target.classList.contains('edit-shipment-btn')) { 
+                    loadShipmentForEdit(shipmentId);
+                }
+                
+                if (e.target.classList.contains('delete-shipment-btn')) {
+                    // Find shipment for confirmation message
+                    const shipment = local_shipments_cache.find(s => s.id === shipmentId);
+                    const invoiceNum = shipment ? shipment.invoiceNumber : 'this shipment';
+                    
+                    if (confirm(`Are you sure you want to permanently delete Invoice #${invoiceNum}?`)) {
+                        deleteShipment(shipmentId);
+                    }
+                }
+            });
+
+            // =============================================
+            // --- THIS IS THE NEW deleteShipment FUNCTION ---
+            // =============================================
+            async function deleteShipment(shipmentId) {
+                if (!shipmentId) return;
+                try {
+                    const shipmentRef = dbRef(db, 'shipments/' + shipmentId);
+                    await dbRemove(shipmentRef); // Use dbRemove from Firebase
+                    alert('Shipment deleted successfully.');
+                    // The onValue listener will automatically re-render the table
+                } catch (error) {
+                    console.error("Error deleting shipment:", error);
+                    alert("Error: Could not delete shipment. See console for details.");
+                }
+            }
+            
+            function renderCustomersTable() { /* ... unchanged ... */ 
+                customersTableTbody.innerHTML = '';
+                const customers = new Map(); 
+                local_shipments_cache.forEach(s => {
+                    if (!s.senderName || !s.senderPhone) return;
+                    if (customers.has(s.senderPhone)) {
+                        const customer = customers.get(s.senderPhone);
+                        customer.totalShipments += 1;
+                        if (new Date(s.invoiceDate) > new Date(customer.lastShipment)) {
+                            customer.lastShipment = s.invoiceDate;
+                        }
+                    } else {
+                        customers.set(s.senderPhone, {
+                            name: s.senderName, phone: s.senderPhone, lastShipment: s.invoiceDate, totalShipments: 1
+                        });
+                    }
+                });
+                if (customers.size === 0) {
+                    customersTableTbody.innerHTML = '<tr><td colspan="5" style="text-align: center;">No customers found.</td></tr>';
+                    return;
+                }
+                customers.forEach(cust => {
+                    customersTableTbody.innerHTML += `
+                        <tr>
+                            <td>${cust.name}</td><td>${cust.phone}</td><td>${cust.lastShipment || 'N/A'}</td>
+                            <td>${cust.totalShipments}</td><td class="table-actions"><button class="btn btn-secondary btn-small">View</button></td>
+                        </tr>`;
+                });
+            }
+
+            function updateDashboardStats() { /* ... unchanged ... */ 
+                 let pending = 0, transit = 0, delivered = 0, due = 0;
+                local_shipments_cache.forEach(s => {
+                    if (s.deliveryStatus === 'Pending') pending++;
+                    if (s.deliveryStatus === 'Shipped') transit++; 
+                    if (s.deliveryStatus === 'Delivered') delivered++;
+                    if (s.paymentStatus === 'Not-Paid' || s.paymentStatus === 'Partially-Paid') {
+                         const total = parseFloat(s.paymentTotal) || 0;
+                         const paid = parseFloat(s.amountPaid) || 0;
+                         due += (total - paid); // Calculate actual balance due
+                    }
+                });
+                document.getElementById('stat-pending').textContent = pending;
+                document.getElementById('stat-transit').textContent = transit;
+                document.getElementById('stat-delivered').textContent = delivered;
+                document.getElementById('stat-due').textContent = `$${due.toFixed(0)}`;
+                recentActivityTbody.innerHTML = '';
+                const recent = [...local_shipments_cache].sort((a, b) => new Date(b.invoiceDate) - new Date(a.invoiceDate)).slice(0, 3);
+                if (recent.length === 0) {
+                    recentActivityTbody.innerHTML = '<tr><td colspan="5" style="text-align: center;">No recent activity.</td></tr>'; return;
+                }
+                recent.forEach(s => {
+                    recentActivityTbody.innerHTML += `
+                        <tr><td>${s.invoiceNumber}</td><td>${s.senderName}</td><td>${s.receiverName}</td>
+                        <td><span class="status-badge status-${s.deliveryStatus}">${s.deliveryStatus}</span></td>
+                        <td>$${parseFloat(s.paymentTotal || 0).toFixed(2)}</td></tr>`;
+                });
+            }
+
+
+            // --- 6. Payments Page Logic ---
+            const paymentSearchInput = document.getElementById('paymentSearch');
+            const paymentStatusFilterSelect = document.getElementById('paymentStatusFilter');
+
+            function renderPaymentsTable() {
+                paymentsTableTbody.innerHTML = '';
+                
+                // Apply Filters
+                const searchTerm = paymentSearchInput.value.toLowerCase();
+                const statusFilter = paymentStatusFilterSelect.value;
+                
+                const filteredShipments = local_shipments_cache.filter(s => {
+                    const nameMatch = (s.senderName?.toLowerCase().includes(searchTerm) || s.receiverName?.toLowerCase().includes(searchTerm) || s.invoiceNumber?.toLowerCase().includes(searchTerm));
+                    const statusMatch = (statusFilter === 'All' || s.paymentStatus === statusFilter);
+                    return nameMatch && statusMatch;
+                });
+
+                if (filteredShipments.length === 0) {
+                    paymentsTableTbody.innerHTML = '<tr><td colspan="8" style="text-align: center;">No shipments match your filters.</td></tr>';
+                    updatePaymentSummary(filteredShipments); // Update summary even if empty
+                    return;
+                }
+
+                // Sort by date, newest first
+                filteredShipments.sort((a, b) => new Date(b.invoiceDate) - new Date(a.invoiceDate));
+                
+                filteredShipments.forEach(shipment => {
+                    const totalAmount = parseFloat(shipment.paymentTotal) || 0;
+                    const amountPaid = parseFloat(shipment.amountPaid) || 0;
+                    const balanceDue = totalAmount - amountPaid;
+                    
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${shipment.invoiceNumber}</td>
+                        <td>${shipment.invoiceDate}</td>
+                        <td>${shipment.senderName}</td>
+                        <td class="number-cell">$${totalAmount.toFixed(2)}</td>
+                        <td>
+                            <input type="number" class="payment-update" data-id="${shipment.id}" data-field="amountPaid" value="${amountPaid.toFixed(2)}" min="0" step="0.01">
+                        </td>
+                        <td class="number-cell balance-due ${balanceDue <= 0 ? 'zero' : (balanceDue < 0 ? 'negative' : '')}">
+                            $${balanceDue.toFixed(2)}
+                        </td>
+                        <td>
+                            <select class="payment-update" data-id="${shipment.id}" data-field="paymentStatus">
+                                <option value="Not-Paid" ${shipment.paymentStatus === 'Not-Paid' ? 'selected' : ''}>Not Paid</option>
+                                <option value="Partially-Paid" ${shipment.paymentStatus === 'Partially-Paid' ? 'selected' : ''}>Partially Paid</option>
+                                <option value="Paid" ${shipment.paymentStatus === 'Paid' ? 'selected' : ''}>Paid</option>
+                            </select>
+                        </td>
+                        <td>
+                             <select class="payment-update" data-id="${shipment.id}" data-field="paymentMethod">
+                                <option value="" ${!shipment.paymentMethod ? 'selected' : ''}>N/A</option>
+                                <option value="Cash" ${shipment.paymentMethod === 'Cash' ? 'selected' : ''}>Cash</option>
+                                <option value="E-Transfer" ${shipment.paymentMethod === 'E-Transfer' ? 'selected' : ''}>E-Transfer</option>
+                                <option value="Card" ${shipment.paymentMethod === 'Card' ? 'selected' : ''}>Card</option>
+                            </select>
+                        </td>
+                    `;
+                    paymentsTableTbody.appendChild(row);
+                });
+
+                updatePaymentSummary(filteredShipments);
+            }
+
+            function updatePaymentSummary(filteredData) {
+                let totalDue = 0;
+                let totalPaid = 0;
+                
+                filteredData.forEach(s => {
+                    const total = parseFloat(s.paymentTotal) || 0;
+                    const paid = parseFloat(s.amountPaid) || 0;
+                    const balance = total - paid;
+                    
+                    if (balance > 0) {
+                        totalDue += balance;
+                    }
+                    if (paid > 0) {
+                         totalPaid += paid;
+                    }
+                });
+
+                document.getElementById('payment-summary-due').textContent = `$${totalDue.toFixed(2)}`;
+                document.getElementById('payment-summary-paid').textContent = `$${totalPaid.toFixed(2)}`;
+                document.getElementById('payment-summary-count').textContent = filteredData.length;
+            }
+
+            // Event listeners for payment filters
+            paymentSearchInput.addEventListener('input', renderPaymentsTable);
+            paymentStatusFilterSelect.addEventListener('change', renderPaymentsTable);
+
+            // Event listener for updating payment fields in the table
+            paymentsTableTbody.addEventListener('change', async (e) => {
+                if (e.target.classList.contains('payment-update')) {
+                    const shipmentId = e.target.dataset.id;
+                    const field = e.target.dataset.field;
+                    const value = e.target.value;
+
+                    if (!shipmentId || !field) return;
+
+                    const updateData = {};
+                    updateData[field] = value;
+                    
+                    // Optional: Auto-update status based on amount paid
+                    if (field === 'amountPaid') {
+                        const row = e.target.closest('tr');
+                        const totalAmountText = row.cells[3].textContent.replace('$', '');
+                        const totalAmount = parseFloat(totalAmountText) || 0;
+                        const newAmountPaid = parseFloat(value) || 0;
+                        const statusSelect = row.querySelector('select[data-field="paymentStatus"]');
+                        
+                        if (newAmountPaid <= 0) {
+                             updateData['paymentStatus'] = 'Not-Paid';
+                             if(statusSelect) statusSelect.value = 'Not-Paid'; // Update UI immediately
+                        } else if (newAmountPaid >= totalAmount) {
+                             updateData['paymentStatus'] = 'Paid';
+                             if(statusSelect) statusSelect.value = 'Paid';
+                        } else {
+                             updateData['paymentStatus'] = 'Partially-Paid';
+                             if(statusSelect) statusSelect.value = 'Partially-Paid';
+                        }
+                    }
+
+                    try {
+                        const shipmentRef = dbRef(db, 'shipments/' + shipmentId);
+                        await dbUpdate(shipmentRef, updateData);
+                        // No need to manually re-render, onValue listener handles it.
+                        // However, recalculate balance immediately for visual feedback
+                        const row = e.target.closest('tr');
+                        const totalAmountText = row.cells[3].textContent.replace('$', '');
+                        const totalAmount = parseFloat(totalAmountText) || 0;
+                        const currentAmountPaid = parseFloat(row.querySelector('input[data-field="amountPaid"]').value) || 0;
+                        const balanceCell = row.cells[5];
+                        const newBalance = totalAmount - currentAmountPaid;
+                        balanceCell.textContent = `$${newBalance.toFixed(2)}`;
+                        balanceCell.className = `number-cell balance-due ${newBalance <= 0 ? 'zero' : (newBalance < 0 ? 'negative' : '')}`;
+
+                    } catch (error) {
+                        console.error("Error updating payment field:", error);
+                        alert("Error saving payment update. See console.");
+                        // Optional: Revert UI change on error
+                        e.target.value = e.target.defaultValue; // Revert input/select
+                    }
+                }
+            });
+
+
+            // --- 7. PDF & Excel Export Functions (Adapted from original file) ---
+            
+            let fetchedLogoBase64 = null;
+            async function fetchLogoAsBase64() { /* ... unchanged ... */ 
+                if (fetchedLogoBase64) return fetchedLogoBase64;
+                const logoUrl = 'https://raw.githubusercontent.com/crickerr26/bee26cargomanager/main/BEE26.png'; 
+                try {
+                    const response = await fetch(logoUrl);
+                    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                    const blob = await response.blob();
+                    return new Promise((resolve, reject) => {
+                        const reader = new FileReader();
+                        reader.onloadend = () => { fetchedLogoBase64 = reader.result; resolve(fetchedLogoBase64); };
+                        reader.onerror = reject;
+                        reader.readAsDataURL(blob);
+                    });
+                } catch (error) {
+                    console.error('Error fetching or converting logo:', error);
+                    alert('Error: Could not load the company logo for the PDF.');
+                    return null;
+                }
+            }
+
+            function addPdfFooter(doc) { /* ... unchanged ... */ 
+                if (!doc || typeof doc.setFontSize !== 'function') return;
+                 try {
+                     doc.setFontSize(9); doc.setFont("helvetica", "normal");
+                     const pageHeight = doc.internal.pageSize.height || doc.internal.pageSize.getHeight();
+                     const pageCount = doc.internal.getNumberOfPages();
+                     for (let i = 1; i <= pageCount; i++) {
+                         doc.setPage(i);
+                         doc.text(`Page ${i} of ${pageCount}`, doc.internal.pageSize.width / 2, pageHeight - 5, { align: 'center' });
+                         doc.text("Bee26 Cargo Services • Toronto • +1 416-474-4994", doc.internal.pageSize.width / 2, pageHeight - 12, { align: "center" });
+                     }
+                 } catch (error) { console.error("Error adding PDF footer:", error); }
+            }
+
+            // =============================================
+            // --- THIS IS THE FIXED generatePDF FUNCTION ---
+            // =============================================
+            async function generatePDF(docType, action = 'save') { 
+                 let pdfWindow = null;
+                if (action === 'open') {
+                    pdfWindow = window.open('', '_blank');
+                    if (pdfWindow) { pdfWindow.document.write('...'); } else { alert('Pop-up blocked!'); return; }
+                }
+                try {
+                    const { jsPDF } = window.jspdf;
+                    if (!jsPDF) { throw new Error("jsPDF library not loaded."); }
+                    const doc = new jsPDF('p', 'pt', 'a4');
+                    if (typeof doc.autoTable !== 'function') { throw new Error("jsPDF AutoTable plugin not loaded."); }
+                    const logoBase64Data = await fetchLogoAsBase64();
+                    const pageHeight = doc.internal.pageSize.height, pageWidth = doc.internal.pageSize.width;
+                    const leftMargin = 40, rightMargin = 40, topMargin = 30, bottomMargin = 40;
+                    const contentWidth = pageWidth - leftMargin - rightMargin;
+                    const halfWidth = contentWidth / 2;
+                    const senderX = leftMargin, receiverX = leftMargin + halfWidth + 15;
+                    const receiverWidth = halfWidth - 15, senderWidth = halfWidth - 5;
+                    let currentY = topMargin;
+                    const lineSpacing = 10, sectionSpacing = 15;
+                    const senderName = document.getElementById('senderName').value, receiverName = document.getElementById('receiverName').value;
+                    const receiverPhone = document.getElementById('receiverPhone').value, receiverAddress = document.getElementById('receiverAddress').value;
+                    const invoiceNumber = document.getElementById('invoiceNumber').value, invoiceDate = document.getElementById('invoiceDate').value;
+                    const hsCode = document.getElementById('hsCode').value, totalPackages = document.getElementById('totalPackages').value;
+                    const totalWeight = document.getElementById('totalWeight').value;
+                    // const paymentTotal = parseFloat(document.getElementById('paymentTotal').value) || 0; // <-- REMOVED, not for customs docs
+
+                    if (logoBase64Data) { try { const imgHeight = 40, imgWidth = 107; doc.addImage(logoBase64Data, 'PNG', leftMargin, currentY, imgWidth, imgHeight); currentY += imgHeight + 10; } catch (e) { console.error(e); } } else { currentY += 50; }
+                    doc.setFontSize(16); doc.setFont("helvetica", "bold"); doc.text(docType, pageWidth / 2, currentY, { align: 'center' }); currentY += 20;
+                    let senderBlockY = currentY; doc.setFontSize(9); doc.setFont("helvetica", "bold"); doc.text("BEE26 CARGO SERVICES", leftMargin, senderBlockY); senderBlockY += lineSpacing; doc.setFont("helvetica", "normal");
+                    const addressLines = ["MOHAMED IMSAMAM MOHAED RIZAN", "1001260111 - BIN", "614-2 MILEPOST PLACE, EAST YORK,", "ONTARIO, M4H 1C7", "+1 416 474 4994", "bee26cargoservices@gmail.com"];
+                    addressLines.forEach(line => { const splitLines = doc.splitTextToSize(line, senderWidth); doc.text(splitLines, leftMargin, senderBlockY); senderBlockY += (splitLines.length * lineSpacing); });
+                    if (invoiceNumber) { senderBlockY += lineSpacing * 0.5; doc.setFont("helvetica", "bold"); doc.text(`Invoice #: ${invoiceNumber}`, leftMargin, senderBlockY); senderBlockY += lineSpacing; }
+                    if (docType === 'Commercial Invoice' && invoiceDate) { doc.setFont("helvetica", "bold"); doc.text("Date: ", leftMargin, senderBlockY); doc.setFont("helvetica", "normal"); doc.text(invoiceDate, leftMargin + 30, senderBlockY); senderBlockY += lineSpacing; }
+                    let receiverBlockY = currentY; doc.setFontSize(10); doc.setFont("helvetica", "bold"); doc.text("TO (Receiver):", receiverX, receiverBlockY); receiverBlockY += lineSpacing * 1.5; doc.setFont("helvetica", "normal"); doc.setFontSize(9);
+                    doc.text(receiverName, receiverX, receiverBlockY); receiverBlockY += lineSpacing; doc.text(receiverPhone, receiverX, receiverBlockY); receiverBlockY += lineSpacing;
+                    const receiverAddressLines = doc.splitTextToSize(receiverAddress, receiverWidth); doc.text(receiverAddressLines, receiverX, receiverBlockY); receiverBlockY += (receiverAddressLines.length * lineSpacing);
+                    if (docType === 'Commercial Invoice' && hsCode) { receiverBlockY += lineSpacing * 0.5; doc.setFont("helvetica", "bold"); doc.text("HS Code (Overall): ", receiverX, receiverBlockY); doc.setFont("helvetica", "normal"); doc.text(hsCode, receiverX + 80, receiverBlockY); }
+                    let tableStartY = Math.max(senderBlockY, receiverBlockY) + sectionSpacing;
+                    const tableHead = [['#', 'Description', 'Condition', 'Brand', 'Country', 'Category', 'Qty', 'Unit Value', 'Total Value']];
+                    const safeItems = Array.isArray(local_items) ? local_items : [];
+                    const tableBody = safeItems.map((item, index) => [
+                        index + 1, 
+                        item.desc || '', 
+                        item.condition || '--',
+                        item.brand || '--',
+                        item.country || '--',
+                        item.category || '', 
+                        parseFloat(item.qty) || 0, 
+                        (parseFloat(item.value) || 0).toFixed(2), 
+                        ((parseFloat(item.qty) || 0) * (parseFloat(item.value) || 0)).toFixed(2)
+                    ]);
+                    doc.autoTable({ head: tableHead, body: tableBody, startY: tableStartY, theme: 'grid', headStyles: { fillColor: [230, 230, 230], textColor: 0, fontStyle: 'bold', fontSize: 8 }, styles: { fontSize: 8, cellPadding: 2, overflow: 'linebreak' }, columnStyles: { 0: { cellWidth: 20, halign: 'center' }, 6: { cellWidth: 30, halign: 'right' }, 7: { cellWidth: 50, halign: 'right' }, 8: { cellWidth: 50, halign: 'right' } }, margin: { left: leftMargin, right: rightMargin } });
+                    const finalY = doc.autoTable.previous.finalY;
+                    const calculatedTotalValue = safeItems.reduce((sum, item) => sum + ((parseFloat(item.qty) || 0) * (parseFloat(item.value) || 0)), 0);
+                    const totalQty = safeItems.reduce((sum, item) => sum + (parseFloat(item.qty) || 0), 0);
+                    
+                    // --- THIS IS THE FIX ---
+                    const displayValue = calculatedTotalValue.toFixed(2); // <-- Always use calculated value
+                    // --- END FIX ---
+
+                    doc.setFontSize(10); doc.setFont("helvetica", "bold"); let summaryY = finalY + sectionSpacing; const summaryRightX = pageWidth - rightMargin;
+                    if (summaryY > pageHeight - bottomMargin - (lineSpacing * 6)) { doc.addPage(); summaryY = topMargin + 20; }
+                    doc.text(`Total Quantity:`, leftMargin, summaryY); doc.text(`${totalQty} pcs`, summaryRightX, summaryY, { align: 'right'}); summaryY += lineSpacing * 1.5;
+                    doc.text(`Total Packages:`, leftMargin, summaryY); doc.text(`${totalPackages || 'N/A'}`, summaryRightX, summaryY, { align: 'right'}); summaryY += lineSpacing * 1.5;
+                    doc.text(`Total Net Weight:`, leftMargin, summaryY); doc.text(`${totalWeight || 'N/A'} kg`, summaryRightX, summaryY, { align: 'right'}); summaryY += lineSpacing * 1.5;
+                    doc.text(`Total Declared Value:`, leftMargin, summaryY); doc.text(`$${displayValue} CAD`, summaryRightX, summaryY, { align: 'right'});
+                    doc.setFontSize(9); doc.setFont("helvetica", "bold"); let declarationY = summaryY + sectionSpacing * 1.5;
+                    if (declarationY > pageHeight - bottomMargin - lineSpacing) { doc.addPage(); declarationY = topMargin + 20; }
+                    doc.text("Declaration: Personal Use – Not for Resale", leftMargin, declarationY);
+                    addPdfFooter(doc); const fileName = `${docType.replace(/ /g, '_')}_${invoiceNumber || 'Shipment'}.pdf`;
+                    if (action === 'open') { if (pdfWindow && doc) { pdfWindow.location.href = doc.output('datauristring'); } else { if (pdfWindow) pdfWindow.close(); throw new Error("Could not generate PDF for printing."); } } else { if (doc) { doc.save(fileName); } else { throw new Error("Could not generate PDF for saving."); } }
+                } catch (error) { if (action === 'open' && pdfWindow) pdfWindow.close(); console.error("Error generating PDF:", error); alert("Sorry, there was an error generating the PDF."); }
+            }
+
+            // =============================================
+            // --- THIS IS THE FIXED generateExcel FUNCTION ---
+            // =============================================
+            function generateExcel() { 
+                 try {
+                    if (typeof XLSX === 'undefined') { alert("Error: XLSX library not found."); return; }
+                    const senderName = document.getElementById('senderName').value, receiverName = document.getElementById('receiverName').value, receiverPhone = document.getElementById('receiverPhone').value;
+                    const receiverAddress = document.getElementById('receiverAddress').value, invoiceNumber = document.getElementById('invoiceNumber').value, invoiceDate = document.getElementById('invoiceDate').value;
+                    const totalPackages = document.getElementById('totalPackages').value, hsCode = document.getElementById('hsCode').value, totalWeight = document.getElementById('totalWeight').value;
+                    // const paymentTotal = parseFloat(document.getElementById('paymentTotal').value) || 0; // <-- REMOVED, not for customs docs
+                    const infoData = [ ["Shipment Details", ""], ["Sender Name", senderName], ["Receiver Name", receiverName], ["Receiver Phone", receiverPhone], ["Receiver Address", receiverAddress], ["", ""], ["Invoice #", invoiceNumber], ["Date", invoiceDate], ["Total Packages", totalPackages], ["HS Code", hsCode] ];
+                    const wsInfo = XLSX.utils.aoa_to_sheet(infoData);
+                    const itemsHeader = ['Description', 'Condition', 'Brand', 'Country', 'Category', 'Quantity', 'Unit Value (CAD)', 'Total Value (CAD)'];
+                    const safeItems = Array.isArray(local_items) ? local_items : [];
+                    const itemsBody = safeItems.map(item => { const qty = parseFloat(item.qty) || 0, value = parseFloat(item.value) || 0; return [item.desc || '', item.condition || '', item.brand || '', item.country || '', item.category || '', qty, value, qty * value]; });
+                    const totalQty = safeItems.reduce((sum, item) => sum + (parseFloat(item.qty) || 0), 0);
+                    const calculatedTotalValue = safeItems.reduce((sum, item) => sum + ((parseFloat(item.qty) || 0) * (parseFloat(item.value) || 0)), 0);
+                    
+                    // --- THIS IS THE FIX ---
+                    const displayValue = calculatedTotalValue; // <-- Always use calculated value
+                    // --- END FIX ---
+
+                    const itemsFooter = ['TOTAL', '', '', '', '', totalQty, '', displayValue];
+                    const wsItems = XLSX.utils.aoa_to_sheet([itemsHeader, ...itemsBody, [], itemsFooter]);
+                    XLSX.utils.sheet_add_aoa(wsInfo, [["Total Weight (kg)", totalWeight]], { origin: -1 });
+                    const wb = XLSX.utils.book_new();
+                    XLSX.utils.book_append_sheet(wb, wsInfo, "Shipment Info");
+                    XLSX.utils.book_append_sheet(wb, wsItems, "Packing List");
+                    const fileName = `Bee26_Shipment_${invoiceNumber || ''}.xlsx`;
+                    XLSX.writeFile(wb, fileName);
+                 } catch (error) { console.error("Error generating Excel:", error); alert("Sorry, there was an error generating the Excel file."); }
+             }
+
+            // Attach listeners to Doc buttons
+            document.getElementById('printPackingListBtn').addEventListener('click', () => generatePDF('Packing List', 'open'));
+            document.getElementById('exportInvoicePDF').addEventListener('click', () => generatePDF('Commercial Invoice', 'save'));
+            document.getElementById('exportPackingListExcel').addEventListener('click', generateExcel);
+
+
+            // --- 8. Initial Load & Firebase Data Listener ---
+            
+            function listenForData() {
+                const shipmentsRef = dbRef(db, 'shipments');
+                
+                dbOnValue(shipmentsRef, (snapshot) => {
+                    console.log("Firebase data received"); // Add log
+                    local_shipments_cache = []; 
+                    if (snapshot.exists()) {
+                        const data = snapshot.val();
+                        for (const key in data) {
+                            // Ensure items is always an array, even if missing in Firebase
+                            const shipmentData = data[key];
+                            if (!shipmentData.items) {
+                                shipmentData.items = [];
+                            }
+                            local_shipments_cache.push({ id: key, ...shipmentData });
+                        }
+                        console.log("Shipments loaded:", local_shipments_cache.length); // Add log
+                    } else {
+                         console.log("No shipments found in Firebase."); // Add log
+                    }
+                    
+                    // Re-render all relevant UI elements
+                    renderShipmentsTable();
+                    renderCustomersTable();
+                    renderPaymentsTable(); // Render payments table too
+                    updateDashboardStats();
+                    
+                }, (error) => {
+                    console.error("Firebase data read failed: ", error);
+                    alert("Could not load data from Firebase. See console.");
+                     // Optionally clear tables or show error message in tables
+                    shipmentsTableTbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: red;">Error loading data.</td></tr>';
+                    customersTableTbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: red;">Error loading data.</td></tr>';
+                    paymentsTableTbody.innerHTML = '<tr><td colspan="8" style="text-align: center; color: red;">Error loading data.</td></tr>';
+                    recentActivityTbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: red;">Error loading data.</td></tr>';
+                });
+            }
+            
+            // Set default invoice date
+            document.getElementById('invoiceDate').valueAsDate = new Date();
+            
+            // Start listening
+            listenForData();
+
+        });
+    </script>
+
+</body>
+</html>
