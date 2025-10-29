@@ -35,7 +35,7 @@
       window.dbSet = set;
       window.dbGet = get;
       window.dbPush = push;
-      window.dbRemove = remove;
+      window.dbRemove = remove; // <-- Make sure dbRemove is exposed
       window.dbUpdate = update;
       window.dbOnValue = onValue;
       
@@ -334,9 +334,9 @@
                     <h2>Itemized List</h2>
                     <div class="table-container">
                         <table class="styled-table">
-                            <thead><tr><th>Description</th><th>Category</th><th>Qty</th><th>Unit Value</th><th>Total Value</th><th>Actions</th></tr></thead>
+                            <thead><tr><th>Description</th><th>Condition</th><th>Brand</th><th>Country</th><th>Qty</th><th>Unit Value</th><th>Total Value</th><th>Actions</th></tr></thead>
                             <tbody id="itemTableTbody">
-                                <tr><td colspan="6" style="text-align: center;">No items added yet.</td></tr>
+                                <tr><td colspan="8" style="text-align: center;">No items added yet.</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -360,7 +360,7 @@
                 <div class="card">
                     <h2>Payment Details</h2>
                     <div class="form-grid-two-col">
-                        <div class="input-group"><label for="paymentTotal">Total Amount (CAD)</label><input type="number" id="paymentTotal" placeholder="0.00" min="0" step="0.01"></div>
+<div class="input-group"><label for="paymentTotal">Service Fee / Customer Payment (CAD)</label><input type="number" id="paymentTotal" placeholder="0.00" min="0" step="0.01"></div>
                         <div class="input-group"><label for="paymentStatus">Payment Status</label><select id="paymentStatus"><option value="Not-Paid">Not Paid</option><option value="Paid">Paid</option><option value="Partially-Paid">Partially Paid</option></select></div>
                         <div class="input-group"><label for="amountPaid">Amount Paid (CAD)</label><input type="number" id="amountPaid" placeholder="0.00" min="0" step="0.01"></div>
                          <div class="input-group"><label for="paymentMethod">Payment Method</label><select id="paymentMethod"><option value="">N/A</option><option value="Cash">Cash</option><option value="E-Transfer">E-Transfer</option><option value="Card">Card</option></select></div>
@@ -385,12 +385,12 @@
                         </div>
                     </div>
                     <div class="review-section">
-                        <h3>Itemized List (<span id="review-itemCount">0</span> items)</h3>
+                        <h3>Itemized List (<span id="review-itemCount">0</span> items) - Total Declared Value: <strong id="review-declaredTotal" style="color:var(--blue);">$0.00</strong></h3>
                         <div class="table-container">
                             <table class="styled-table">
-                                <thead><tr><th>Description</th><th>Category</th><th>Qty</th><th>Total Value</th></tr></thead>
+                                <thead><tr><th>Description</th><th>Condition</th><th>Brand</th><th>Country</th><th>Category</th><th>Qty</th><th>Total Value</th></tr></thead>
                                 <tbody id="review-itemTableTbody">
-                                    <tr><td colspan="4" style="text-align: center;">--</td></tr>
+                                    <tr><td colspan="7" style="text-align: center;">--</td></tr>
                                 </tbody>
                             </table>
                         </div>
@@ -534,7 +534,7 @@
                             </optgroup>
                             <optgroup label="Health & Beauty">
                                 <option value="Cosmetics & Toiletries">Cosmetics & Toiletries</option>
-                                <option value="Medicines & Vitamins">Medicines & Vitamins</option>
+                                <option value"Medicines & Vitamins">Medicines & Vitamins</option>
                             </optgroup>
                             <optgroup label="Household & Goods">
                                 <option value="Kitchenware">Kitchenware</option>
@@ -567,7 +567,38 @@
                         <label for="modalItemValue">Unit Value (CAD)</label>
                         <input type="number" id="modalItemValue" placeholder="15.00" min="0" step="0.01" required>
                     </div>
-                </div>
+
+                    <div class="input-group">
+                        <label for="modalItemCondition">Condition</label>
+                        <select id="modalItemCondition" required>
+                            <option value="New">New</option>
+                            <option value="Used">Used</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <label for="modalItemBrand">Brand Name</label>
+                        <input type="text" id="modalItemBrand" placeholder="e.g., Nike, Apple, etc.">
+                    </div>
+                    <div class="input-group" style="grid-column: 1 / -1;"> <label for="modalItemCountry">Manufacture Country</label>
+                        <select id="modalItemCountry">
+                            <option value="">Select country...</option>
+                            <option value="Canada">🇨🇦 Canada</option>
+                            <option value="Sri Lanka">🇱🇰 Sri Lanka</option>
+                            <option value="USA">🇺🇸 USA</option>
+                            <option value="UK">🇬🇧 UK</option>
+                            <option value="India">🇮🇳 India</option>
+                            <option value="China">🇨🇳 China</option>
+                            <option value="Germany">🇩🇪 Germany</option>
+                            <option value="Japan">🇯🇵 Japan</option>
+                            <option value="South Korea">🇰🇷 South Korea</option>
+                            <option value="Australia">🇦🇺 Australia</option>
+                            <option value="Bangladesh">🇧🇩 Bangladesh</option>
+                            <option value="Vietnam">🇻🇳 Vietnam</option>
+                            <option value="Turkey">🇹🇷 Turkey</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" id="cancelModalBtn">Cancel</button>
                     <button type="submit" class="btn btn-primary" id="saveItemBtn">Save Item</button>
@@ -586,8 +617,9 @@
             const dbUpdate = window.dbUpdate;
             const dbPush = window.dbPush;
             const dbOnValue = window.dbOnValue;
+            const dbRemove = window.dbRemove; // <-- ADDED THIS
 
-            if (!db || !dbRef || !dbUpdate || !dbPush || !dbOnValue) {
+            if (!db || !dbRef || !dbUpdate || !dbPush || !dbOnValue || !dbRemove) { // <-- ADDED dbRemove
                 alert("FATAL ERROR: Firebase Database functions not found. Check initialization.");
                 return;
             }
@@ -615,6 +647,7 @@
             };
 
             function navigateToPage(pageId) {
+                // BUGGY LOGIC WAS HERE. This logic is now fixed.
                 if (pageId === 'page-new-shipment' && (headerActionBtn.textContent.includes('Create') || headerActionBtn.textContent.includes('Add'))) {
                     clearWizard(); 
                 }
@@ -622,10 +655,19 @@
                 document.getElementById(pageId).classList.add('active');
                 navLinks.forEach(l => l.classList.remove('active'));
                 document.querySelector(`.nav-link[data-page="${pageId}"]`)?.classList.add('active');
+                
                 const meta = pageMeta[pageId];
-                if (meta) {
+                
+                // This check prevents the title from being reset to "New Shipment" when editing.
+                if (meta && pageTitle.textContent !== 'Edit Shipment') { 
                     pageTitle.textContent = meta.title;
                     pageSubtitle.textContent = meta.subtitle;
+                } else if (meta) {
+                    // It is the "Edit Shipment" page, just update the button
+                    pageSubtitle.textContent = pageSubtitle.textContent || meta.subtitle; // Keep the "Editing Invoice..." subtitle
+                }
+
+                if (meta) { // This part always runs to set the button correctly
                     if (meta.actionText) {
                         headerActionBtn.textContent = meta.actionText;
                         headerActionBtn.style.display = 'block';
@@ -634,6 +676,7 @@
                         headerActionBtn.style.display = 'none';
                     }
                 }
+
                 // Data render functions are called by the onValue listener or filter changes
                  if (pageId === 'page-payments') {
                     renderPaymentsTable(); // Re-render payment table when navigating to it
@@ -641,7 +684,13 @@
             }
 
             navLinks.forEach(link => {
-                link.addEventListener('click', (e) => navigateToPage(e.currentTarget.dataset.page));
+                link.addEventListener('click', (e) => {
+                    // When manually clicking a nav link, if we leave the edit page, reset the title
+                    if(pageTitle.textContent === 'Edit Shipment' && e.currentTarget.dataset.page !== 'page-new-shipment') {
+                         pageTitle.textContent = ''; // Allow navigateToPage to set it
+                    }
+                    navigateToPage(e.currentTarget.dataset.page)
+                });
             });
             headerActionBtn.addEventListener('click', (e) => navigateToPage(e.currentTarget.dataset.page));
 
@@ -717,6 +766,14 @@
                 local_items = []; 
                 currentEditItemId = null;
                 currentEditShipmentId = null; 
+
+                // Reset page title if it was in edit mode
+                if (pageTitle.textContent === 'Edit Shipment') {
+                     const meta = pageMeta['page-new-shipment'];
+                     pageTitle.textContent = meta.title;
+                     pageSubtitle.textContent = meta.subtitle;
+                }
+
                 wizardCurrentStep = 1;
                 renderItemTable();
                 updateWizard();
@@ -748,7 +805,10 @@
                     desc: document.getElementById('modalItemDesc').value,
                     category: document.getElementById('modalItemCat').value,
                     qty: parseFloat(document.getElementById('modalItemQty').value),
-                    value: parseFloat(document.getElementById('modalItemValue').value)
+                    value: parseFloat(document.getElementById('modalItemValue').value),
+                    condition: document.getElementById('modalItemCondition').value,
+                    brand: document.getElementById('modalItemBrand').value,
+                    country: document.getElementById('modalItemCountry').value
                 };
                 if (currentEditItemId !== null) {
                     local_items[currentEditItemId] = item; 
@@ -762,7 +822,7 @@
             function renderItemTable() { /* ... unchanged ... */ 
                 itemTableTbody.innerHTML = '';
                 if (local_items.length === 0) {
-                    itemTableTbody.innerHTML = '<tr><td colspan="6" style="text-align: center;">No items added yet.</td></tr>';
+                    itemTableTbody.innerHTML = '<tr><td colspan="8" style="text-align: center;">No items added yet.</td></tr>';
                     return;
                 }
                 local_items.forEach((item, index) => {
@@ -770,7 +830,9 @@
                     const row = document.createElement('tr');
                     row.innerHTML = `
                         <td>${item.desc}</td>
-                        <td>${item.category}</td>
+                        <td>${item.condition || '--'}</td>
+                        <td>${item.brand || '--'}</td>
+                        <td>${item.country || '--'}</td>
                         <td>${item.qty}</td>
                         <td>$${item.value.toFixed(2)}</td>
                         <td>$${totalVal}</td>
@@ -800,6 +862,9 @@
                     document.getElementById('modalItemCat').value = item.category;
                     document.getElementById('modalItemQty').value = item.qty;
                     document.getElementById('modalItemValue').value = item.value;
+                    document.getElementById('modalItemCondition').value = item.condition || 'New';
+                    document.getElementById('modalItemBrand').value = item.brand || '';
+                    document.getElementById('modalItemCountry').value = item.country || '';
                     modal.classList.add('active');
                 }
             });
@@ -807,7 +872,10 @@
 
             // --- 4. Shipment Save, Review, and Load (FIREBASE CONNECTED) ---
             
-            function populateReviewStep() { /* ... updated to include amountPaid and paymentMethod ... */ 
+            // =============================================
+            // --- THIS IS THE FIXED populateReviewStep FUNCTION ---
+            // =============================================
+            function populateReviewStep() { 
                 // Customer
                 document.getElementById('review-senderName').textContent = document.getElementById('senderName').value || '--';
                 document.getElementById('review-senderPhone').textContent = document.getElementById('senderPhone').value || '--';
@@ -819,33 +887,43 @@
                 document.getElementById('review-totalPackages').textContent = document.getElementById('totalPackages').value || '--';
                 document.getElementById('review-totalWeight').textContent = document.getElementById('totalWeight').value ? document.getElementById('totalWeight').value + ' kg' : '--';
                 document.getElementById('review-deliveryStatus').innerHTML = `<span class="status-badge status-${document.getElementById('deliveryStatus').value}">${document.getElementById('deliveryStatus').value}</span>`;
-                // Payment
+                
+                // Payment (Service Fee)
                 const paymentTotal = parseFloat(document.getElementById('paymentTotal').value) || 0;
-                const amountPaid = parseFloat(document.getElementById('amountPaid').value) || 0; // Get amount paid
-                const paymentMethod = document.getElementById('paymentMethod').value || 'N/A'; // Get method
+                const amountPaid = parseFloat(document.getElementById('amountPaid').value) || 0; 
+                const paymentMethod = document.getElementById('paymentMethod').value || 'N/A'; 
 
                 document.getElementById('review-paymentTotal').textContent = `$${paymentTotal.toFixed(2)}`;
                 document.getElementById('review-paymentStatus').innerHTML = `<span class="status-badge status-${document.getElementById('paymentStatus').value.replace(' ','-')}">${document.getElementById('paymentStatus').value.replace('-',' ')}</span>`;
-                document.getElementById('review-amountPaid').textContent = `$${amountPaid.toFixed(2)}`; // Display amount paid
-                document.getElementById('review-paymentMethod').textContent = paymentMethod; // Display method
-                // Items
+                document.getElementById('review-amountPaid').textContent = `$${amountPaid.toFixed(2)}`; 
+                document.getElementById('review-paymentMethod').textContent = paymentMethod; 
+                
+                // Items & Declared Value
                 document.getElementById('review-itemCount').textContent = local_items.length;
                 const reviewTbody = document.getElementById('review-itemTableTbody');
                 reviewTbody.innerHTML = '';
+                let declaredTotal = 0; // <-- FIX
+                
                 if (local_items.length === 0) {
-                    reviewTbody.innerHTML = '<tr><td colspan="4" style="text-align: center;">--</td></tr>';
+                    reviewTbody.innerHTML = '<tr><td colspan="7" style="text-align: center;">--</td></tr>';
                 } else {
                     local_items.forEach(item => {
+                        const itemTotal = (parseFloat(item.qty) || 0) * (parseFloat(item.value) || 0); // <-- FIX
+                        declaredTotal += itemTotal; // <-- FIX
                         reviewTbody.innerHTML += `
                             <tr>
                                 <td>${item.desc}</td>
+                                <td>${item.condition || '--'}</td>
+                                <td>${item.brand || '--'}</td>
+                                <td>${item.country || '--'}</td>
                                 <td>${item.category}</td>
                                 <td>${item.qty}</td>
-                                <td>$${(item.qty * item.value).toFixed(2)}</td>
+                                <td>$${itemTotal.toFixed(2)}</td>
                             </tr>
                         `;
                     });
                 }
+                document.getElementById('review-declaredTotal').textContent = `$${declaredTotal.toFixed(2)}`; // <-- FIX
             }
 
             async function saveShipment() { /* ... updated to include amountPaid and paymentMethod ... */ 
@@ -887,12 +965,13 @@
                 }
             }
 
-            function loadShipmentForEdit(shipmentId) { /* ... updated to load amountPaid and paymentMethod ... */ 
-                const shipment = local_shipments_cache.find(s => s.id === shipmentId);
-                if (!shipment) { alert("Error: Could not find shipment to load."); return; }
-                clearWizard(); 
-                currentEditShipmentId = shipmentId; 
-                
+            // Helper function to load data into the wizard form
+            function _populateWizardWithData(shipment) {
+                 if (!shipment) return false;
+
+                clearWizard(); // Clear first
+
+                // Populate all fields
                 document.getElementById('senderName').value = shipment.senderName || '';
                 document.getElementById('senderPhone').value = shipment.senderPhone || '';
                 document.getElementById('receiverName').value = shipment.receiverName || '';
@@ -907,17 +986,62 @@
                 document.getElementById('hsCode').value = shipment.hsCode || '';
                 document.getElementById('paymentTotal').value = shipment.paymentTotal || '';
                 document.getElementById('paymentStatus').value = shipment.paymentStatus || 'Not-Paid';
-                document.getElementById('amountPaid').value = shipment.amountPaid || '0'; // Load amount paid
-                document.getElementById('paymentMethod').value = shipment.paymentMethod || ''; // Load method
-                
-                local_items = [...(shipment.items || [])]; 
-                renderItemTable(); 
-                navigateToPage('page-new-shipment');
-                pageTitle.textContent = 'Edit Shipment'; 
-                pageSubtitle.textContent = 'Editing Invoice #' + shipment.invoiceNumber;
-                updateWizard(1); 
+                document.getElementById('amountPaid').value = shipment.amountPaid || '0';
+                document.getElementById('paymentMethod').value = shipment.paymentMethod || '';
+
+                local_items = [...(shipment.items || [])];
+                renderItemTable();
+                return true; // Indicate success
+            }
+// Function called when EDIT button is clicked
+            function loadShipmentForEdit(shipmentId) {
+                const shipment = local_shipments_cache.find(s => s.id === shipmentId);
+                if (!_populateWizardWithData(shipment)) {
+                     alert("Error: Could not find shipment to load for editing."); return;
+                }
+                currentEditShipmentId = shipmentId; // Set edit mode
+
+                // --- Manually navigate to Step 1 ---
+                const pageId = 'page-new-shipment';
+                pages.forEach(p => p.classList.remove('active'));
+                document.getElementById(pageId).classList.add('active');
+                navLinks.forEach(l => l.classList.remove('active'));
+                document.querySelector(`.nav-link[data-page="${pageId}"]`)?.classList.add('active');
+
+                // Set header text for editing
+                pageTitle.textContent = 'Edit Shipment';
+                pageSubtitle.textContent = 'Editing Invoice #' + (shipment.invoiceNumber || 'N/A');
+                headerActionBtn.style.display = 'none'; // Hide header action button
+
+                updateWizard(1); // Set wizard to step 1
             }
 
+            // Function called when VIEW button is clicked
+            function loadShipmentForView(shipmentId) {
+                 const shipment = local_shipments_cache.find(s => s.id === shipmentId);
+                 if (!_populateWizardWithData(shipment)) {
+                     alert("Error: Could not find shipment to load for viewing."); return;
+                 }
+                 currentEditShipmentId = null; // Ensure we are NOT in edit mode
+
+                 // --- Manually navigate to Step 4 ---
+                 const pageId = 'page-new-shipment';
+                 pages.forEach(p => p.classList.remove('active'));
+                 document.getElementById(pageId).classList.add('active');
+                 navLinks.forEach(l => l.classList.remove('active'));
+                 document.querySelector(`.nav-link[data-page="${pageId}"]`)?.classList.add('active');
+
+                 // Set header text for viewing
+                 pageTitle.textContent = 'Review Shipment';
+                 pageSubtitle.textContent = 'Viewing Invoice #' + (shipment.invoiceNumber || 'N/A');
+                 headerActionBtn.style.display = 'none'; // Hide header action button
+
+                 updateWizard(4); // Set wizard to step 4
+                 // Disable wizard navigation buttons in view mode (optional but recommended)
+                 prevBtn.disabled = true;
+                 nextBtn.disabled = true;
+                 nextBtn.textContent = 'Viewing...'; // Indicate view-only mode
+            }
 
             // --- 5. Data Table Rendering (Reads from local_shipments_cache) ---
             const shipmentsTableTbody = document.getElementById('shipmentsTableTbody');
@@ -925,7 +1049,10 @@
             const recentActivityTbody = document.getElementById('recent-activity-tbody');
             const paymentsTableTbody = document.getElementById('paymentsTableTbody'); // Get payments table body
 
-            function renderShipmentsTable() { /* ... unchanged ... */ 
+            // =============================================
+            // --- THIS IS THE UPDATED renderShipmentsTable FUNCTION ---
+            // =============================================
+            function renderShipmentsTable() { 
                  shipmentsTableTbody.innerHTML = '';
                 if (local_shipments_cache.length === 0) {
                     shipmentsTableTbody.innerHTML = '<tr><td colspan="7" style="text-align: center;">No shipments created yet.</td></tr>';
@@ -943,18 +1070,53 @@
                         <td><span class="status-badge status-${shipment.paymentStatus.replace(' ','-')}">${shipment.paymentStatus.replace('-',' ')}</span></td>
                         <td class="table-actions">
                             <button class="btn btn-secondary btn-small view-shipment-btn" data-id="${shipment.id}">View</button>
+                            <button class="btn btn-primary btn-small edit-shipment-btn" data-id="${shipment.id}">Edit</button>
+                            <button class="btn btn-danger btn-small delete-shipment-btn" data-id="${shipment.id}">Delete</button>
                         </td>
                     `;
                     shipmentsTableTbody.appendChild(row);
                 });
             }
 
+            // =============================================
+            // --- THIS IS THE UPDATED addEventListener FUNCTION ---
+            // =============================================
             shipmentsTableTbody.addEventListener('click', (e) => {
-                if (e.target.classList.contains('view-shipment-btn')) {
-                    const shipmentId = e.target.dataset.id; 
-                    loadShipmentForEdit(shipmentId);
+                const shipmentId = e.target.dataset.id;
+                if (!shipmentId) return; // Ignore clicks without a data-id
+
+                if (e.target.classList.contains('edit-shipment-btn')) {
+                    loadShipmentForEdit(shipmentId); // Go to Step 1 for editing
+                }
+                else if (e.target.classList.contains('view-shipment-btn')) {
+                     loadShipmentForView(shipmentId); // Go directly to Step 4 for viewing
+                }
+                else if (e.target.classList.contains('delete-shipment-btn')) {
+                    // Find shipment for confirmation message
+                    const shipment = local_shipments_cache.find(s => s.id === shipmentId);
+                    const invoiceNum = shipment ? shipment.invoiceNumber : 'this shipment';
+
+                    if (confirm(`Are you sure you want to permanently delete Invoice #${invoiceNum}?`)) {
+                        deleteShipment(shipmentId);
+                    }
                 }
             });
+
+            // =============================================
+            // --- THIS IS THE NEW deleteShipment FUNCTION ---
+            // =============================================
+            async function deleteShipment(shipmentId) {
+                if (!shipmentId) return;
+                try {
+                    const shipmentRef = dbRef(db, 'shipments/' + shipmentId);
+                    await dbRemove(shipmentRef); // Use dbRemove from Firebase
+                    alert('Shipment deleted successfully.');
+                    // The onValue listener will automatically re-render the table
+                } catch (error) {
+                    console.error("Error deleting shipment:", error);
+                    alert("Error: Could not delete shipment. See console for details.");
+                }
+            }
             
             function renderCustomersTable() { /* ... unchanged ... */ 
                 customersTableTbody.innerHTML = '';
@@ -1164,7 +1326,6 @@
 
 
             // --- 7. PDF & Excel Export Functions (Adapted from original file) ---
-            // These functions remain largely the same, using `local_items` and form values
             
             let fetchedLogoBase64 = null;
             async function fetchLogoAsBase64() { /* ... unchanged ... */ 
@@ -1201,7 +1362,10 @@
                  } catch (error) { console.error("Error adding PDF footer:", error); }
             }
 
-            async function generatePDF(docType, action = 'save') { /* ... unchanged ... */ 
+            // =============================================
+            // --- THIS IS THE FIXED generatePDF FUNCTION ---
+            // =============================================
+            async function generatePDF(docType, action = 'save') { 
                  let pdfWindow = null;
                 if (action === 'open') {
                     pdfWindow = window.open('', '_blank');
@@ -1225,7 +1389,8 @@
                     const receiverPhone = document.getElementById('receiverPhone').value, receiverAddress = document.getElementById('receiverAddress').value;
                     const invoiceNumber = document.getElementById('invoiceNumber').value, invoiceDate = document.getElementById('invoiceDate').value;
                     const hsCode = document.getElementById('hsCode').value, totalPackages = document.getElementById('totalPackages').value;
-                    const totalWeight = document.getElementById('totalWeight').value, paymentTotal = parseFloat(document.getElementById('paymentTotal').value) || 0;
+                    const totalWeight = document.getElementById('totalWeight').value;
+                    // const paymentTotal = parseFloat(document.getElementById('paymentTotal').value) || 0; // <-- REMOVED, not for customs docs
 
                     if (logoBase64Data) { try { const imgHeight = 40, imgWidth = 107; doc.addImage(logoBase64Data, 'PNG', leftMargin, currentY, imgWidth, imgHeight); currentY += imgHeight + 10; } catch (e) { console.error(e); } } else { currentY += 50; }
                     doc.setFontSize(16); doc.setFont("helvetica", "bold"); doc.text(docType, pageWidth / 2, currentY, { align: 'center' }); currentY += 20;
@@ -1239,14 +1404,28 @@
                     const receiverAddressLines = doc.splitTextToSize(receiverAddress, receiverWidth); doc.text(receiverAddressLines, receiverX, receiverBlockY); receiverBlockY += (receiverAddressLines.length * lineSpacing);
                     if (docType === 'Commercial Invoice' && hsCode) { receiverBlockY += lineSpacing * 0.5; doc.setFont("helvetica", "bold"); doc.text("HS Code (Overall): ", receiverX, receiverBlockY); doc.setFont("helvetica", "normal"); doc.text(hsCode, receiverX + 80, receiverBlockY); }
                     let tableStartY = Math.max(senderBlockY, receiverBlockY) + sectionSpacing;
-                    const tableHead = [['#', 'Description', 'Category', 'Qty', 'Unit Value (CAD)', 'Total Value (CAD)']];
+                    const tableHead = [['#', 'Description', 'Condition', 'Brand', 'Country', 'Category', 'Qty', 'Unit Value', 'Total Value']];
                     const safeItems = Array.isArray(local_items) ? local_items : [];
-                    const tableBody = safeItems.map((item, index) => [index + 1, item.desc || '', item.category || '', parseFloat(item.qty) || 0, (parseFloat(item.value) || 0).toFixed(2), ((parseFloat(item.qty) || 0) * (parseFloat(item.value) || 0)).toFixed(2)]);
-                    doc.autoTable({ head: tableHead, body: tableBody, startY: tableStartY, theme: 'grid', headStyles: { fillColor: [230, 230, 230], textColor: 0, fontStyle: 'bold', fontSize: 8 }, styles: { fontSize: 8, cellPadding: 2, overflow: 'linebreak' }, columnStyles: { 0: { cellWidth: 20, halign: 'center' }, 3: { cellWidth: 30, halign: 'right' }, 4: { cellWidth: 50, halign: 'right' }, 5: { cellWidth: 50, halign: 'right' } }, margin: { left: leftMargin, right: rightMargin } });
+                    const tableBody = safeItems.map((item, index) => [
+                        index + 1, 
+                        item.desc || '', 
+                        item.condition || '--',
+                        item.brand || '--',
+                        item.country || '--',
+                        item.category || '', 
+                        parseFloat(item.qty) || 0, 
+                        (parseFloat(item.value) || 0).toFixed(2), 
+                        ((parseFloat(item.qty) || 0) * (parseFloat(item.value) || 0)).toFixed(2)
+                    ]);
+                    doc.autoTable({ head: tableHead, body: tableBody, startY: tableStartY, theme: 'grid', headStyles: { fillColor: [230, 230, 230], textColor: 0, fontStyle: 'bold', fontSize: 8 }, styles: { fontSize: 8, cellPadding: 2, overflow: 'linebreak' }, columnStyles: { 0: { cellWidth: 20, halign: 'center' }, 6: { cellWidth: 30, halign: 'right' }, 7: { cellWidth: 50, halign: 'right' }, 8: { cellWidth: 50, halign: 'right' } }, margin: { left: leftMargin, right: rightMargin } });
                     const finalY = doc.autoTable.previous.finalY;
                     const calculatedTotalValue = safeItems.reduce((sum, item) => sum + ((parseFloat(item.qty) || 0) * (parseFloat(item.value) || 0)), 0);
                     const totalQty = safeItems.reduce((sum, item) => sum + (parseFloat(item.qty) || 0), 0);
-                    const displayValue = paymentTotal > 0 ? paymentTotal.toFixed(2) : calculatedTotalValue.toFixed(2);
+                    
+                    // --- THIS IS THE FIX ---
+                    const displayValue = calculatedTotalValue.toFixed(2); // <-- Always use calculated value
+                    // --- END FIX ---
+
                     doc.setFontSize(10); doc.setFont("helvetica", "bold"); let summaryY = finalY + sectionSpacing; const summaryRightX = pageWidth - rightMargin;
                     if (summaryY > pageHeight - bottomMargin - (lineSpacing * 6)) { doc.addPage(); summaryY = topMargin + 20; }
                     doc.text(`Total Quantity:`, leftMargin, summaryY); doc.text(`${totalQty} pcs`, summaryRightX, summaryY, { align: 'right'}); summaryY += lineSpacing * 1.5;
@@ -1261,22 +1440,29 @@
                 } catch (error) { if (action === 'open' && pdfWindow) pdfWindow.close(); console.error("Error generating PDF:", error); alert("Sorry, there was an error generating the PDF."); }
             }
 
-            function generateExcel() { /* ... unchanged ... */ 
+            // =============================================
+            // --- THIS IS THE FIXED generateExcel FUNCTION ---
+            // =============================================
+            function generateExcel() { 
                  try {
                     if (typeof XLSX === 'undefined') { alert("Error: XLSX library not found."); return; }
                     const senderName = document.getElementById('senderName').value, receiverName = document.getElementById('receiverName').value, receiverPhone = document.getElementById('receiverPhone').value;
                     const receiverAddress = document.getElementById('receiverAddress').value, invoiceNumber = document.getElementById('invoiceNumber').value, invoiceDate = document.getElementById('invoiceDate').value;
                     const totalPackages = document.getElementById('totalPackages').value, hsCode = document.getElementById('hsCode').value, totalWeight = document.getElementById('totalWeight').value;
-                    const paymentTotal = parseFloat(document.getElementById('paymentTotal').value) || 0;
+                    // const paymentTotal = parseFloat(document.getElementById('paymentTotal').value) || 0; // <-- REMOVED, not for customs docs
                     const infoData = [ ["Shipment Details", ""], ["Sender Name", senderName], ["Receiver Name", receiverName], ["Receiver Phone", receiverPhone], ["Receiver Address", receiverAddress], ["", ""], ["Invoice #", invoiceNumber], ["Date", invoiceDate], ["Total Packages", totalPackages], ["HS Code", hsCode] ];
                     const wsInfo = XLSX.utils.aoa_to_sheet(infoData);
-                    const itemsHeader = ['Description', 'Category', 'Quantity', 'Unit Value (CAD)', 'Total Value (CAD)'];
+                    const itemsHeader = ['Description', 'Condition', 'Brand', 'Country', 'Category', 'Quantity', 'Unit Value (CAD)', 'Total Value (CAD)'];
                     const safeItems = Array.isArray(local_items) ? local_items : [];
-                    const itemsBody = safeItems.map(item => { const qty = parseFloat(item.qty) || 0, value = parseFloat(item.value) || 0; return [item.desc || '', item.category || '', qty, value, qty * value]; });
+                    const itemsBody = safeItems.map(item => { const qty = parseFloat(item.qty) || 0, value = parseFloat(item.value) || 0; return [item.desc || '', item.condition || '', item.brand || '', item.country || '', item.category || '', qty, value, qty * value]; });
                     const totalQty = safeItems.reduce((sum, item) => sum + (parseFloat(item.qty) || 0), 0);
                     const calculatedTotalValue = safeItems.reduce((sum, item) => sum + ((parseFloat(item.qty) || 0) * (parseFloat(item.value) || 0)), 0);
-                    const displayValue = paymentTotal > 0 ? paymentTotal : calculatedTotalValue;
-                    const itemsFooter = ['TOTAL', '', totalQty, '', displayValue];
+                    
+                    // --- THIS IS THE FIX ---
+                    const displayValue = calculatedTotalValue; // <-- Always use calculated value
+                    // --- END FIX ---
+
+                    const itemsFooter = ['TOTAL', '', '', '', '', totalQty, '', displayValue];
                     const wsItems = XLSX.utils.aoa_to_sheet([itemsHeader, ...itemsBody, [], itemsFooter]);
                     XLSX.utils.sheet_add_aoa(wsInfo, [["Total Weight (kg)", totalWeight]], { origin: -1 });
                     const wb = XLSX.utils.book_new();
