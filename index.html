@@ -2,11 +2,15 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
-    <title>Bee26 Cargo App</title>
-    
-   <style>
-        /* --- Basic Setup & Fonts --- */
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pro Dashboard - Bee26 Cargo</title>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+    <style>
+        /* --- 1. Root Variables --- */
         :root {
             --blue: #007aff;
             --blue-light: #e6f2ff;
@@ -18,7 +22,7 @@
             --orange-light: #fffbe6;
             --purple: #5856d6;
             --teal: #20c997;
-            
+
             --grey-light: #f0f0f5;
             --grey-mid: #e5e5ea;
             --grey-dark: #8a8a8e;
@@ -27,2228 +31,886 @@
             --bg-white: #ffffff;
             --border-radius: 12px;
             --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            --sidebar-width: 240px;
+            
+            --sidebar-dark: #1a202c;
+            --sidebar-text: #e2e8f0;
+            --sidebar-text-hover: #ffffff;
+            --sidebar-width-collapsed: 80px;
+            --sidebar-width-expanded: 250px;
         }
 
+        /* --- 2. Basic Setup --- */
         body {
             font-family: var(--font-family);
             background-color: var(--grey-light);
             color: var(--text-primary);
             margin: 0;
-            overflow-x: hidden; /* Prevent horizontal scroll */
+            overflow-x: hidden;
         }
 
-        /* --- Sidebar Styles --- */
+        /* --- 3. Sidebar --- */
         .sidebar {
-            width: var(--sidebar-width);
-            background-color: var(--bg-white);
-            border-right: 1px solid var(--grey-mid);
+            width: var(--sidebar-width-collapsed);
             height: 100vh;
-            position: fixed; 
-            top: 0;
-            left: 0; 
-            padding: 1.5rem 0;
-            box-sizing: border-box;
-            z-index: 100;
-            transition: left 0.3s ease-in-out; 
-        }
-
-        .sidebar-header {
-            display: flex; 
-            align-items: center; 
-            padding: 0 1.5rem 1.5rem 1.5rem;
-            font-size: 1.3rem;
-            font-weight: 600;
-            color: var(--blue);
-            border-bottom: 1px solid var(--grey-light);
-        }
-        
-        .sidebar-logo {
-            width: 30px; 
-            height: auto;
-            margin-right: 0.75rem; 
-        }
-
-        .sidebar-nav {
-            list-style: none;
-            padding: 0;
-            margin: 1rem 0 0 0;
-        }
-
-        .sidebar-nav li a {
-            display: block;
-            padding: 0.9rem 1.5rem;
-            margin: 0.25rem 1rem;
-            text-decoration: none;
-            font-weight: 500;
-            color: var(--text-secondary);
-            border-radius: 8px;
-            transition: background-color 0.2s ease, color 0.2s ease;
-        }
-        .sidebar-nav li a:hover {
-            background-color: var(--grey-light);
-        }
-        .sidebar-nav li a.active {
-            background-color: var(--blue);
-            color: var(--bg-white);
-            font-weight: 600;
-        }
-        
-        .sidebar-overlay {
+            background-color: var(--sidebar-dark);
+            border-right: 1px solid var(--sidebar-dark);
             position: fixed;
             top: 0;
             left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.4);
-            z-index: 99;
-            opacity: 0;
-            visibility: hidden;
-            transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
-        }
-        .sidebar-overlay.active {
-            opacity: 1;
-            visibility: visible;
-        }
-
-        /* --- Main Content Area Styles --- */
-        .main-content-area {
-            margin-left: var(--sidebar-width); 
-            width: calc(100% - var(--sidebar-width));
-            height: 100vh;
-            overflow-y: auto; 
-            position: relative;
-            padding-bottom: 80px; 
-            box-sizing: border-box;
-            overflow-x: hidden; 
-        }
-        
-        .tab-content {
-            display: none; 
-        }
-        .tab-content.active {
-            display: block; 
-        }
-        
-        /* --- Customer Database Styles --- */
-        #tab-customer-database .container { 
-            max-width: none; 
-            padding: 0 1.5rem; 
-        }
-
-        .table-container {
-            width: 100%;
-        }
-        
-        .table-google-sheets {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 0.7rem; 
-            border: 1px solid var(--grey-mid);
-        }
-        .table-google-sheets th,
-        .table-google-sheets td {
-            border: 1px solid var(--grey-mid);
-            padding: 0.3rem 0.4rem; 
-            text-align: left;
-            vertical-align: middle;
-            word-wrap: break-word; 
-        }
-        .table-google-sheets th {
-            background-color: #f9f9f9;
-            font-weight: 700; 
-            color: var(--text-secondary);
-            position: sticky; 
-            top: 0;
-            z-index: 1;
-        }
-        .table-google-sheets th:first-child,
-        .table-google-sheets td:first-child {
-            width: 30px; 
-            text-align: center;
-            color: var(--text-secondary);
-        }
-        .table-google-sheets tbody tr:nth-child(odd) {
-            background-color: #fcfcfc;
-        }
-        .table-google-sheets tbody tr:hover {
-            background-color: var(--grey-light);
-        }
-        .table-google-sheets td:last-child { 
-            white-space: nowrap; 
-            text-align: center;
-        }
-        
-        .table-google-sheets input[type="text"],
-        .table-google-sheets input[type="number"],
-        .table-google-sheets select {
-            width: 100%;
-            box-sizing: border-box; 
-            font-size: 0.7rem; 
-            padding: 0.2rem;
-            border: 1px solid var(--grey-mid);
-            border-radius: 4px;
-            font-family: var(--font-family);
-        }
-        .table-google-sheets input[type="number"] {
-            -moz-appearance: textfield; 
-        }
-        .table-google-sheets input::-webkit-outer-spin-button,
-        .table-google-sheets input::-webkit-inner-spin-button {
-            -webkit-appearance: none; 
-            margin: 0;
-        }
-        .table-google-sheets input:focus,
-        .table-google-sheets select:focus {
-            border-color: var(--blue);
-            outline: none;
-            box-shadow: 0 0 0 1px var(--blue);
-        }
-        
-        .table-google-sheets select.payment-status-paid {
-            color: var(--green);
-            border-color: var(--green);
-            font-weight: 600;
-        }
-        .table-google-sheets select.payment-status-not-paid {
-            color: var(--red);
-            border-color: var(--red);
-            font-weight: 600;
-        }
-        .table-google-sheets select.delivery-status-pending {
-            color: var(--orange);
-            border-color: var(--orange-light);
-        }
-        .table-google-sheets select.delivery-status-shipped {
-            color: var(--blue);
-            border-color: var(--blue);
-        }
-        .table-google-sheets select.delivery-status-delivered {
-            color: var(--green);
-            border-color: var(--green);
-        }
-
-        .btn-table {
-            font-size: 0.7rem; 
-            padding: 0.2rem 0.4rem; 
-            margin-right: 0.2rem;
-            border-radius: 4px; 
-        }
-        
-        .btn-edit {
-            background-color: var(--orange-light);
-            color: var(--orange);
-            border: 1px solid #ffe58f;
-        }
-        .btn-edit:hover { background-color: #fff1c2; }
-        .btn-delete-db {
-            background-color: var(--red-light);
-            color: var(--red);
-            border: 1px solid #ffccc7;
-        }
-        .btn-delete-db:hover { background-color: #ffe8e6; }
-
-        .customer-submit-group {
-            margin-top: 1.5rem;
-            padding-top: 1.5rem;
-            border-top: 1px solid var(--grey-light);
-        }
-        
-        /* --- Header & Footer --- */
-        header {
-            background-color: var(--bg-white);
-            padding: 1rem 1.5rem; 
-            border-bottom: 1px solid var(--grey-mid);
-            box-shadow: 0 1px 3px rgba(0,0,0,0.02);
-        }
-
-        header h1 {
-            font-size: 1.5rem;
-            color: var(--text-primary);
-            margin: 0; 
-        }
-
-        .hamburger-btn {
-            display: none; 
-            width: 30px;
-            height: 30px;
-            padding: 0;
-            background: none;
-            border: none;
-            cursor: pointer;
-            z-index: 10;
-        }
-        .hamburger-btn span {
-            display: block;
-            width: 100%;
-            height: 3px;
-            background-color: var(--text-primary);
-            margin: 5px 0;
-            border-radius: 3px;
-        }
-
-
-        footer {
-            width: 100%;
-            background-color: #f8f8f8;
-            border-top: 1px solid var(--grey-mid);
-            text-align: center;
-            padding: 1rem;
-            font-size: 0.8rem;
-            color: var(--text-secondary);
-            box-sizing: border-box;
-            margin-top: 2rem;
-        }
-
-        /* --- Main Layout & Cards --- */
-        .container {
-            max-width: 900px;
-            margin: 2rem auto 0 auto; 
-            padding: 0 1.5rem; 
-            display: grid;
-            gap: 1.5rem;
-        }
-
-        .card {
-            background-color: var(--bg-white);
-            border-radius: var(--border-radius);
-            padding: 1.5rem;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.04);
-        }
-
-        .card h2 {
-            font-size: 1.25rem;
-            margin-top: 0;
-            padding-bottom: 0.75rem;
-            border-bottom: 1px solid var(--grey-light);
-            display: flex;
-            align-items: center;
-        }
-
-        .card h2 .icon {
-            margin-right: 0.75rem;
-            font-size: 1.5rem;
-        }
-        
-        .icon-customer { color: var(--blue); }
-        .icon-items { color: var(--purple); }
-        .icon-summary { color: var(--teal); }
-        .icon-database { color: var(--orange); }
-        .icon-shipment { color: var(--blue); }
-        .icon-payment { color: var(--green); }
-        
-
-        .card h3 {
-            font-size: 1.1rem;
-            color: var(--blue);
-            margin-top: 0;
-        }
-
-        .output-section {
-            margin-top: 2rem;
-            padding-top: 1.5rem;
-            border-top: 1px solid var(--grey-light);
-        }
-        .output-section:first-of-type {
-            margin-top: 0;
-            padding-top: 0;
-            border-top: none;
-        }
-
-        /* --- Forms & Grids --- */
-        .form-grid, .form-grid-half {
-            display: grid;
-            gap: 1rem;
-        }
-        
-        .form-grid {
-            grid-template-columns: 1fr 1fr;
-        }
-        .form-grid-half {
-            grid-template-columns: 1fr 1fr;
-            max-width: 500px;
-        }
-        .form-grid .full-width,
-        .item-form-grid .full-width { 
-            grid-column: 1 / -1;
-        }
-
-        .item-form-grid {
-            grid-template-columns: 1fr 1fr; 
-            gap: 1rem; 
-            align-items: flex-end;
-            margin-top: 1rem;
-            border-top: 1px solid var(--grey-light);
-            padding-top: 1.5rem;
-        }
-        .item-form-grid .button-container {
-            display: flex;
-            gap: 0.5rem;
-            margin-top: 0.5rem;
-        }
-        .item-form-grid .btn-add {
-            width: auto;
-            flex-grow: 1; 
-        }
-        .item-form-grid #cancelEditBtn {
-            width: auto;
-        }
-
-
-        .input-group {
+            z-index: 100;
+            transition: width 0.3s ease-in-out;
             display: flex;
             flex-direction: column;
+            overflow: hidden;
         }
+        .sidebar:hover { width: var(--sidebar-width-expanded); }
+        .sidebar-logo { display: flex; align-items: center; justify-content: center; height: 70px; font-size: 1.5rem; font-weight: 700; color: var(--bg-white); flex-shrink: 0; }
+        .sidebar-logo .logo-text { opacity: 0; visibility: hidden; transition: opacity 0.2s ease 0.1s; margin-left: 10px; }
+        .sidebar:hover .sidebar-logo .logo-text { opacity: 1; visibility: visible; }
+        .sidebar-nav { list-style: none; padding: 0 1rem; margin: 1rem 0 0 0; flex-grow: 1; }
+        .sidebar-nav li a { display: flex; align-items: center; padding: 0.9rem 0.75rem; text-decoration: none; font-weight: 500; color: var(--sidebar-text); border-radius: 8px; transition: background-color 0.2s ease, color 0.2s ease; white-space: nowrap; cursor: pointer; }
+        .sidebar-nav li a:hover { background-color: #2d3748; color: var(--sidebar-text-hover); }
+        .sidebar-nav li a.active { background-color: var(--blue); color: var(--bg-white); font-weight: 600; }
+        .nav-icon { font-size: 1.5rem; width: 30px; text-align: center; flex-shrink: 0; transition: transform 0.2s ease; }
+        .nav-text { margin-left: 1.25rem; opacity: 0; visibility: hidden; transition: opacity 0.2s ease 0.1s; }
+        .sidebar:hover .nav-text { opacity: 1; visibility: visible; }
+        .sidebar:hover .nav-icon { transform: scale(0.9); }
+        .sidebar-bottom { padding: 0 1rem 1rem 1rem; }
 
-        .input-group label {
-            font-size: 0.9rem;
-            font-weight: 500;
-            color: var(--text-secondary);
-            margin-bottom: 0.5rem;
-        }
+        /* --- 4. Main Content Area --- */
+        .main-content { margin-left: var(--sidebar-width-collapsed); width: calc(100% - var(--sidebar-width-collapsed)); padding: 2rem; box-sizing: border-box; transition: margin-left 0.3s ease-in-out; opacity: 1; }
+        .sidebar:hover ~ .main-content { margin-left: var(--sidebar-width-expanded); width: calc(100% - var(--sidebar-width-expanded)); }
+        .page-content { display: none; }
+        .page-content.active { display: block; }
+        header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 2rem; }
+        header h1 { font-size: 2.5rem; margin: 0; color: var(--text-primary); }
+        header p { font-size: 1.1rem; color: var(--text-secondary); margin: 0; }
+        .header-left { display: flex; flex-direction: column; }
+        .card { background-color: var(--bg-white); border-radius: var(--border-radius); padding: 1.5rem; box-shadow: 0 4px 12px rgba(0,0,0,0.05); margin-bottom: 1.5rem; }
+        .card h2 { font-size: 1.5rem; margin-top: 0; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid var(--grey-light); }
+        .btn { font-family: var(--font-family); font-size: 1rem; font-weight: 600; padding: 0.75rem 1.5rem; border: none; border-radius: 8px; cursor: pointer; transition: background-color 0.2s ease, transform 0.2s ease; }
+        .btn-primary { background-color: var(--blue); color: white; }
+        .btn-primary:hover { background-color: #0056b3; transform: translateY(-2px); }
+        .btn-secondary { background-color: var(--grey-mid); color: var(--text-primary); }
+        .btn-secondary:hover { background-color: var(--grey-dark); color: var(--bg-white); }
+        .btn-danger { background-color: var(--red-light); color: var(--red); }
+        .btn-danger:hover { background-color: var(--red); color: var(--bg-white); }
+        .btn-small { font-size: 0.8rem; padding: 0.4rem 0.8rem; }
+        .btn:disabled { background-color: var(--grey-mid); cursor: not-allowed; transform: none; }
 
-        /* NEW: Mandatory red dot */
-        .input-group label.required::after {
-            content: ' •';
-            color: var(--red);
-            font-weight: 700;
-            display: inline-block;
-            margin-left: 2px;
-        }
-
-        .input-group input[type="text"],
-        .input-group input[type="tel"],
-        .input-group input[type="number"],
-        .input-group input[type="date"],
-        .input-group input[type="file"],
-        .input-group textarea,
-        .input-group select { 
-            width: 100%;
-            padding: 0.75rem;
-            font-size: 1rem;
-            border: 1px solid var(--grey-mid);
-            border-radius: 8px;
-            box-sizing: border-box; 
-            background-color: #fdfdfd;
-            font-family: var(--font-family); 
-            border-left: 3px solid var(--grey-mid);
-            transition: border-color 0.2s ease;
-        }
-        .input-group input[type="file"] {
-            padding: 0.5rem;
-            font-size: 0.9rem;
-        }
+        /* --- 5. Dashboard Page (Stats Grid) --- */
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.5rem; }
+        .stat-card { background-color: var(--bg-white); border-radius: var(--border-radius); padding: 1.5rem; box-shadow: 0 4px 12px rgba(0,0,0,0.05); display: flex; align-items: flex-start; gap: 1rem; transition: transform 0.2s ease, box-shadow 0.2s ease; }
+        .stat-card:hover { transform: translateY(-5px); box-shadow: 0 8px 16px rgba(0,0,0,0.08); }
+        .stat-icon { font-size: 2rem; padding: 0.75rem; border-radius: 8px; }
+        .icon-pending { background-color: var(--orange-light); color: var(--orange); }
+        .icon-transit { background-color: var(--blue-light); color: var(--blue); }
+        .icon-delivered { background-color: var(--green-light); color: var(--green); }
+        .icon-payment { background-color: var(--red-light); color: var(--red); }
+        .stat-info h3 { margin: 0 0 0.25rem 0; font-size: 1rem; color: var(--text-secondary); font-weight: 500; }
+        .stat-info .stat-value { margin: 0; font-size: 2.25rem; font-weight: 600; color: var(--text-primary); }
         
-        .input-group input[disabled] { 
-            background-color: var(--grey-light);
-            color: var(--text-secondary);
-            border-left-color: var(--grey-dark);
-        }
+        /* --- 6. Styled Table (Used on multiple pages) --- */
+        .table-container { width: 100%; overflow-x: auto; }
+        .styled-table { width: 100%; border-collapse: collapse; font-size: 0.95rem; }
+        .styled-table th, .styled-table td { padding: 1rem; text-align: left; border-bottom: 1px solid var(--grey-mid); }
+        .styled-table th { color: var(--text-secondary); font-weight: 600; background-color: #fcfcfc; }
+        .styled-table tbody tr:last-child td { border-bottom: none; }
+        .styled-table tbody tr:hover { background-color: var(--grey-light); }
+        .table-actions { display: flex; gap: 0.5rem; }
+        .status-badge { display: inline-block; padding: 0.25rem 0.75rem; font-size: 0.8rem; font-weight: 600; border-radius: 12px; }
+        .status-Pending { background-color: var(--orange-light); color: var(--orange); }
+        .status-Shipped { background-color: var(--blue-light); color: var(--blue); }
+        .status-Delivered { background-color: var(--green-light); color: var(--green); }
+        .status-Not-Paid { background-color: var(--red-light); color: var(--red); }
+        .status-Paid { background-color: var(--green-light); color: var(--green); }
+        .status-Partially-Paid { background-color: var(--orange-light); color: var(--orange); }
 
-        .input-group input:focus,
-        .input-group textarea:focus,
-        .input-group select:focus { 
-            outline: none;
-            border-color: var(--blue);
-            border-left: 3px solid var(--blue);
-        }
+        /* --- 7. New Shipment Wizard --- */
+        .stepper { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; padding: 1rem; background-color: var(--bg-white); border-radius: var(--border-radius); box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+        .step { display: flex; align-items: center; flex-direction: column; flex-grow: 1; position: relative; }
+        .step:not(:last-child)::after { content: ''; position: absolute; top: 15px; left: 50%; width: 100%; height: 3px; background-color: var(--grey-mid); z-index: 1; }
+        .step-icon { width: 30px; height: 30px; border-radius: 50%; background-color: var(--grey-mid); color: var(--text-secondary); display: flex; align-items: center; justify-content: center; font-weight: 600; z-index: 2; transition: background-color 0.3s ease, color 0.3s ease; }
+        .step-label { margin-top: 0.5rem; font-size: 0.85rem; color: var(--text-secondary); font-weight: 500; transition: color 0.3s ease, font-weight 0.3s ease; }
+        .step.active .step-icon { background-color: var(--blue); color: var(--bg-white); }
+        .step.active .step-label { color: var(--blue); font-weight: 600; }
+        .step.completed .step-icon { background-color: var(--green); color: var(--bg-white); }
+        .step.completed .step-label { color: var(--text-primary); }
+        .step.completed:not(:last-child)::after { background-color: var(--green); }
+        .step-content { display: none; }
+        .step-content.active { display: block; }
+        .wizard-nav { display: flex; justify-content: space-between; margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--grey-mid); }
+
+        /* --- 8. Forms --- */
+        .form-grid-two-col { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; }
+        .form-grid-three-col { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; }
+        .input-group { display: flex; flex-direction: column; gap: 0.5rem; }
+        .input-group label { font-size: 0.9rem; font-weight: 500; color: var(--text-secondary); }
+        .input-group input[type="text"], .input-group input[type="tel"], .input-group input[type="email"], .input-group input[type="number"], .input-group input[type="date"], .input-group select, .input-group textarea { width: 100%; padding: 0.75rem; font-size: 1rem; border: 1px solid var(--grey-mid); border-radius: 8px; box-sizing: border-box; background-color: #fdfdfd; font-family: var(--font-family); transition: border-color 0.2s ease, box-shadow 0.2s ease; }
+        .input-group input:focus, .input-group select:focus, .input-group textarea:focus { outline: none; border-color: var(--blue); box-shadow: 0 0 0 2px var(--blue-light); }
+        .input-group textarea { resize: vertical; min-height: 80px; }
+
+        /* --- 9. Summary/Review Page --- */
+        .summary-grid { display: grid; grid-template-columns: 180px 1fr; gap: 0.75rem 1rem; font-size: 1rem; }
+        .summary-grid strong { font-weight: 600; color: var(--text-secondary); text-align: right; }
+        .summary-grid span { word-break: break-word; }
+        .doc-buttons { display: flex; gap: 1rem; flex-wrap: wrap; }
+        .review-section { margin-bottom: 1.5rem; padding-bottom: 1.5rem; border-bottom: 1px solid var(--grey-mid); }
+        .review-section:last-child { border-bottom: none; }
+        .review-section h3 { font-size: 1.2rem; color: var(--blue); margin-top: 0; }
+
+        /* --- 10. Modal --- */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; display: none; align-items: center; justify-content: center; }
+        .modal-overlay.active { display: flex; }
+        .modal-content { background: var(--bg-white); border-radius: var(--border-radius); padding: 2rem; width: 90%; max-width: 700px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid var(--grey-mid); }
+        .modal-header h2 { margin: 0; }
+        .modal-header .close-btn { font-size: 2rem; font-weight: 300; cursor: pointer; background: none; border: none; line-height: 1; padding: 0; }
+        .modal-footer { display: flex; justify-content: flex-end; gap: 1rem; margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--grey-mid); }
         
-        .input-group select.status-pending {
-            border-left-color: var(--orange);
-            background-color: var(--orange-light);
-        }
-        .input-group select.status-shipped,
-        .input-group select.status-in-transit {
-            border-left-color: var(--blue);
-            background-color: var(--blue-light);
-        }
-        .input-group select.status-delivered {
-            border-left-color: var(--green);
-            background-color: var(--green-light);
-        }
-        .input-group select.status-exception {
-            border-left-color: var(--red);
-            background-color: var(--red-light);
-        }
-        .input-group select.status-not-paid {
-            border-left-color: var(--red);
-            background-color: var(--red-light);
-        }
-        .input-group select.status-partially-paid {
-            border-left-color: var(--orange);
-            background-color: var(--orange-light);
-        }
-        .input-group select.status-paid {
-            border-left-color: var(--green);
-            background-color: var(--green-light);
-        }
-        
-        
-        .info-grid {
-            display: grid;
-            grid-template-columns: 150px 1fr;
-            gap: 1rem;
-            font-size: 1rem;
-        }
-        .info-grid strong {
-            font-weight: 600;
-            color: var(--text-secondary);
-        }
-        .info-grid div {
-            padding-bottom: 1rem;
-            border-bottom: 1px solid var(--grey-light);
-        }
-        .info-grid div:last-child,
-        .info-grid strong:last-child {
-             border-bottom: none;
-        }
-        
-        .search-bar {
-            width: 100%;
-            max-width: 400px;
-            margin-bottom: 1.5rem;
-        }
-
-        /* --- Buttons --- */
-        .btn {
-            font-family: var(--font-family);
-            font-size: 1rem;
-            font-weight: 600;
-            padding: 0.75rem 1.5rem;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            background-color: var(--blue);
-            color: white;
-            transition: background-color 0.2s ease;
-        }
-        .btn:hover {
-            background-color: #0056b3;
-        }
-
-        .btn-add {
-            width: 100%;
-        }
-
-        .btn-secondary {
-            background-color: var(--blue-light);
-            color: var(--blue);
-            border: 1px solid var(--blue-light);
-        }
-        .btn-secondary:hover {
-            background-color: var(--blue);
-            color: var(--bg-white);
-            border-color: var(--blue);
-        }
-        
-        .btn-print {
-            background-color: var(--blue-light);
-            color: var(--blue);
-            border: 1px solid var(--blue-light);
-        }
-        .btn-print:hover {
-            background-color: var(--blue);
-            color: var(--bg-white);
-            border-color: var(--blue);
-        }
-
-        /* .btn-toggle REMOVED, REPLACED BY SELECT */
-
-        .btn-edit-item {
-            background: none;
-            border: none;
-            color: var(--blue);
-            font-size: 1.2rem;
-            cursor: pointer;
-            padding: 0.5rem;
-            margin-right: 0.25rem;
-        }
-        .btn-edit-item:hover {
-            color: #0056b3;
-        }
-
-        .btn-delete {
-            background: none;
-            border: none;
-            color: #ff3b30;
-            font-size: 1.2rem;
-            cursor: pointer;
-            padding: 0.5rem;
-        }
-        .btn-delete:hover {
-            color: var(--red);
-        }
-
-        .button-group {
-            display: flex;
-            gap: 0.75rem;
-            flex-wrap: wrap;
-        }
-        
-        .history-buttons {
-            display: flex;
-            gap: 0.75rem;
-            margin-bottom: -0.5rem; 
-        }
-        
-        .btn-history {
-            font-family: var(--font-family);
-            font-size: 0.9rem;
-            font-weight: 500;
-            padding: 0.5rem 1rem;
-            border: 1px solid var(--grey-mid);
-            border-radius: 8px;
-            cursor: pointer;
-            background-color: var(--bg-white);
-            color: var(--blue);
-            transition: background-color 0.2s ease;
-        }
-        .btn-history:hover:not(:disabled) {
-            background-color: var(--grey-light);
-        }
-        .btn-history:disabled {
-            color: var(--grey-dark);
-            cursor: not-allowed;
-            background-color: #f9f9f9;
-            border-color: var(--grey-light);
-        }
-
-        /* --- Item Table --- */
-        #itemTable {
-            width: 100%;
-            border-collapse: collapse; 
-            margin-bottom: 1rem;
-            border: 1px solid var(--grey-mid); 
-        }
-        #itemTable th, #itemTable td {
-            text-align: left;
-            padding: 0.75rem;
-            border: 1px solid var(--grey-mid); 
-            font-size: 0.9rem;
-            vertical-align: middle;
-        }
-        #itemTable th {
-            color: var(--text-secondary);
-            font-weight: 600;
-            background-color: #f9f9f9;
-        }
-        
-        /* UPDATED: Item Table Column widths (for 8 columns) */
-        #itemTable th:nth-child(1), #itemTable td:nth-child(1) { width: 25%; } /* Description */
-        #itemTable th:nth-child(2), #itemTable td:nth-child(2) { width: 15%; } /* Brand (NEW) */
-        #itemTable th:nth-child(3), #itemTable td:nth-child(3) { width: 15%; } /* Category */
-        #itemTable th:nth-child(4), #itemTable td:nth-child(4) { width: 8%; }  /* Qty */
-        #itemTable th:nth-child(5), #itemTable td:nth-child(5) { width: 10%; } /* Unit Val */
-        #itemTable th:nth-child(6), #itemTable td:nth-child(6) { width: 10%; } /* Total Val */
-        #itemTable th:nth-child(7), #itemTable td:nth-child(7) { width: 12%; } /* Remarks */
-        #itemTable th:nth-child(8), #itemTable td:nth-child(8) { width: 5%; text-align: center; } /* Actions */
-
-
-        /* --- Summary Section --- */
-        .summary-grid {
-            display: grid;
-            grid-template-columns: auto 1fr;
-            gap: 0.75rem 1rem;
-            align-items: center;
-            max-width: 500px;
-        }
-        .summary-grid strong {
-            color: var(--text-secondary);
-            text-align: right;
-        }
-        .summary-total {
-            font-weight: 600;
-            font-size: 1.1rem;
-        }
-        .summary-input {
-            padding: 0.5rem;
-            font-size: 1rem;
-            border: 1px solid var(--grey-mid);
-            border-radius: 8px;
-            width: 100px;
-        }
-
-        /* --- Mobile-First Responsive --- */
-        @media (max-width: 1024px) { 
-            body {
-                font-size: 14px; 
-            }
-            
-            .sidebar {
-                left: calc(-1 * var(--sidebar-width)); 
-                z-index: 101; 
-                border-right: none;
-                box-shadow: 2px 0 10px rgba(0,0,0,0.1);
-            }
-            .sidebar.active {
-                left: 0; 
-            }
-            
-            header {
-                position: relative; 
-                padding: 0.75rem 1rem;
-                padding-left: 50px; 
-            }
-            header h1 { 
-                font-size: 1.1rem; 
-                line-height: 30px; 
-                height: 30px;
-            }
-
-            .hamburger-btn {
-                display: flex;
-                flex-direction: column;
-                justify-content: center;
-                position: absolute;
-                left: 1rem;
-                top: 50%;
-                transform: translateY(-50%);
-            }
-
-            .main-content-area {
-                margin-left: 0; 
-                width: 100%;
-                height: auto;
-                overflow-y: visible;
-            }
-
-            .container { padding: 0 0.75rem; } 
-            #tab-customer-database .container { padding: 0 0.75rem; } 
-
-            .card {
-                padding: 1rem; 
-            }
-            .card h2 { font-size: 1rem; }
-            .card h3 { font-size: 0.9rem; }
-
-            .form-grid, .form-grid-half {
-                grid-template-columns: 1fr;
-            }
-            .item-form-grid {
-                grid-template-columns: 1fr; 
-            }
-            .item-form-grid .button-container {
-                flex-direction: column;
-            }
-            .btn-add, #cancelEditBtn {
-                width: 100% !important;
-                flex-grow: 0 !important;
-            }
-            
-            .input-group label {
-                font-size: 0.8rem;
-                margin-bottom: 0.25rem;
-            }
-            .input-group input[type="text"],
-            .input-group input[type="tel"],
-            .input-group input[type="number"],
-            .input-group input[type="date"],
-            .input-group input[type="file"],
-            .input-group textarea,
-            .input-group select { 
-                padding: 0.6rem;
-                font-size: 0.9rem;
-            }
-            .btn {
-                padding: 0.6rem 1rem;
-                font-size: 0.9rem;
-            }
-            .summary-input {
-                padding: 0.4rem;
-                font-size: 0.9rem;
-            }
-
-            #itemTable {
-                display: block;
-                overflow-x: auto;
-                white-space: nowrap;
-            }
-            #itemTable th, #itemTable td {
-                min-width: 80px; 
-                font-size: 0.8rem; 
-                padding: 0.5rem; 
-            }
-            #itemTable th:first-child, #itemTable td:first-child {
-                min-width: 150px; 
-            }
-            
-            .table-container {
-                overflow-x: auto;
-            }
-            .table-google-sheets {
-                font-size: 0.7rem; 
-            }
-            .table-google-sheets th,
-            .table-google-sheets td {
-                padding: 0.3rem 0.4rem; 
-                min-width: 60px; 
-                white-space: nowrap; 
-            }
-            .btn-table {
-                font-size: 0.65rem; 
-                padding: 0.1rem 0.3rem; 
-            }
-
-            .info-grid {
-                grid-template-columns: 80px 1fr; 
-                font-size: 0.9rem;
-            }
+        /* --- 11. Responsive (Mobile) --- */
+        @media (max-width: 768px) {
+            .sidebar { width: 100%; height: 65px; bottom: 0; top: auto; left: 0; flex-direction: row; border-top: 1px solid #2d3748; }
+            .sidebar:hover { width: 100%; }
+            .sidebar-logo, .sidebar-bottom { display: none; }
+            .sidebar-nav { display: flex; flex-direction: row; justify-content: space-around; width: 100%; height: 100%; margin: 0; padding: 0 0.5rem; }
+            .sidebar-nav li { flex-grow: 1; }
+            .sidebar-nav li a { flex-direction: column; justify-content: center; height: 100%; padding: 0.5rem 0.25rem; }
+            .nav-icon { font-size: 1.25rem; width: auto; }
+            .nav-text { opacity: 1; visibility: visible; font-size: 0.7rem; margin-left: 0; margin-top: 0.25rem; }
+            .sidebar:hover .nav-text { opacity: 1; }
+            .sidebar:hover .nav-icon { transform: none; }
+            .main-content { margin-left: 0; width: 100%; padding: 1rem; padding-bottom: 80px; }
+            .sidebar:hover ~ .main-content { margin-left: 0; width: 100%; }
+            header { flex-direction: column; align-items: flex-start; gap: 0.5rem; }
+            header h1 { font-size: 1.8rem; }
+            header p { font-size: 1rem; margin-bottom: 1rem; }
+            .stats-grid, .form-grid-two-col, .form-grid-three-col { grid-template-columns: 1fr; }
+            .stepper { padding: 1rem 0.5rem; }
+            .step-label { font-size: 0.7rem; text-align: center; }
+            .summary-grid { grid-template-columns: 100px 1fr; }
+            .summary-grid strong { text-align: left; }
+            .modal-content { width: 95%; padding: 1.5rem; }
+            .modal-footer { flex-direction: column; }
+            .modal-footer .btn { width: 100%; }
         }
     </style>
 </head>
 <body>
 
-    <nav class="sidebar" id="sidebar">
-        <div class="sidebar-header">
-            <img src="https://raw.githubusercontent.com/crickerr26/bee26cargomanager/main/BEE26.jpg" alt="Bee26 Cargo Logo" class="sidebar-logo">
-            Bee26 Cargo
+    <nav class="sidebar">
+        <div class="sidebar-logo">
+            <span>B26</span>
+            <span class="logo-text">Bee26 Cargo</span>
         </div>
         <ul class="sidebar-nav">
-            <li><a href="#" class="sidebar-link active" data-tab="tab-customer-details">Customer Details</a></li>
-            <li><a href="#" class="sidebar-link" data-tab="tab-customer-database">Customer Database</a></li>
-            <li><a href="#" class="sidebar-link" data-tab="tab-shipment-tracker">Shipment Tracker</a></li>
-            <li><a href="#" class="sidebar-link" data-tab="tab-payment-tracker">Payment Tracker</a></li>
+            <li><a class="nav-link active" data-page="page-dashboard"><span class="nav-icon">🏠</span><span class="nav-text">Dashboard</span></a></li>
+            <li><a class="nav-link" data-page="page-new-shipment"><span class="nav-icon">➕</span><span class="nav-text">New Shipment</span></a></li>
+            <li><a class="nav-link" data-page="page-all-shipments"><span class="nav-icon">🚚</span><span class="nav-text">All Shipments</span></a></li>
+            <li><a class="nav-link" data-page="page-customers"><span class="nav-icon">👥</span><span class="nav-text">Customers</span></a></li>
+            <li><a class="nav-link" data-page="page-payments"><span class="nav-icon">💳</span><span class="nav-text">Payments</span></a></li>
         </ul>
+        <div class="sidebar-bottom">
+            <ul class="sidebar-nav" style="margin: 0;"><li><a href="#"><span class="nav-icon">⚙️</span><span class="nav-text">Settings</span></a></li></ul>
+        </div>
     </nav>
-    
-    <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
-    <div class="main-content-area">
+    <main class="main-content">
 
         <header>
-            <button class="hamburger-btn" id="hamburgerBtn">
-                <span></span>
-                <span></span>
-                <span></span>
-            </button>
-            <h1>Personal Cargo Manager</h1>
+            <div class="header-left">
+                <h1 id="page-title">Dashboard</h1>
+                <p id="page-subtitle">Welcome back, here's an overview of your business.</p>
+            </div>
+            <button class="btn btn-primary" id="header-action-btn">+ Create New Shipment</button>
         </header>
 
-        <div class="tab-container">
-
-            <div id="tab-customer-details" class="tab-content active">
-                
-                <main class="container">
-                    <div class="history-buttons">
-                        <button id="undoBtn" class="btn-history" disabled>Undo</button>
-                        <button id="redoBtn" class="btn-history" disabled>Redo</button>
-                    </div>
-
-                    <section class="card">
-                        <h2><span class="icon icon-customer">👤</span> Customer Details</h2>
-                        <div class="form-grid">
-                            <div class="input-group">
-                                <label for="senderName" class="required">Sender Name</label>
-                                <input type="text" id="senderName" placeholder="John Doe" required>
-                            </div>
-                            <div class="input-group">
-                                <label for="receiverName" class="required">Receiver Name</label>
-                                <input type="text" id="receiverName" placeholder="Jane Smith" required>
-                            </div>
-                            <div class="input-group">
-                                <label for="senderPhone" class="required">Sender Phone (Canada)</label>
-                                <input type="tel" id="senderPhone" placeholder="+1 416 123 4567" required>
-                            </div>
-                            <div class="input-group">
-                                <label for="receiverPhone" class="required">Receiver Phone (Sri Lanka)</label>
-                                <input type="tel" id="receiverPhone" placeholder="+94 77 123 4567" required>
-                            </div>
-                            <div class="input-group full-width">
-                                <label for="receiverAddress" class="required">Receiver Address (Sri Lanka)</label>
-                                <textarea id="receiverAddress" rows="3" placeholder="No. 123, Main Street, Colombo 03" required></textarea>
-                            </div>
-                            <div class="input-group full-width">
-                                <label for="fileUpload">Attach ID (NIC, Passport) - Optional</label>
-                                <input type="file" id="fileUpload" accept="image/*,.pdf">
-                            </div>
-                            <div class="input-group full-width">
-                                <label for="customerRemarks">Customer Remarks</label>
-                                <textarea id="customerRemarks" rows="2" placeholder="Notes about this customer..."></textarea>
-                            </div>
-                        </div>
-                        
-                        </section>
-            
-                    <section class="card">
-                        <h2><span class="icon icon-items">🛍️</span> Itemized List</h2>
-                        <table id="itemTable">
-                            <thead>
-                                <tr>
-                                    <th>Description</th>
-                                    <th>Brand</th> <th>Category</th>
-                                    <th>Qty</th>
-                                    <th>Unit Val. (CAD)</th>
-                                    <th>Total Val.</th>
-                                    <th>Remarks</th>
-                                    <th></th>
-                                </tr>
-                            </thead>
-                            <tbody id="itemTbody">
-                                </tbody>
-                        </table>
-                        
-                        <form id="addItemForm" class="item-form-grid">
-                            <div class="input-group full-width">
-                                <label class="required">Description</label>
-                                <input type="text" id="itemDesc" placeholder="e.g., Men's T-Shirts" required>
-                            </div>
-                            
-                            <div class="input-group">
-                                <label class="required">Brand</label>
-                                <input type="text" id="itemBrand" list="brandList" placeholder="e.g., Nike, Sony">
-                                <datalist id="brandList">
-                                    </datalist>
-                            </div>
-
-                            <div class="input-group">
-                                <label class="required">Category</label>
-                                <select id="itemCategory" required>
-                                    <option value="">Select category...</option>
-                                    <option value="Packaged Food">Packaged Food</option>
-                                    <option value="Perishable Food">Perishable Food</option>
-                                    <option value="Electronics">Electronics</option>
-                                    <option value="Footwear & Clothing">Footwear & Clothing</option>
-                                    <option value="Sports Equipment">Sports Equipment</option>
-                                    <option value="Household & Personal Items">Household & Personal Items</option>
-                                    <option value="Health & Beauty Products">Health & Beauty Products</option>
-                                    <option value="Kids Items & Toys">Kids Items & Toys</option>
-                                    <option value="Books & Stationery">Books & Stationery</option>
-                                    <option value="Documents">Documents</option>
-                                    <option value="Used Items">Used Items</option>
-                                    <option value="New Items">New Items</option>
-                                    <option value="Gifts / Souvenirs">Gifts / Souvenirs</option>
-                                    <option value="Liquids">Liquids</option>
-                                    <option value="Batteries / Power Banks">Batteries / Power Banks</option>
-                                    <option value="Fragile Items">Fragile Items</option>
-                                    <option value="Medicines / Vitamins">Medicines / Vitamins</option>
-                                    <option value="Restricted / Special Handling">Restricted / Special Handling</option>
-                                </select>
-                            </div>
-                            
-                            <div class="input-group">
-                                <label class="required">Condition</label>
-                                <select id="itemCondition" required>
-                                    <option value="New">New</option>
-                                    <option value="Used">Used</option>
-                                </select>
-                            </div>
-
-                            <div class="input-group">
-                                <label class="required">Quantity</label>
-                                <input type="number" id="itemQty" placeholder="10" min="1" step="1" required>
-                            </div>
-                            <div class="input-group">
-                                <label class="required">Unit Value (CAD)</label>
-                                <input type="number" id="itemValue" placeholder="15.00" min="0" step="0.01" required>
-                            </div>
-                            <div class="input-group">
-                                <label>Remarks</label>
-                                <input type="text" id="itemRemarks" placeholder="Color, size, etc.">
-                            </div>
-
-                            <div class="button-container full-width">
-                                <button type="submit" class="btn btn-add" id="addItemSubmitBtn">Add Item +</button>
-                                <button type="button" id="cancelEditBtn" class="btn btn-secondary" style="display: none;">Cancel</button>
-                            </div>
-                        </form>
-                    </section>
-            
-                    <section class="card">
-                        <h2><span class="icon icon-summary">📊</span> Shipment Summary & Outputs</h2>
-                        
-                        <div class="output-section">
-                            <h3>AWB Prep Info</h3>
-                            <div class="summary-grid">
-                                <div><strong>From:</strong></div>
-                                <div>Bee26 Cargo Services, Toronto</div>
-                                
-                                <div><strong>To:</strong></div>
-                                <div id="summaryReceiver">--</div>
-            
-                                <div><strong>Total Packages:</strong></div>
-                                <input type="number" id="totalPackages" class="summary-input" placeholder="e.g., 2">
-                                
-                                <div><strong>Total Weight (kg):</strong></div>
-                                <input type="text" id="summaryWeightInput" class="summary-input" placeholder="0.00"> 
-                                
-                                <div><strong>Declared Value (CAD):</strong></div>
-                                <input type="text" id="summaryValueInput" class="summary-input" placeholder="0.00">
-                            </div>
-                        </div>
-            
-                        <div class="output-section">
-                            <h3>Packing List</h3>
-                            <p><strong>Declaration:</strong> Personal Use – Not for Resale</p>
-                            <div class="button-group">
-                                <button id="printPackingListBtn" class="btn btn-print">Print</button>
-                                <button id="exportPackingListPDF" class="btn">Download PDF</button>
-                                <button id="exportPackingListExcel" class="btn btn-secondary">Download Excel</button>
-                            </div>
-                        </div>
-            
-                        <div class="output-section">
-                            <h3>Commercial Invoice</h3>
-                            <div class="form-grid-half">
-                                <div class="input-group">
-                                    <label for="invoiceNumber">Invoice Number</label>
-                                    <input type="text" id="invoiceNumber" placeholder="BEE26-1001">
-                                </div>
-                                <div class="input-group">
-                                    <label for="invoiceDate">Date</label>
-                                    <input type="date" id="invoiceDate">
-                                </div>
-                                <div class="input-group">
-                                    <label for="hsCode">HS Code (Optional)</label>
-                                    <input type="text" id="hsCode" placeholder="e.g., 6109.10">
-                                </div>
-                            </div>
-                            <div class="button-group">
-                                <button id="printInvoiceBtn" class="btn btn-print">Print</button>
-                                <button id="exportInvoicePDF" class="btn">Download PDF</button>
-                                <button id="exportInvoiceExcel" class="btn btn-secondary">Download Excel</button>
-                            </div>
-                        </div>
-            
-                    </section>
-
-                    <div class="customer-submit-group">
-                        <button id="submitCustomerBtn" class="btn">Submit Customer to Database</button>
-                    </div>
-
-                </main>
+        <div id="page-dashboard" class="page-content active">
+            <div class="stats-grid">
+                <div class="stat-card"><span class="stat-icon icon-pending">📦</span><div class="stat-info"><h3>Pending Shipments</h3><div class="stat-value" id="stat-pending">0</div></div></div>
+                <div class="stat-card"><span class="stat-icon icon-transit">✈️</span><div class="stat-info"><h3>In Transit</h3><div class="stat-value" id="stat-transit">0</div></div></div>
+                <div class="stat-card"><span class="stat-icon icon-delivered">✅</span><div class="stat-info"><h3>Delivered (All Time)</h3><div class="stat-value" id="stat-delivered">0</div></div></div>
+                <div class="stat-card"><span class="stat-icon icon-payment">💰</span><div class="stat-info"><h3>Payments Due</h3><div class="stat-value" id="stat-due">$0</div></div></div>
+            </div>
+            <div class="card">
+                <h2>Recent Activity</h2>
+                <div class="table-container">
+                    <table class="styled-table">
+                        <thead><tr><th>Invoice #</th><th>Sender</th><th>Receiver</th><th>Status</th><th>Total</th></tr></thead>
+                        <tbody id="recent-activity-tbody">
+                            <tr><td colspan="5" style="text-align: center;">No recent activity. Create a shipment!</td></tr>
+                        </tbody>
+                    </table>
                 </div>
+            </div>
+        </div>
 
-            <div id="tab-customer-database" class="tab-content">
-                <main class="container"> 
-                    <section class="card">
-                        <h2><span class="icon icon-database">📂</span> Customer Database</h2>
-                        <div class="input-group search-bar">
-                            <label for="customerSearch">Search by Sender or Receiver Name</label>
-                            <input type="text" id="customerSearch" placeholder="Search...">
+        <div id="page-new-shipment" class="page-content">
+            <div class="stepper">
+                <div class="step active" data-step="1"><div class="step-icon">1</div><div class="step-label">Customer Info</div></div>
+                <div class="step" data-step="2"><div class="step-icon">2</div><div class="step-label">Item Details</div></div>
+                <div class="step" data-step="3"><div class="step-icon">3</div><div class="step-label">Shipment & Payment</div></div>
+                <div class="step" data-step="4"><div class="step-icon">4</div><div class="step-label">Review & Docs</div></div>
+            </div>
+
+            <div id="step-1" class="step-content active">
+                <div class="card">
+                    <h2>Sender Details (Canada)</h2>
+                    <div class="form-grid-two-col">
+                        <div class="input-group"><label for="senderName">Full Name</label><input type="text" id="senderName" placeholder="John Doe"></div>
+                        <div class="input-group"><label for="senderPhone">Phone Number</label><input type="tel" id="senderPhone" placeholder="+1 416-123-4567"></div>
+                    </div>
+                </div>
+                <div class="card">
+                    <h2>Receiver Details (Sri Lanka)</h2>
+                    <div class="form-grid-two-col">
+                        <div class="input-group"><label for="receiverName">Full Name</label><input type="text" id="receiverName" placeholder="Jane Smith"></div>
+                        <div class="input-group"><label for="receiverPhone">Phone Number</label><input type="tel" id="receiverPhone" placeholder="+94 77-123-4567"></div>
+                        <div class="input-group"><label for="receiverAddress">Address</label><textarea id="receiverAddress" rows="3" placeholder="No. 123, Main Street, Colombo 03"></textarea></div>
+                        <div class="input-group"><label for="customerRemarks">Customer Remarks</label><textarea id="customerRemarks" rows="3" placeholder="Notes about this customer..."></textarea></div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="step-2" class="step-content">
+                <div class="card">
+                    <h2>Itemized List</h2>
+                    <div class="table-container">
+                        <table class="styled-table">
+                            <thead><tr><th>Description</th><th>Category</th><th>Qty</th><th>Unit Value</th><th>Total Value</th><th>Actions</th></tr></thead>
+                            <tbody id="itemTableTbody">
+                                <tr><td colspan="6" style="text-align: center;">No items added yet.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="wizard-nav" style="justify-content: flex-end;">
+                        <button class="btn btn-primary" id="addNewItemBtn">+ Add New Item</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="step-3" class="step-content">
+                <div class="card">
+                    <h2>Shipment Details</h2>
+                    <div class="form-grid-two-col">
+                        <div class="input-group"><label for="totalPackages">Total Packages</label><input type="number" id="totalPackages" placeholder="e.g., 2" min="0"></div>
+                        <div class="input-group"><label for="totalWeight">Total Weight (kg)</label><input type="text" id="totalWeight" placeholder="e.g., 14.5"></div>
+                        <div class="input-group"><label for="invoiceNumber">Invoice Number</label><input type="text" id="invoiceNumber" placeholder="BEE26-1025"></div>
+                        <div class="input-group"><label for="invoiceDate">Date</label><input type="date" id="invoiceDate"></div>
+                        <div class="input-group"><label for="deliveryStatus">Delivery Status</label><select id="deliveryStatus"><option value="Pending">Pending</option><option value="Shipped">Shipped</option><option value="Delivered">Delivered</option></select></div>
+                        <div class="input-group"><label for="hsCode">HS Code (Optional)</label><input type="text" id="hsCode" placeholder="e.g., 6109.10"></div>
+                    </div>
+                </div>
+                <div class="card">
+                    <h2>Payment Details</h2>
+                    <div class="form-grid-two-col">
+                        <div class="input-group"><label for="paymentTotal">Total Amount (CAD)</label><input type="number" id="paymentTotal" placeholder="0.00" min="0" step="0.01"></div>
+                        <div class="input-group"><label for="paymentStatus">Payment Status</label><select id="paymentStatus"><option value="Not-Paid">Not Paid</option><option value="Paid">Paid</option><option value="Partially-Paid">Partially Paid</option></select></div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="step-4" class="step-content">
+                <div class="card">
+                    <h2>Review Shipment</h2>
+                    <div class="review-section">
+                        <h3>Customer</h3>
+                        <div class="form-grid-two-col">
+                            <div><strong>Sender</strong><div class="summary-grid"><strong>Name:</strong> <span id="review-senderName">--</span><strong>Phone:</strong> <span id="review-senderPhone">--</span></div></div>
+                            <div><strong>Receiver</strong><div class="summary-grid"><strong>Name:</strong> <span id="review-receiverName">--</span><strong>Phone:</strong> <span id="review-receiverPhone">--</span><strong>Address:</strong> <span id="review-receiverAddress" style="white-space: pre-wrap;">--</span></div></div>
                         </div>
-                    </section>
-
-                    <section class="card">
+                    </div>
+                    <div class="review-section">
+                        <h3>Shipment & Payment</h3>
+                        <div class="form-grid-two-col">
+                            <div><strong>Shipment</strong><div class="summary-grid"><strong>Invoice #:</strong> <span id="review-invoiceNumber">--</span><strong>Packages:</strong> <span id="review-totalPackages">--</span><strong>Weight:</strong> <span id="review-totalWeight">--</span><strong>Status:</strong> <span id="review-deliveryStatus">--</span></div></div>
+                            <div><strong>Payment</strong><div class="summary-grid"><strong>Total:</strong> <span id="review-paymentTotal">--</span><strong>Status:</strong> <span id="review-paymentStatus">--</span></div></div>
+                        </div>
+                    </div>
+                    <div class="review-section">
+                        <h3>Itemized List (<span id="review-itemCount">0</span> items)</h3>
                         <div class="table-container">
-                            <table id="customerTable" class="table-google-sheets">
-                                <thead>
-                                    <tr>
-                                        <th>#</th> 
-                                        <th>Sender Name</th>
-                                        <th>Sender Phone</th> <th>Receiver Name</th>
-                                        <th>Receiver Phone</th>
-                                        <th>Receiver Address</th>
-                                        <th>Payment Status</th> <th>Amount</th> <th>Delivery Status</th> <th>Tracking #</th> <th>Remarks</th> <th>Date Added</th>
-                                        <th>Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="customerTableTbody">
-                                    <tr><td colspan="13">Loading customers from Firebase...</td></tr>
+                            <table class="styled-table">
+                                <thead><tr><th>Description</th><th>Category</th><th>Qty</th><th>Total Value</th></tr></thead>
+                                <tbody id="review-itemTableTbody">
+                                    <tr><td colspan="4" style="text-align: center;">--</td></tr>
                                 </tbody>
                             </table>
                         </div>
-                    </section>
-                </main>
+                    </div>
+                </div>
+                <div class="card">
+                    <h2>Generate Documents</h2>
+                    <div class="doc-buttons">
+                        <button class="btn btn-secondary" id="printPackingListBtn">Print Packing List</button>
+                        <button class="btn btn-primary" id="exportInvoicePDF">Download Invoice (PDF)</button>
+                        <button class="btn btn-secondary" id="exportPackingListExcel">Download Excel</button>
+                    </div>
+                </div>
             </div>
-            
-            <div id="tab-shipment-tracker" class="tab-content">
-                <main class="container">
-                    <section class="card">
-                        <h2><span class="icon icon-shipment">✈️</span> Shipment Tracker</h2>
-                        <div class="input-group search-bar">
-                            <label for="shipmentSearch">Search by Customer Name or Invoice #</label>
-                            <input type="text" id="shipmentSearch" placeholder="Search...">
-                        </div>
-                    </section>
-                    
-                    <section class="card">
-                        <h3>Customer Info</h3>
-                        <div class="info-grid">
-                            <strong>Sender:</strong> <div id="stSenderName">--</div>
-                            <strong>Receiver:</strong> <div id="stReceiverName">--</div>
-                            <strong>Phone:</strong> <div id="stReceiverPhone">--</div>
-                            <strong>Address:</strong> <div id="stReceiverAddress">--</div>
-                        </div>
-                    </section>
 
-                    <section class="card">
-                        <h3>Flight Details</h3>
-                        <div class="form-grid">
-                            <div class="input-group">
-                                <label for="flightAirline">Airline</label>
-                                <input type="text" id="flightAirline" placeholder="e.g., Air Canada">
-                            </div>
-                            <div class="input-group">
-                                <label for="flightNumber">Flight Number / Tracking #</label> <input type="text" id="flightNumber" placeholder="e.g., AC123 / 1Z999..."> </div>
-                            <div class="input-group">
-                                <label for="flightEtd">ETD (Est. Time of Departure)</label>
-                                <input type="datetime-local" id="flightEtd">
-                            </div>
-                            <div class="input-group">
-                                <label for="flightEta">ETA (Est. Time of Arrival)</label>
-                                <input type="datetime-local" id="flightEta">
-                            </div>
-                             <div class="input-group">
-                                <label for="deliveryStatus">Delivery Status</label>
-                                <select id="deliveryStatus">
-                                    <option value="">Select Status</option>
-                                    <option value="Pending">Pending Pickup</option>
-                                    <option value="Shipped">Shipped</option>
-                                    <option value="In Transit">In Transit</option>
-                                    <option value="Out for Delivery">Out for Delivery</option>
-                                    <option value="Delivered">Delivered</option>
-                                    <option value="Exception">Exception</option>
-                                </select>
-                            </div>
-                            <div class="input-group full-width">
-                                <label for="flightNotes">Tracking Notes</label>
-                                <textarea id="flightNotes" rows="3" placeholder="e.g., Arrived in CMB, pending customs..."></textarea>
-                            </div>
-                        </div>
-                    </section>
-
-                </main>
+            <div class="wizard-nav">
+                <button class="btn btn-secondary" id="prev-step" disabled>← Back</button>
+                <button class="btn btn-primary" id="next-step">Next: Add Items →</button>
             </div>
-            <div id="tab-payment-tracker" class="tab-content">
-                <main class="container">
-                    <section class="card">
-                        <h2><span class="icon icon-payment">💳</span> Payment Tracker</h2>
-                         <div class="input-group search-bar">
-                            <label for="paymentSearch">Search by Customer Name or Invoice #</label>
-                            <input type="text" id="paymentSearch" placeholder="Search...">
-                        </div>
-                    </section>
-
-                    <section class="card">
-                        <h3>Payment Details</h3>
-                        <div class="form-grid">
-                             <div class="input-group">
-                                <label for="paymentInvoice">Invoice Number</label>
-                                <input type="text" id="paymentInvoice" placeholder="BEE26-1001" disabled>
-                            </div>
-                             <div class="input-group">
-                                <label for="paymentDate">Date</label>
-                                <input type="date" id="paymentDate" disabled>
-                            </div>
-                             <div class="input-group">
-                                <label for="paymentCustomer">Customer Name</label>
-                                <input type="text" id="paymentCustomer" placeholder="John Doe" disabled>
-                            </div>
-                            <div class="input-group">
-                                <label for="paymentTotal">Total Amount (CAD)</label>
-                                <input type="number" id="paymentTotal" placeholder="0.00" disabled>
-                            </div>
-                             <div class="input-group">
-                                <label for="paymentPaid">Amount Paid (CAD)</label>
-                                <input type="number" id="paymentPaid" placeholder="0.00" min="0" step="0.01">
-                            </div>
-                             <div class="input-group">
-                                <label for="paymentBalance">Balance (CAD)</label>
-                                <input type="number" id="paymentBalance" placeholder="0.00" disabled>
-                            </div>
-                             <div class="input-group">
-                                <label for="paymentMethod">Payment Method</label>
-                                <select id="paymentMethod">
-                                    <option value="">Select Method</option>
-                                    <option value="Cash">Cash</option>
-                                    <option value="E-Transfer">E-Transfer</option>
-                                    <option value="Credit Card">Credit Card</option>
-                                    <option value="Bank Deposit">Bank Deposit</option>
-                                </select>
-                             </div>
-                             <div class="input-group">
-                                <label for="paymentStatus">Payment Status</label>
-                                <select id="paymentStatus">
-                                    <option value="Not Paid">Not Paid</option>
-                                    <option value="Partially Paid">Partially Paid</option>
-                                    <option value="Paid">Paid</option>
-                                    <option value="Refunded">Refunded</option>
-                                </select>
-                             </div>
-                            <div class="input-group full-width">
-                                <label for="paymentNotes">Payment Notes</label>
-                                <textarea id="paymentNotes" rows="3" placeholder="e.g., Paid $100 cash on Oct 27..."></textarea>
-                            </div>
-                        </div>
-                    </section>
-                </main>
+        </div> <div id="page-all-shipments" class="page-content">
+            <div class="card">
+                <h2>All Shipments</h2>
+                <div class="table-container">
+                    <table class="styled-table">
+                        <thead><tr><th>Invoice #</th><th>Date</th><th>Sender</th><th>Receiver</th><th>Status</th><th>Payment</th><th>Actions</th></tr></thead>
+                        <tbody id="shipmentsTableTbody">
+                            <tr><td colspan="7" style="text-align: center;">No shipments created yet.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
+        </div>
+
+        <div id="page-customers" class="page-content">
+            <div class="card">
+                <h2>Customer List</h2>
+                <div class="table-container">
+                    <table class="styled-table">
+                        <thead><tr><th>Name (Sender)</th><th>Phone</th><th>Last Shipment</th><th>Total Shipments</th><th>Actions</th></tr></thead>
+                        <tbody id="customersTableTbody">
+                            <tr><td colspan="5" style="text-align: center;">No customers found.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
-        <footer>
-            <p>Bee26 Cargo Services • Toronto • +1 416-474-4994</p>
-        </footer>
+        </div>
 
-    </div> 
-    
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    
-    <script type="module">
-      // Import the functions you need from the SDKs you need
-      import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
-      // import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-analytics.js"; // Optional: Keep if you use Analytics
-      import { getDatabase, ref, set, get, child, push, remove, update, onValue } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-database.js"; // <-- Add Database import
+        <div id="page-payments" class="page-content">
+            <div class="card">
+                <h2>Payment Tracker</h2>
+                <p>This page is under construction.</p>
+            </div>
+        </div>
+    </main>
 
-      // Your web app's Firebase configuration
-      const firebaseConfig = {
-        apiKey: "AIzaSyDwTq2Nv5LFDHwXJheJpFl9Elzki_kLIYc", // Replace with your actual API key
-        authDomain: "bee26cargo.firebaseapp.com",
-        databaseURL: "https://bee26cargo-default-rtdb.firebaseio.com",
-        projectId: "bee26cargo",
-        storageBucket: "bee26cargo.firebasestorage.app",
-        messagingSenderId: "993500227965",
-        appId: "1:993500227965:web:ab01dad6925bda54890414",
-        measurementId: "G-M1L7S06496" // Optional
-      };
+    <div class="modal-overlay" id="addItemModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modal-title">Add New Item</h2>
+                <button class="close-btn" id="closeModalBtn">&times;</button>
+            </div>
+            <form id="addItemForm">
+                <div class="form-grid-two-col">
+                    <div class="input-group">
+                        <label for="modalItemDesc">Description</label>
+                        <input type="text" id="modalItemDesc" placeholder="e.g., Men's T-Shirts" required>
+                    </div>
+                    <div class="input-group">
+                        <label for="modalItemCat">Category</label>
+                        <select id="modalItemCat" required>
+                            <option value="">Select category...</option>
+                            <option value="Packaged Food">Packaged Food</option>
+                            <option value="Electronics">Electronics</option>
+                            <option value="Clothing">Clothing</option>
+                            <option value="Household">Household</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <label for="modalItemQty">Quantity</label>
+                        <input type="number" id="modalItemQty" placeholder="1" min="1" required>
+                    </div>
+                    <div class="input-group">
+                        <label for="modalItemValue">Unit Value (CAD)</label>
+                        <input type="number" id="modalItemValue" placeholder="15.00" min="0" step="0.01" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" id="cancelModalBtn">Cancel</button>
+                    <button type="submit" class="btn btn-primary" id="saveItemBtn">Save Item</button>
+                </div>
+            </form>
+        </div>
+    </div>
 
-      // Initialize Firebase
-      const app = initializeApp(firebaseConfig);
-      // const analytics = getAnalytics(app); // Optional
-      const database = getDatabase(app); // <-- Get Database reference
 
-      // Make database functions globally accessible (needed by the next module)
-      window.firebaseDB = database;
-      window.firebaseDBRef = ref; 
-      window.firebaseDBSet = set; 
-      window.firebaseDBGet = get; 
-      window.firebaseDBChild = child; 
-      window.firebaseDBPush = push; 
-      window.firebaseDBRemove = remove; 
-      window.firebaseDBUpdate = update; 
-      window.firebaseDBOnValue = onValue; 
-
-    </script>
-
-    <script type="module"> 
-        
+    <script>
         document.addEventListener('DOMContentLoaded', () => {
 
-            const db = window.firebaseDB;
-            const dbRef = window.firebaseDBRef;
-            const dbSet = window.firebaseDBSet;
-            const dbGet = window.firebaseDBGet;
-            const dbChild = window.firebaseDBChild;
-            const dbPush = window.firebaseDBPush;
-            const dbRemove = window.firebaseDBRemove;
-            const dbUpdate = window.firebaseDBUpdate;
-            const dbOnValue = window.firebaseDBOnValue;
-            
-            if (!db) {
-                console.error("Firebase Database reference (db) is not available!");
-                alert("Error: Cannot connect to the database. Please check Firebase setup.");
-                return; 
+            // --- 0. Simulated Database ---
+            let db_items = [];
+            let db_shipments = [];
+            let currentEditItemId = null;
+            let currentEditShipmentId = null;
+            let wizardCurrentStep = 1;
+
+            // --- 1. Page Navigation (Sidebar) ---
+            const navLinks = document.querySelectorAll('.nav-link');
+            const pages = document.querySelectorAll('.page-content');
+            const pageTitle = document.getElementById('page-title');
+            const pageSubtitle = document.getElementById('page-subtitle');
+            const headerActionBtn = document.getElementById('header-action-btn');
+
+            const pageMeta = {
+                'page-dashboard': { title: 'Dashboard', subtitle: "Welcome back, here's an overview of your business.", actionText: '+ Create New Shipment', actionPage: 'page-new-shipment' },
+                'page-new-shipment': { title: 'New Shipment', subtitle: 'Create a new shipment using the steps below.', actionText: null },
+                'page-all-shipments': { title: 'All Shipments', subtitle: 'Search, filter, and manage all shipments.', actionText: '+ Create New Shipment', actionPage: 'page-new-shipment' },
+                'page-customers': { title: 'Customers', subtitle: 'Manage your list of senders and receivers.', actionText: '+ Add New Customer', actionPage: 'page-new-shipment' },
+                'page-payments': { title: 'Payments', subtitle: 'Track all pending and completed payments.', actionText: null }
+            };
+
+            function navigateToPage(pageId) {
+                if (pageId === 'page-new-shipment' && (headerActionBtn.textContent.includes('Create') || headerActionBtn.textContent.includes('Add'))) {
+                    clearWizard(); // Reset form only if it's a "Create New" action
+                }
+                pages.forEach(p => p.classList.remove('active'));
+                document.getElementById(pageId).classList.add('active');
+                navLinks.forEach(l => l.classList.remove('active'));
+                document.querySelector(`.nav-link[data-page="${pageId}"]`)?.classList.add('active');
+                const meta = pageMeta[pageId];
+                if (meta) {
+                    pageTitle.textContent = meta.title;
+                    pageSubtitle.textContent = meta.subtitle;
+                    if (meta.actionText) {
+                        headerActionBtn.textContent = meta.actionText;
+                        headerActionBtn.style.display = 'block';
+                        headerActionBtn.dataset.page = meta.actionPage;
+                    } else {
+                        headerActionBtn.style.display = 'none';
+                    }
+                }
+                if (pageId === 'page-dashboard') updateDashboardStats();
+                if (pageId === 'page-customers') renderCustomersTable();
             }
 
+            navLinks.forEach(link => {
+                link.addEventListener('click', (e) => navigateToPage(e.currentTarget.dataset.page));
+            });
+            headerActionBtn.addEventListener('click', (e) => navigateToPage(e.currentTarget.dataset.page));
 
-            // --- 1. Get all the important HTML elements ---
-            
-            // -- Tab 1 (Customer Details) --
-            const senderNameEl = document.getElementById('senderName');
-            const receiverNameEl = document.getElementById('receiverName');
-            const senderPhoneEl = document.getElementById('senderPhone'); 
-            const receiverPhoneEl = document.getElementById('receiverPhone');
-            const receiverAddressEl = document.getElementById('receiverAddress');
-            const customerRemarksEl = document.getElementById('customerRemarks'); 
-            const totalPackagesEl = document.getElementById('totalPackages');
-            const invoiceNumberEl = document.getElementById('invoiceNumber');
-            const invoiceDateEl = document.getElementById('invoiceDate');
-            const hsCodeEl = document.getElementById('hsCode');
-            const submitCustomerBtn = document.getElementById('submitCustomerBtn'); 
 
+            // --- 2. New Shipment Wizard ---
+            const wizard = document.getElementById('page-new-shipment');
+            const prevBtn = wizard.querySelector('#prev-step');
+            const nextBtn = wizard.querySelector('#next-step');
+            const steps = wizard.querySelectorAll('.step');
+            const stepContents = wizard.querySelectorAll('.step-content');
+            const totalSteps = 4;
+
+            const nextLabels = [
+                'Next: Add Items →',
+                'Next: Shipment →',
+                'Next: Review →',
+                'Save & Finish Shipment'
+            ];
+
+            function updateWizard(jumpToStep = null) {
+                wizardCurrentStep = jumpToStep !== null ? jumpToStep : wizardCurrentStep;
+                
+                // Update step content
+                stepContents.forEach((content, index) => {
+                    content.classList.toggle('active', (index + 1) === wizardCurrentStep);
+                });
+                
+                // Update stepper icons
+                steps.forEach((step, index) => {
+                    const stepNum = index + 1;
+                    step.classList.toggle('active', stepNum === wizardCurrentStep);
+                    step.classList.toggle('completed', stepNum < wizardCurrentStep);
+                });
+
+                // Update navigation buttons
+                prevBtn.disabled = (wizardCurrentStep === 1);
+                
+                // Check if we are editing
+                if (currentEditShipmentId !== null) {
+                    nextBtn.textContent = (wizardCurrentStep === totalSteps) ? 'Update Shipment' : nextLabels[wizardCurrentStep - 1];
+                } else {
+                    nextBtn.textContent = nextLabels[wizardCurrentStep - 1];
+                }
+
+                // Populate review screen if on step 4
+                if (wizardCurrentStep === 4) {
+                    populateReviewStep();
+                }
+            }
+
+            nextBtn.addEventListener('click', () => {
+                if (wizardCurrentStep < totalSteps) {
+                    wizardCurrentStep++;
+                    updateWizard();
+                } else {
+                    // This is the "Save" or "Update" click
+                    saveShipment();
+                }
+            });
+
+            prevBtn.addEventListener('click', () => {
+                if (wizardCurrentStep > 1) {
+                    wizardCurrentStep--;
+                    updateWizard();
+                }
+            });
+
+            function clearWizard() {
+                // Reset all form fields in the wizard
+                const formInputs = wizard.querySelectorAll('input, textarea, select');
+                formInputs.forEach(input => {
+                    if (input.type === 'select-one') {
+                        input.selectedIndex = 0; // Reset select
+                    } else {
+                        input.value = ''; // Reset text, tel, number, textarea
+                    }
+                });
+
+                // Set default values
+                document.getElementById('deliveryStatus').value = 'Pending';
+                document.getElementById('paymentStatus').value = 'Not-Paid';
+                document.getElementById('invoiceDate').valueAsDate = new Date();
+                
+                db_items = [];
+                currentEditItemId = null;
+                currentEditShipmentId = null;
+                wizardCurrentStep = 1;
+                renderItemTable();
+                updateWizard();
+            }
+
+            // --- 3. Item CRUD (Create, Read, Update, Delete) ---
+            const modal = document.getElementById('addItemModal');
+            const addNewItemBtn = document.getElementById('addNewItemBtn');
+            const closeModalBtn = document.getElementById('closeModalBtn');
+            const cancelModalBtn = document.getElementById('cancelModalBtn');
             const addItemForm = document.getElementById('addItemForm');
-            const itemTbody = document.getElementById('itemTbody');
-            const addItemSubmitBtn = document.getElementById('addItemSubmitBtn');
-            const cancelEditBtn = document.getElementById('cancelEditBtn');
+            const itemTableTbody = document.getElementById('itemTableTbody');
             
-            const itemDescEl = document.getElementById('itemDesc');
-            const itemBrandEl = document.getElementById('itemBrand');
-            const itemCategoryEl = document.getElementById('itemCategory');
-            // UPDATED: Changed from itemConditionBtn to itemConditionEl
-            const itemConditionEl = document.getElementById('itemCondition');
-            const itemRemarksEl = document.getElementById('itemRemarks');
-            
-            const summaryReceiver = document.getElementById('summaryReceiver');
-            const summaryWeightInput = document.getElementById('summaryWeightInput');
-            const summaryValueInput = document.getElementById('summaryValueInput');
-
-            const exportPackingListPDF = document.getElementById('exportPackingListPDF');
-            const exportPackingListExcel = document.getElementById('exportPackingListExcel');
-            const exportInvoicePDF = document.getElementById('exportInvoicePDF');
-            const exportInvoiceExcel = document.getElementById('exportInvoiceExcel');
-            
-            const printPackingListBtn = document.getElementById('printPackingListBtn');
-            const printInvoiceBtn = document.getElementById('printInvoiceBtn');
-
-
-            const undoBtn = document.getElementById('undoBtn');
-            const redoBtn = document.getElementById('redoBtn');
-            
-            // -- Tab 2 (Customer Database) --
-            const customerSearchEl = document.getElementById('customerSearch');
-            const customerTableTbody = document.getElementById('customerTableTbody');
-
-            // -- Tab 3 (Shipment Tracker) --
-            const stSenderName = document.getElementById('stSenderName');
-            const stReceiverName = document.getElementById('stReceiverName');
-            const stReceiverPhone = document.getElementById('stReceiverPhone');
-            const stReceiverAddress = document.getElementById('stReceiverAddress');
-            const flightAirlineEl = document.getElementById('flightAirline');
-            const flightNumberEl = document.getElementById('flightNumber');
-            const flightEtdEl = document.getElementById('flightEtd');
-            const flightEtaEl = document.getElementById('flightEta');
-            const deliveryStatusEl = document.getElementById('deliveryStatus'); 
-            const flightNotesEl = document.getElementById('flightNotes');
-
-            // -- Tab 4 (Payment Tracker) --
-            const paymentInvoiceEl = document.getElementById('paymentInvoice');
-            const paymentDateEl = document.getElementById('paymentDate');
-            const paymentCustomerEl = document.getElementById('paymentCustomer');
-            const paymentTotalEl = document.getElementById('paymentTotal');
-            const paymentPaidEl = document.getElementById('paymentPaid');
-            const paymentBalanceEl = document.getElementById('paymentBalance');
-            const paymentMethodEl = document.getElementById('paymentMethod');
-            const paymentStatusEl = document.getElementById('paymentStatus'); 
-            const paymentNotesEl = document.getElementById('paymentNotes');
-
-            // -- Tab Navigation --
-            const sidebarLinks = document.querySelectorAll('.sidebar-link');
-            const tabContents = document.querySelectorAll('.tab-content');
-
-            const hamburgerBtn = document.getElementById('hamburgerBtn');
-            const sidebar = document.getElementById('sidebar');
-            const sidebarOverlay = document.getElementById('sidebarOverlay');
-
-            // --- 2. State Variables ---
-            let items = [];
-            let historyStack = [];
-            let redoStack = [];
-            
-            let customerDatabase = []; 
-            let knownBrands = new Set(); 
-            
-            let currentEditCustomerId = null;
-            let currentEditItemIndex = null;
-            let isAutoSaving = false; 
-            let isDataLoaded = false; 
-
-
-            // --- 3. Core Functions ---
-
-            /**
-             * Redraws the item table based on the 'items' array
-             */
-            function renderTable() {
-                itemTbody.innerHTML = ''; // Clear the table first
-                let totalWeight = 0;
-                let totalValue = 0;
-                let totalQty = 0;
-
-                if (!Array.isArray(items)) {
-                    items = []; 
-                    console.warn("'items' was not an array, reset to empty array.");
-                }
-
-                items.forEach((item, index) => {
-                    const qty = parseFloat(item.qty) || 0;
-                    const weight = parseFloat(item.weight) || 0; 
-                    const value = parseFloat(item.value) || 0;
-                    const desc = item.desc || '';
-                    // UPDATED: Handle brand
-                    const brand = item.brand || '-'; // Default to dash if not present
-                    const category = item.category || 'N/A';
-                    const remarks = item.remarks || '';
-
-                    const itemTotalWeight = qty * weight; 
-                    const itemTotalValue = qty * value;
-                    
-                    totalWeight += itemTotalWeight;
-                    totalValue += itemTotalValue;
-                    totalQty += qty;
-
-                    const row = document.createElement('tr');
-                    // UPDATED: Added Brand column <td>${brand}</td>
-                    row.innerHTML = `
-                        <td>${desc}</td>
-                        <td>${brand}</td>
-                        <td>${category}</td>
-                        <td>${qty}</td>
-                        <td>${value.toFixed(2)}</td>
-                        <td>${itemTotalValue.toFixed(2)}</td>
-                        <td>${remarks}</td>
-                        <td style="white-space: nowrap;">
-                            <button class="btn-edit-item" data-index="${index}">✏️</button>
-                            <button class="btn-delete" data-index="${index}">🗑️</button>
-                        </td>
-                    `;
-                    itemTbody.appendChild(row);
-                });
-
-                updateSummary(totalQty, totalWeight, totalValue);
-            }
-            
-            
-            // --- Customer Database Functions ---
-            
-            function updateSelectColor(selectElement) {
-                if (!selectElement) return;
-                const value = selectElement.value;
-                selectElement.classList.remove(
-                    'payment-status-paid', 'payment-status-not-paid',
-                    'delivery-status-pending', 'delivery-status-shipped', 'delivery-status-delivered'
-                );
-
-                if (selectElement.name === 'paymentStatus') {
-                    if (value === 'Paid') {
-                        selectElement.classList.add('payment-status-paid');
-                    } else if (value === 'Not Paid') {
-                        selectElement.classList.add('payment-status-not-paid');
-                    }
-                } else if (selectElement.name === 'deliveryStatus') {
-                    if (value === 'Pending') {
-                        selectElement.classList.add('delivery-status-pending');
-                    } else if (value === 'Shipped') {
-                        selectElement.classList.add('delivery-status-shipped');
-                    } else if (value === 'Delivered') {
-                        selectElement.classList.add('delivery-status-delivered');
-                    }
-                }
-            }
-            
-            function updateFormSelectColor(selectElement) {
-                if (!selectElement) return;
-                selectElement.classList.remove(
-                    'status-pending', 'status-shipped', 'status-in-transit', 'status-delivered', 'status-exception',
-                    'status-not-paid', 'status-partially-paid', 'status-paid'
-                );
-                
-                if (selectElement.value) {
-                    const statusClass = 'status-' + selectElement.value.toLowerCase().replace(' ', '-');
-                    selectElement.classList.add(statusClass);
-                }
-            }
-
-
-            function renderCustomerDatabaseTable(filter = '') {
-                customerTableTbody.innerHTML = '';
-                const searchTerm = filter.toLowerCase();
-                
-                if (!Array.isArray(customerDatabase)) {
-                    customerDatabase = [];
-                    console.warn("'customerDatabase' was not an array, reset to empty array.");
-                }
-                
-                const filteredDB = customerDatabase.filter(customer => {
-                    if (!customer) return false; 
-                    const senderMatch = customer.senderName && customer.senderName.toLowerCase().includes(searchTerm);
-                    const receiverMatch = customer.receiverName && customer.receiverName.toLowerCase().includes(searchTerm);
-                    return senderMatch || receiverMatch;
-                });
-
-                if (filteredDB.length === 0) {
-                     customerTableTbody.innerHTML = `<tr><td colspan="13">No customers found${filter ? ' matching your search' : ''}.</td></tr>`;
-                     return;
-                }
-
-                filteredDB.forEach((customer, index) => { 
-                    const row = document.createElement('tr');
-                    let timestamp = 'N/A';
-                    if (customer.dateAdded) {
-                        try {
-                            timestamp = new Date(customer.dateAdded).toLocaleDateString();
-                        } catch (e) { /* ignore invalid date */ }
-                    }
-                    
-                    const paymentStatus = customer.paymentStatus || 'Not Paid';
-                    const amount = customer.amount || '';
-                    const deliveryStatus = customer.deliveryStatus || 'Pending';
-                    const trackingNumber = customer.trackingNumber || '';
-                    const customerRemarks = customer.customerRemarks || '';
-                    
-                    row.innerHTML = `
-                        <td>${index + 1}</td> 
-                        <td>${customer.senderName || ''}</td>
-                        <td>${customer.senderPhone || ''}</td>
-                        <td>${customer.receiverName || ''}</td>
-                        <td>${customer.receiverPhone || ''}</td>
-                        <td>${customer.receiverAddress || ''}</td>
-                        <td>
-                            <select name="paymentStatus" class="db-field-update" data-id="${customer.id}">
-                                <option value="Not Paid" ${paymentStatus === 'Not Paid' ? 'selected' : ''}>Not Paid</option>
-                                <option value="Paid" ${paymentStatus === 'Paid' ? 'selected' : ''}>Paid</option>
-                            </select>
-                        </td>
-                        <td>
-                            <input type="number" name="amount" class="db-field-update" data-id="${customer.id}" value="${amount}" placeholder="0.00" step="0.01">
-                        </td>
-                        <td>
-                             <select name="deliveryStatus" class="db-field-update" data-id="${customer.id}">
-                                <option value="Pending" ${deliveryStatus === 'Pending' ? 'selected' : ''}>Pending</option>
-                                <option value="Shipped" ${deliveryStatus === 'Shipped' ? 'selected' : ''}>Shipped</option>
-                                <option value="Delivered" ${deliveryStatus === 'Delivered' ? 'selected' : ''}>Delivered</option>
-                            </select>
-                        </td>
-                        <td>
-                            <input type="text" name="trackingNumber" class="db-field-update" data-id="${customer.id}" value="${trackingNumber}" placeholder="Tracking...">
-                        </td>
-                        <td>
-                            <input type="text" name="customerRemarks" class="db-field-update" data-id="${customer.id}" value="${customerRemarks}" placeholder="Remarks...">
-                        </td>
-                        <td>${timestamp}</td>
-                        <td>
-                            <button class="btn-table btn-edit" data-id="${customer.id}">✏️ Edit</button>
-                            <button class="btn-table btn-delete-db" data-id="${customer.id}">🗑️ Delete</button>
-                        </td>
-                    `;
-                    customerTableTbody.appendChild(row);
-                });
-                
-                customerTableTbody.querySelectorAll('select.db-field-update').forEach(select => {
-                    updateSelectColor(select);
-                });
-            }
-            
-            function clearCustomerForm() {
-                console.log("Clearing entire form...");
-                senderNameEl.value = '';
-                receiverNameEl.value = '';
-                senderPhoneEl.value = ''; 
-                receiverPhoneEl.value = '';
-                receiverAddressEl.value = '';
-                customerRemarksEl.value = ''; 
-                const fileInput = document.getElementById('fileUpload');
-                fileInput.value = ''; 
-                if (fileInput.value) { 
-                    try {
-                        fileInput.type = 'text';
-                        fileInput.type = 'file';
-                    } catch(e) {}
-                }
-                
-                items = []; 
-                renderTable(); 
-                clearEditState(); 
-
-                invoiceNumberEl.value = '';
-                invoiceDateEl.valueAsDate = new Date(); 
-                hsCodeEl.value = '';
-                totalPackagesEl.value = '';
-                summaryWeightInput.value = '';
-                summaryValueInput.value = '';
-                
-                flightAirlineEl.value = '';
-                flightNumberEl.value = '';
-                flightEtdEl.value = '';
-                flightEtaEl.value = '';
-                deliveryStatusEl.value = ''; 
-                flightNotesEl.value = '';
-                
-                paymentPaidEl.value = '';
-                paymentMethodEl.value = '';
-                paymentStatusEl.value = 'Not Paid'; 
-                paymentNotesEl.value = '';
-                calculatePaymentBalance(); 
-
-                updateFormSelectColor(deliveryStatusEl);
-                updateFormSelectColor(paymentStatusEl);
-
-                currentEditCustomerId = null;
-                submitCustomerBtn.textContent = 'Submit Customer to Database';
-                submitCustomerBtn.classList.remove('btn-secondary');
-                 
-                const wasDataLoaded = isDataLoaded;
-                isDataLoaded = true; 
-                saveData(); 
-                isDataLoaded = wasDataLoaded; 
-                console.log("Form cleared and empty state saved.");
-            }
-
-            function updateSummary(totalQty, totalWeight, totalValue) {
-                const senderName = senderNameEl.value;
-                const receiverName = receiverNameEl.value;
-                const receiverPhone = receiverPhoneEl.value;
-                const receiverAddress = receiverAddressEl.value;
-                const receiverAddressShort = (receiverAddress || '').split('\n')[0];
-                const invoiceNumber = invoiceNumberEl.value;
-                const invoiceDate = invoiceDateEl.value;
-
-                if (receiverName && receiverAddressShort) {
-                    summaryReceiver.textContent = `${receiverName}, ${receiverAddressShort}`;
-                } else if (receiverName) {
-                    summaryReceiver.textContent = receiverName;
-                } else {
-                    summaryReceiver.textContent = '--';
-                }
-                
-                const currentWeightInputVal = parseFloat(summaryWeightInput.value);
-                const currentValueInputVal = parseFloat(summaryValueInput.value);
-
-                if (!summaryWeightInput.value || isNaN(currentWeightInputVal) || currentWeightInputVal === totalWeight) {
-                    summaryWeightInput.value = totalWeight.toFixed(2); 
-                }
-                if (!summaryValueInput.value || isNaN(currentValueInputVal) || currentValueInputVal === totalValue) {
-                     summaryValueInput.value = totalValue.toFixed(2);
-                }
-
-                stSenderName.textContent = senderName || '--';
-                stReceiverName.textContent = receiverName || '--';
-                stReceiverPhone.textContent = receiverPhone || '--';
-                stReceiverAddress.textContent = receiverAddress || '--';
-
-                paymentInvoiceEl.value = invoiceNumber || '';
-                paymentDateEl.value = invoiceDate || '';
-                paymentCustomerEl.value = senderName || '';
-                const displayValueForPayment = !isNaN(parseFloat(summaryValueInput.value)) ? parseFloat(summaryValueInput.value).toFixed(2) : totalValue.toFixed(2);
-                paymentTotalEl.value = displayValueForPayment; 
-                calculatePaymentBalance(); 
-            }
-            
-            function updateBrandDatalist() {
-                const datalist = document.getElementById('brandList');
-                if (!datalist) return;
-                datalist.innerHTML = '';
-                knownBrands.forEach(brand => {
-                    const option = document.createElement('option');
-                    option.value = brand;
-                    datalist.appendChild(option);
-                });
-            }
-
-            function saveData() {
-                if (isAutoSaving || !isDataLoaded) return; 
-
-                isAutoSaving = true; 
-                try {
-                     const validItems = Array.isArray(items) ? items.filter(item => item !== null && item !== undefined) : [];
-                    const data = {
-                        senderName: senderNameEl.value,
-                        receiverName: receiverNameEl.value,
-                        senderPhone: senderPhoneEl.value, 
-                        receiverPhone: receiverPhoneEl.value,
-                        receiverAddress: receiverAddressEl.value,
-                        customerRemarks: customerRemarksEl.value, 
-                        totalPackages: totalPackagesEl.value,
-                        invoiceNumber: invoiceNumberEl.value,
-                        invoiceDate: invoiceDateEl.value,
-                        hsCode: hsCodeEl.value,
-                        items: validItems,
-                        summaryWeightOverride: summaryWeightInput.value, 
-                        summaryValueOverride: summaryValueInput.value,   
-                        flightDetails: {
-                            airline: flightAirlineEl.value,
-                            number: flightNumberEl.value,
-                            etd: flightEtdEl.value,
-                            eta: flightEtaEl.value,
-                            deliveryStatus: deliveryStatusEl.value, 
-                            notes: flightNotesEl.value,
-                        },
-                        paymentDetails: {
-                            paid: paymentPaidEl.value,
-                            method: paymentMethodEl.value,
-                            status: paymentStatusEl.value, 
-                            notes: paymentNotesEl.value,
-                        }
-                    };
-                    
-                    dbSet(dbRef(db, 'currentShipment'), data)
-                        .then(() => {
-                            // console.log("Form auto-saved to Firebase");
-                        })
-                        .catch((error) => {
-                            console.error("Error auto-saving to Firebase:", error);
-                        })
-                        .finally(() => {
-                            isAutoSaving = false; 
-                        });
-
-                } catch (error) {
-                    console.error("Error preparing data for Firebase save:", error);
-                    isAutoSaving = false; 
-                }
-            }
-
-            function loadData() {
-                 console.log("Attempting to load data from Firebase...");
-                 items = []; 
-                 customerDatabase = [];
-
-                 try {
-                    const customersRef = dbRef(db, 'customers');
-                    dbOnValue(customersRef, (snapshot) => {
-                        console.log("Firebase Customer DB snapshot received");
-                        if (snapshot.exists()) {
-                            const dbData = snapshot.val();
-                            customerDatabase = Object.keys(dbData).map(key => ({
-                                id: key, 
-                                ...dbData[key]
-                            }));
-                        } else {
-                            console.log("No customers found in Firebase.");
-                            customerDatabase = [];
-                        }
-                        renderCustomerDatabaseTable(customerSearchEl.value);
-                    }, (error) => {
-                        console.error("Error loading customer database:", error);
-                        alert("Error: Could not load customer database from Firebase.");
-                        customerTableTbody.innerHTML = `<tr><td colspan="13" style="color: red;">Error loading database.</td></tr>`;
-                    });
-
-                    const shipmentRef = dbRef(db, 'currentShipment');
-                    dbOnValue(shipmentRef, (snapshot) => {
-                        console.log("Firebase currentShipment snapshot received");
-                        isAutoSaving = true; 
-                        
-                        if (snapshot.exists()) {
-                            const data = snapshot.val();
-                            senderNameEl.value = data.senderName || '';
-                            receiverNameEl.value = data.receiverName || '';
-                            senderPhoneEl.value = data.senderPhone || ''; 
-                            receiverPhoneEl.value = data.receiverPhone || '';
-                            receiverAddressEl.value = data.receiverAddress || '';
-                            customerRemarksEl.value = data.customerRemarks || ''; 
-                            totalPackagesEl.value = data.totalPackages || '';
-                            invoiceNumberEl.value = data.invoiceNumber || '';
-                            invoiceDateEl.value = data.invoiceDate || '';
-                            hsCodeEl.value = data.hsCode || '';
-                            items = Array.isArray(data.items) ? data.items.filter(item => item) : []; 
-                            
-                            knownBrands.clear();
-                            items.forEach(item => {
-                                if (item && item.brand && item.brand !== '-') { // Don't add dash to suggestions
-                                    knownBrands.add(item.brand);
-                                }
-                            });
-                            updateBrandDatalist(); 
-                            
-                            summaryWeightInput.value = data.summaryWeightOverride !== undefined ? data.summaryWeightOverride : ''; 
-                            summaryValueInput.value = data.summaryValueOverride !== undefined ? data.summaryValueOverride : '';     
-                            
-                            if (data.flightDetails) {
-                                flightAirlineEl.value = data.flightDetails.airline || '';
-                                flightNumberEl.value = data.flightDetails.number || '';
-                                flightEtdEl.value = data.flightDetails.etd || '';
-                                flightEtaEl.value = data.flightDetails.eta || '';
-                                deliveryStatusEl.value = data.flightDetails.deliveryStatus || ''; 
-                                flightNotesEl.value = data.flightDetails.notes || '';
-                            }
-                            if (data.paymentDetails) {
-                                paymentPaidEl.value = data.paymentDetails.paid || '';
-                                paymentMethodEl.value = data.paymentDetails.method || '';
-                                paymentStatusEl.value = data.paymentDetails.status || 'Not Paid'; 
-                                paymentNotesEl.value = data.paymentDetails.notes || '';
-                            }
-
-                            if (!data.senderName && !data.receiverName && (!data.items || data.items.length === 0)) {
-                                console.log("Listener received cleared state, ensuring form is reset.");
-                                items = []; 
-                            }
-                        } else {
-                            console.log("No previous shipment data found in Firebase.");
-                             items = []; 
-                        }
-                        
-                        if (!invoiceDateEl.value) { 
-                            invoiceDateEl.valueAsDate = new Date();
-                        }
-                        
-                        renderTable(); 
-                        
-                        updateFormSelectColor(deliveryStatusEl);
-                        updateFormSelectColor(paymentStatusEl);
-                        
-                        setTimeout(() => {
-                           isAutoSaving = false; 
-                           isDataLoaded = true; 
-                           console.log("Listener finished processing snapshot. Auto-save enabled.");
-                        }, 150); 
-                        
-                    }, (error) => {
-                        console.error("Error loading current shipment data:", error);
-                        alert("Error: Could not load current shipment data from Firebase.");
-                        isAutoSaving = false;
-                        isDataLoaded = true; 
-                    });
-
-                 } catch (generalError) { 
-                     console.error("General error during loadData setup:", generalError);
-                     alert("An unexpected error occurred while loading data. Check console.");
-                     isDataLoaded = true; 
-                 }
-            }
-
-            // --- Payment Balance Calculator ---
-            function calculatePaymentBalance() {
-                const total = parseFloat(paymentTotalEl.value) || 0;
-                const paid = parseFloat(paymentPaidEl.value) || 0;
-                const balance = total - paid;
-                paymentBalanceEl.value = balance.toFixed(2);
-                
-                if (paid <= 0) {
-                    paymentStatusEl.value = 'Not Paid';
-                } else if (balance <= 0) {
-                    paymentStatusEl.value = 'Paid';
-                } else {
-                    paymentStatusEl.value = 'Partially Paid';
-                }
-                
-                updateFormSelectColor(paymentStatusEl);
-            }
-
-            // --- History Functions ---
-            function saveState() {
-                historyStack.push(JSON.parse(JSON.stringify(items)));
-                redoStack = [];
-                updateHistoryButtons();
-            }
-            function updateHistoryButtons() {
-                undoBtn.disabled = historyStack.length === 0;
-                redoBtn.disabled = redoStack.length === 0;
-            }
-            function undo() {
-                if (historyStack.length > 0) {
-                    redoStack.push(JSON.parse(JSON.stringify(items)));
-                    items = historyStack.pop();
-                    renderTable();
-                    saveData();
-                    updateHistoryButtons();
-                }
-            }
-            function redo() {
-                if (redoStack.length > 0) {
-                    historyStack.push(JSON.parse(JSON.stringify(items)));
-                    items = redoStack.pop();
-                    renderTable();
-                    saveData();
-                    updateHistoryButtons();
-                }
-            }
-            // --- End History ---
-
-
-            // --- 4. Event Listeners (Making buttons work) ---
-
-            // --- Mobile Navigation Listeners ---
-            if (hamburgerBtn && sidebar && sidebarOverlay) {
-                hamburgerBtn.addEventListener('click', () => {
-                    sidebar.classList.add('active');
-                    sidebarOverlay.classList.add('active');
-                });
-
-                sidebarOverlay.addEventListener('click', () => {
-                    sidebar.classList.remove('active');
-                    sidebarOverlay.classList.remove('active');
-                });
-            } else {
-                console.error("Mobile navigation elements not found!");
-            }
-            
-            // --- Tab Switching ---
-            sidebarLinks.forEach(link => {
-                link.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    sidebarLinks.forEach(l => l.classList.remove('active'));
-                    tabContents.forEach(t => t.classList.remove('active'));
-                    link.classList.add('active');
-                    const tabId = link.getAttribute('data-tab');
-                    document.getElementById(tabId).classList.add('active');
-                    
-                    if (sidebar && sidebarOverlay) {
-                        sidebar.classList.remove('active');
-                        sidebarOverlay.classList.remove('active');
-                    }
-                });
+            addNewItemBtn.addEventListener('click', () => {
+                currentEditItemId = null;
+                addItemForm.reset();
+                document.getElementById('modal-title').textContent = 'Add New Item';
+                document.getElementById('saveItemBtn').textContent = 'Save Item';
+                modal.classList.add('active');
             });
-
-
-            // --- Tab 1 Listeners ---
-
-            function clearEditState() {
-                currentEditItemIndex = null;
-                addItemForm.reset(); 
-                // UPDATED: Reset condition select
-                itemConditionEl.value = 'New';
-                addItemSubmitBtn.textContent = 'Add Item +';
-                addItemSubmitBtn.classList.remove('btn-secondary');
-                cancelEditBtn.style.display = 'none';
-            }
-
+            
+            function closeModal() { modal.classList.remove('active'); }
+            closeModalBtn.addEventListener('click', closeModal);
+            cancelModalBtn.addEventListener('click', closeModal);
+            
             addItemForm.addEventListener('submit', (e) => {
-                e.preventDefault(); 
-                saveState(); 
-                
-                // UPDATED: Logic for Brand (default to dash) and Condition (add to remarks)
-                
-                const brandValue = itemBrandEl.value.trim();
-                const conditionValue = itemConditionEl.value;
-                
-                // Clean remarks of old (New) or (Used) tags
-                let remarksValue = itemRemarksEl.value.replace(/\(Used\)/g, '').replace(/\(New\)/g, '').trim();
-                // Add new condition tag
-                remarksValue = `${remarksValue} (${conditionValue})`.trim();
-
-                const item = {
-                    desc: itemDescEl.value,
-                    brand: brandValue === '' ? '-' : brandValue, // Set to dash if empty
-                    category: itemCategoryEl.value,
-                    qty: parseFloat(document.getElementById('itemQty').value) || 1, 
-                    weight: 0, 
-                    value: parseFloat(document.getElementById('itemValue').value) || 0, 
-                    remarks: remarksValue // Use the processed remarks
-                };
-                
-                if (item.category === "") {
-                    alert("Please select a category for the item.");
-                    return;
-                }
-                
-                // Add brand to known brands list (if it's not the dash)
-                if (item.brand && item.brand !== '-') {
-                    knownBrands.add(item.brand);
-                    updateBrandDatalist();
-                }
-
-                 if (!Array.isArray(items)) items = []; 
-
-                if (currentEditItemIndex !== null && currentEditItemIndex >= 0 && currentEditItemIndex < items.length) {
-                    items[currentEditItemIndex] = item;
-                } else {
-                    items.push(item);
-                }
-
-                renderTable(); 
-                saveData(); 
-                clearEditState(); 
-            });
-            
-            // REMOVED: itemConditionBtn listener
-
-            itemDescEl.addEventListener('input', (e) => {
-                const desc = e.target.value.toLowerCase();
-                if (itemCategoryEl.value !== "") {
-                    return;
-                }
-                
-                if (desc.includes('shoe') || desc.includes('shirt') || desc.includes('pants') || desc.includes('clothing') || desc.includes('jacket')) {
-                    itemCategoryEl.value = 'Footwear & Clothing';
-                } else if (desc.includes('camera') || desc.includes('phone') || desc.includes('laptop') || desc.includes('charger') || desc.includes('cable') || desc.includes('gimbal')) {
-                    itemCategoryEl.value = 'Electronics';
-                } else if (desc.includes('chocolate') || desc.includes('pasta') || desc.includes('coffee') || desc.includes('snack') || desc.includes('food')) {
-                    itemCategoryEl.value = 'Packaged Food';
-                } else if (desc.includes('ball') || desc.includes('fitness') || desc.includes('sports')) {
-                    itemCategoryEl.value = 'Sports Equipment';
-                } else if (desc.includes('bottle') || desc.includes('household') || desc.includes('personal')) {
-                    itemCategoryEl.value = 'Household & Personal Items';
-                } else if (desc.includes('toy') || desc.includes('kids')) {
-                    itemCategoryEl.value = 'Kids Items & Toys';
-                } else if (desc.includes('shampoo') || desc.includes('beauty') || desc.includes('health') || desc.includes('cream')) {
-                    itemCategoryEl.value = 'Health & Beauty Products';
-                } else if (desc.includes('book') || desc.includes('pen') || desc.includes('stationery')) {
-                    itemCategoryEl.value = 'Books & Stationery';
-                } else if (desc.includes('document') || desc.includes('paper') || desc.includes('letter')) {
-                    itemCategoryEl.value = 'Documents';
-                } else if (desc.includes('gift') || desc.includes('souvenir')) {
-                    itemCategoryEl.value = 'Gifts / Souvenirs';
-                } else if (desc.includes('liquid') || desc.includes('drink') || desc.includes('water') || desc.includes('juice')) {
-                    itemCategoryEl.value = 'Liquids';
-                } else if (desc.includes('battery') || desc.includes('power bank')) {
-                    itemCategoryEl.value = 'Batteries / Power Banks';
-                } else if (desc.includes('fragile') || desc.includes('glass')) {
-                    itemCategoryEl.value = 'Fragile Items';
-                } else if (desc.includes('medicine') || desc.includes('vitamin') || desc.includes('pill')) {
-                    itemCategoryEl.value = 'Medicines / Vitamins';
-                } else if (desc.includes('used')) {
-                    itemCategoryEl.value = 'Used Items';
-                } else if (desc.includes('new')) {
-                    itemCategoryEl.value = 'New Items';
-                }
-            });
-
-            itemTbody.addEventListener('click', (e) => {
-                 if (!Array.isArray(items)) items = []; 
-
-                if (e.target.classList.contains('btn-delete')) {
-                    if (confirm('Are you sure you want to delete this item?')) {
-                        saveState(); 
-                        const index = parseInt(e.target.dataset.index);
-                         if (!isNaN(index) && index >= 0 && index < items.length) {
-                             items.splice(index, 1);
-                             renderTable();
-                             saveData(); 
-                             clearEditState(); 
-                         } else {
-                             console.error("Invalid index for deleting item:", index);
-                         }
-                    }
-                } else if (e.target.classList.contains('btn-edit-item')) {
-                    const index = parseInt(e.target.dataset.index);
-                     if (!isNaN(index) && index >= 0 && index < items.length) { 
-                        const item = items[index];
-                        
-                        itemDescEl.value = item.desc || '';
-                        // UPDATED: Handle brand dash
-                        itemBrandEl.value = (item.brand === '-') ? '' : (item.brand || ''); 
-                        itemCategoryEl.value = item.category || '';
-                        document.getElementById('itemQty').value = item.qty || 1;
-                        document.getElementById('itemValue').value = item.value || 0;
-                        
-                        // UPDATED: Handle remarks and condition
-                        const remarks = item.remarks || '';
-                        if (remarks.includes('(Used)')) {
-                            itemConditionEl.value = 'Used';
-                            itemRemarksEl.value = remarks.replace(/\(Used\)/g, '').trim();
-                        } else {
-                            itemConditionEl.value = 'New';
-                            itemRemarksEl.value = remarks.replace(/\(New\)/g, '').trim();
-                        }
-                        
-                        currentEditItemIndex = index;
-                        
-                        addItemSubmitBtn.textContent = 'Update Item';
-                        addItemSubmitBtn.classList.add('btn-secondary');
-                        cancelEditBtn.style.display = 'inline-block';
-                        
-                        addItemForm.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                     } else {
-                         console.error("Invalid index for editing item:", index);
-                     }
-                }
-            });
-
-            const fieldsToAutoSave = [
-                senderNameEl, receiverNameEl, senderPhoneEl, receiverPhoneEl, 
-                receiverAddressEl, customerRemarksEl,
-                totalPackagesEl, invoiceNumberEl, invoiceDateEl, hsCodeEl,
-                summaryWeightInput, summaryValueInput, 
-                itemRemarksEl,
-                // UPDATED: Add item condition to auto-save
-                itemConditionEl 
-            ];
-            fieldsToAutoSave.forEach(field => {
-                // UPDATED: Use 'change' for select, 'input' for others
-                const eventType = (field.tagName === 'SELECT') ? 'change' : 'input';
-                field.addEventListener(eventType, () => {
-                     if (field.id === 'summaryValueInput') {
-                         calculatePaymentBalance(); 
-                     }
-                     // Don't save if it's one of the item form fields,
-                     // as that logic is handled by the submit button
-                     if (!field.closest('#addItemForm')) {
-                        saveData();
-                     }
-                });
-            });
-
-            undoBtn.addEventListener('click', undo);
-            redoBtn.addEventListener('click', redo);
-            cancelEditBtn.addEventListener('click', clearEditState); 
-
-            submitCustomerBtn.addEventListener('click', async (e) => {
                 e.preventDefault();
+                const item = {
+                    desc: document.getElementById('modalItemDesc').value,
+                    category: document.getElementById('modalItemCat').value,
+                    qty: parseFloat(document.getElementById('modalItemQty').value),
+                    value: parseFloat(document.getElementById('modalItemValue').value)
+                };
                 
-                // UPDATED: Check for required fields
-                if (!senderNameEl.checkValidity() || !receiverNameEl.checkValidity() || 
-                    !senderPhoneEl.checkValidity() || !receiverPhoneEl.checkValidity() || 
-                    !receiverAddressEl.checkValidity()) {
-                    alert('Please fill out all required customer fields (marked with a red dot).');
-                    // Find first invalid field and focus it
-                    [senderNameEl, receiverNameEl, senderPhoneEl, receiverPhoneEl, receiverAddressEl].find(el => !el.checkValidity())?.focus();
+                if (currentEditItemId !== null) {
+                    db_items[currentEditItemId] = item; // Update existing
+                } else {
+                    db_items.push(item); // Add new
+                }
+                
+                renderItemTable();
+                closeModal();
+            });
+
+            function renderItemTable() {
+                itemTableTbody.innerHTML = '';
+                if (db_items.length === 0) {
+                    itemTableTbody.innerHTML = '<tr><td colspan="6" style="text-align: center;">No items added yet.</td></tr>';
+                    return;
+                }
+                
+                db_items.forEach((item, index) => {
+                    const totalVal = (item.qty * item.value).toFixed(2);
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${item.desc}</td>
+                        <td>${item.category}</td>
+                        <td>${item.qty}</td>
+                        <td>$${item.value.toFixed(2)}</td>
+                        <td>$${totalVal}</td>
+                        <td class="table-actions">
+                            <button class="btn btn-secondary btn-small edit-item-btn" data-index="${index}">Edit</button>
+                            <button class="btn btn-danger btn-small delete-item-btn" data-index="${index}">Del</button>
+                        </td>
+                    `;
+                    itemTableTbody.appendChild(row);
+                });
+            }
+
+            itemTableTbody.addEventListener('click', (e) => {
+                const index = e.target.dataset.index;
+                if (e.target.classList.contains('delete-item-btn')) {
+                    if (confirm('Are you sure you want to delete this item?')) {
+                        db_items.splice(index, 1);
+                        renderItemTable();
+                    }
+                }
+                
+                if (e.target.classList.contains('edit-item-btn')) {
+                    const item = db_items[index];
+                    currentEditItemId = index;
+                    document.getElementById('modal-title').textContent = 'Edit Item';
+                    document.getElementById('saveItemBtn').textContent = 'Update Item';
+                    document.getElementById('modalItemDesc').value = item.desc;
+                    document.getElementById('modalItemCat').value = item.category;
+                    document.getElementById('modalItemQty').value = item.qty;
+                    document.getElementById('modalItemValue').value = item.value;
+                    modal.classList.add('active');
+                }
+            });
+
+
+            // --- 4. Shipment Save, Review, and Load ---
+            
+            function populateReviewStep() {
+                // Customer
+                document.getElementById('review-senderName').textContent = document.getElementById('senderName').value || '--';
+                document.getElementById('review-senderPhone').textContent = document.getElementById('senderPhone').value || '--';
+                document.getElementById('review-receiverName').textContent = document.getElementById('receiverName').value || '--';
+                document.getElementById('review-receiverPhone').textContent = document.getElementById('receiverPhone').value || '--';
+                document.getElementById('review-receiverAddress').textContent = document.getElementById('receiverAddress').value || '--';
+                // Shipment
+                document.getElementById('review-invoiceNumber').textContent = document.getElementById('invoiceNumber').value || '--';
+                document.getElementById('review-totalPackages').textContent = document.getElementById('totalPackages').value || '--';
+                document.getElementById('review-totalWeight').textContent = document.getElementById('totalWeight').value ? document.getElementById('totalWeight').value + ' kg' : '--';
+                document.getElementById('review-deliveryStatus').innerHTML = `<span class="status-badge status-${document.getElementById('deliveryStatus').value}">${document.getElementById('deliveryStatus').value}</span>`;
+                // Payment
+                const paymentTotal = parseFloat(document.getElementById('paymentTotal').value) || 0;
+                document.getElementById('review-paymentTotal').textContent = `$${paymentTotal.toFixed(2)}`;
+                document.getElementById('review-paymentStatus').innerHTML = `<span class="status-badge status-${document.getElementById('paymentStatus').value.replace(' ','-')}">${document.getElementById('paymentStatus').value.replace('-',' ')}</span>`;
+                // Items
+                document.getElementById('review-itemCount').textContent = db_items.length;
+                const reviewTbody = document.getElementById('review-itemTableTbody');
+                reviewTbody.innerHTML = '';
+                if (db_items.length === 0) {
+                    reviewTbody.innerHTML = '<tr><td colspan="4" style="text-align: center;">--</td></tr>';
+                } else {
+                    db_items.forEach(item => {
+                        reviewTbody.innerHTML += `
+                            <tr>
+                                <td>${item.desc}</td>
+                                <td>${item.category}</td>
+                                <td>${item.qty}</td>
+                                <td>$${(item.qty * item.value).toFixed(2)}</td>
+                            </tr>
+                        `;
+                    });
+                }
+            }
+
+            function saveShipment() {
+                const shipment = {
+                    senderName: document.getElementById('senderName').value,
+                    senderPhone: document.getElementById('senderPhone').value,
+                    receiverName: document.getElementById('receiverName').value,
+                    receiverPhone: document.getElementById('receiverPhone').value,
+                    receiverAddress: document.getElementById('receiverAddress').value,
+                    customerRemarks: document.getElementById('customerRemarks').value,
+                    totalPackages: document.getElementById('totalPackages').value,
+                    totalWeight: document.getElementById('totalWeight').value,
+                    invoiceNumber: document.getElementById('invoiceNumber').value,
+                    invoiceDate: document.getElementById('invoiceDate').value,
+                    deliveryStatus: document.getElementById('deliveryStatus').value,
+                    hsCode: document.getElementById('hsCode').value,
+                    paymentTotal: document.getElementById('paymentTotal').value,
+                    paymentStatus: document.getElementById('paymentStatus').value,
+                    items: [...db_items] // Clone the items array
+                };
+
+                if (currentEditShipmentId !== null) {
+                    db_shipments[currentEditShipmentId] = shipment; // Update
+                    alert('Shipment ' + shipment.invoiceNumber + ' updated!');
+                } else {
+                    db_shipments.push(shipment); // Create new
+                    alert('Shipment ' + shipment.invoiceNumber + ' saved!');
+                }
+                
+                renderShipmentsTable();
+                clearWizard();
+                navigateToPage('page-all-shipments');
+            }
+
+            function loadShipmentForEdit(index) {
+                const shipment = db_shipments[index];
+                if (!shipment) return;
+                
+                clearWizard(); // Clear first
+                currentEditShipmentId = index;
+                
+                document.getElementById('senderName').value = shipment.senderName;
+                document.getElementById('senderPhone').value = shipment.senderPhone;
+                document.getElementById('receiverName').value = shipment.receiverName;
+                document.getElementById('receiverPhone').value = shipment.receiverPhone;
+                document.getElementById('receiverAddress').value = shipment.receiverAddress;
+                document.getElementById('customerRemarks').value = shipment.customerRemarks;
+                document.getElementById('totalPackages').value = shipment.totalPackages;
+                document.getElementById('totalWeight').value = shipment.totalWeight;
+                document.getElementById('invoiceNumber').value = shipment.invoiceNumber;
+                document.getElementById('invoiceDate').value = shipment.invoiceDate;
+                document.getElementById('deliveryStatus').value = shipment.deliveryStatus;
+                document.getElementById('hsCode').value = shipment.hsCode;
+                document.getElementById('paymentTotal').value = shipment.paymentTotal;
+                document.getElementById('paymentStatus').value = shipment.paymentStatus;
+                
+                db_items = [...shipment.items]; // Load items
+                renderItemTable();
+                
+                navigateToPage('page-new-shipment');
+                pageTitle.textContent = 'Edit Shipment'; // Override title
+                pageSubtitle.textContent = 'Editing Invoice #' + shipment.invoiceNumber;
+                
+                updateWizard(4); // Jump to review step
+            }
+
+
+            // --- 5. Data Table Rendering ---
+            const shipmentsTableTbody = document.getElementById('shipmentsTableTbody');
+            const customersTableTbody = document.getElementById('customersTableTbody');
+            const recentActivityTbody = document.getElementById('recent-activity-tbody');
+
+            function renderShipmentsTable() {
+                shipmentsTableTbody.innerHTML = '';
+                if (db_shipments.length === 0) {
+                    shipmentsTableTbody.innerHTML = '<tr><td colspan="7" style="text-align: center;">No shipments created yet.</td></tr>';
                     return;
                 }
 
-                const senderName = senderNameEl.value.trim();
-                const receiverName = receiverNameEl.value.trim();
+                // Sort by date, newest first (optional, but nice)
+                const sortedShipments = [...db_shipments].sort((a, b) => new Date(b.invoiceDate) - new Date(a.invoiceDate));
                 
-                const baseCustomerData = {
-                    senderName: senderName,
-                    receiverName: receiverName,
-                    senderPhone: senderPhoneEl.value,
-                    receiverPhone: receiverPhoneEl.value,
-                    receiverAddress: receiverAddressEl.value,
-                    customerRemarks: customerRemarksEl.value,
-                    dateAdded: new Date().toISOString() 
-                };
+                sortedShipments.forEach((shipment, index) => {
+                    const originalIndex = db_shipments.indexOf(shipment); // Get original index for editing
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${shipment.invoiceNumber}</td>
+                        <td>${shipment.invoiceDate}</td>
+                        <td>${shipment.senderName}</td>
+                        <td>${shipment.receiverName}</td>
+                        <td><span class="status-badge status-${shipment.deliveryStatus}">${shipment.deliveryStatus}</span></td>
+                        <td><span class="status-badge status-${shipment.paymentStatus.replace(' ','-')}">${shipment.paymentStatus.replace('-',' ')}</span></td>
+                        <td class="table-actions">
+                            <button class="btn btn-secondary btn-small view-shipment-btn" data-index="${originalIndex}">View</button>
+                        </td>
+                    `;
+                    shipmentsTableTbody.appendChild(row);
+                });
+            }
 
-                submitCustomerBtn.disabled = true; 
-
-                try {
-                    if (currentEditCustomerId) {
-                        const customerRef = dbRef(db, 'customers/' + currentEditCustomerId);
-                        await dbUpdate(customerRef, baseCustomerData);
-                        alert('Customer updated successfully!');
-                    } else {
-                        const fullCustomerData = {
-                            ...baseCustomerData,
-                            paymentStatus: 'Not Paid',
-                            amount: '',
-                            deliveryStatus: 'Pending',
-                            trackingNumber: ''
-                        };
-                        const customersListRef = dbRef(db, 'customers');
-                        await dbPush(customersListRef, fullCustomerData);
-                        alert('Customer added successfully!');
-                    }
-                    
-                    clearCustomerForm(); 
-                    
-                    const dbTabLink = document.querySelector('[data-tab="tab-customer-database"]');
-                    if (dbTabLink) dbTabLink.click(); 
-                    else console.error("Could not find database tab link to switch.");
-
-                } catch (error) {
-                     console.error("Error saving customer to Firebase:", error);
-                     alert("Error: Could not save customer. Check console for details.");
-                } finally {
-                    submitCustomerBtn.disabled = false; 
-                }
-            });
-
-            // Tab 2 (Customer Database) Listeners 
-            customerSearchEl.addEventListener('input', (e) => {
-                renderCustomerDatabaseTable(e.target.value);
-            });
-            
-            customerTableTbody.addEventListener('click', (e) => {
-                const button = e.target.closest('button');
-                if (!button) return; 
-
-                const id = button.dataset.id;
-                if (!id) return; 
-
-                if (!Array.isArray(customerDatabase)) customerDatabase = [];
-
-                if (button.classList.contains('btn-delete-db')) {
-                    if (confirm('Are you sure you want to permanently delete this customer from the database?')) {
-                        dbRemove(dbRef(db, 'customers/' + id))
-                            .then(() => {
-                                console.log("Customer deleted");
-                            })
-                            .catch((error) => {
-                                console.error("Error deleting customer:", error);
-                                alert("Error: Could not delete customer.");
-                            });
-                    }
-                }
-                
-                if (button.classList.contains('btn-edit')) {
-                    const customer = customerDatabase.find(c => c && c.id === id); 
-                    if (customer) {
-                        senderNameEl.value = customer.senderName || '';
-                        receiverNameEl.value = customer.receiverName || '';
-                        senderPhoneEl.value = customer.senderPhone || ''; 
-                        receiverPhoneEl.value = customer.receiverPhone || '';
-                        receiverAddressEl.value = customer.receiverAddress || '';
-                        customerRemarksEl.value = customer.customerRemarks || ''; 
-                        
-                        currentEditCustomerId = id;
-                        submitCustomerBtn.textContent = 'Save Changes to Database';
-                        submitCustomerBtn.classList.add('btn-secondary'); 
-                        
-                         const detailsTabLink = document.querySelector('[data-tab="tab-customer-details"]');
-                         if(detailsTabLink) detailsTabLink.click();
-                    } else {
-                         console.error("Edit button: Customer not found with ID", id);
-                    }
+            shipmentsTableTbody.addEventListener('click', (e) => {
+                if (e.target.classList.contains('view-shipment-btn')) {
+                    const index = e.target.dataset.index;
+                    loadShipmentForEdit(index);
                 }
             });
             
-            customerTableTbody.addEventListener('change', (e) => {
-                const target = e.target;
-                if (target.classList.contains('db-field-update')) {
-                    const customerId = target.dataset.id;
-                    const fieldName = target.name;
-                    const value = target.value;
+            function renderCustomersTable() {
+                customersTableTbody.innerHTML = '';
+                const customers = new Map(); // Use a Map to store unique customers by phone
+                
+                db_shipments.forEach(s => {
+                    if (!s.senderName || !s.senderPhone) return;
                     
-                    if (!customerId || !fieldName) {
-                        console.error("Missing data-id or name on editable field.");
-                        return;
-                    }
-
-                    if (target.tagName === 'SELECT') {
-                        updateSelectColor(target);
-                    }
-                    
-                    const updateData = {};
-                    updateData[fieldName] = value;
-                    
-                    if (fieldName === 'customerRemarks' && customerId === currentEditCustomerId) {
-                         customerRemarksEl.value = value;
-                         saveData(); 
-                    }
-
-                    const customerRef = dbRef(db, 'customers/' + customerId);
-                    dbUpdate(customerRef, updateData)
-                        .then(() => {
-                            console.log(`Customer ${customerId} field ${fieldName} updated to ${value}`);
-                        })
-                        .catch((error) => {
-                            console.error("Error updating customer field:", error);
-                            alert("Error: Could not save change to database.");
+                    if (customers.has(s.senderPhone)) {
+                        const customer = customers.get(s.senderPhone);
+                        customer.totalShipments += 1;
+                        if (new Date(s.invoiceDate) > new Date(customer.lastShipment)) {
+                            customer.lastShipment = s.invoiceDate;
+                        }
+                    } else {
+                        customers.set(s.senderPhone, {
+                            name: s.senderName,
+                            phone: s.senderPhone,
+                            lastShipment: s.invoiceDate,
+                            totalShipments: 1
                         });
+                    }
+                });
+
+                if (customers.size === 0) {
+                    customersTableTbody.innerHTML = '<tr><td colspan="5" style="text-align: center;">No customers found.</td></tr>';
+                    return;
                 }
-            });
-
-
-            // --- Tab 3 (Shipment Tracker) Listeners (Auto-save) ---
-            const flightFieldsToAutoSave = [
-                flightAirlineEl, flightNumberEl, flightEtdEl, flightEtaEl, deliveryStatusEl, flightNotesEl
-            ];
-            flightFieldsToAutoSave.forEach(field => {
-                const eventType = (field.tagName === 'SELECT') ? 'change' : 'input';
-                field.addEventListener(eventType, () => {
-                    if (field.id === 'deliveryStatus') {
-                        updateFormSelectColor(field);
-                    }
-                    saveData();
-                });
-            });
-
-            // --- Tab 4 (Payment Tracker) Listeners (Auto-save & Calculate) ---
-            const paymentFieldsToAutoSave = [
-                paymentPaidEl, paymentMethodEl, paymentStatusEl, paymentNotesEl
-            ];
-            paymentFieldsToAutoSave.forEach(field => {
-                const eventType = (field.tagName === 'SELECT') ? 'change' : 'input';
-                field.addEventListener(eventType, () => {
-                    if(field.id === 'paymentPaid') {
-                        calculatePaymentBalance(); 
-                    }
-                    if (field.id === 'paymentStatus') {
-                        updateFormSelectColor(field);
-                    }
-                    saveData();
-                });
-            });
-
-
-            // --- 5. PDF & Excel Export Functions ---
-
-            let fetchedLogoBase64 = null; 
-            async function fetchLogoAsBase64() {
-                if (fetchedLogoBase64) return fetchedLogoBase64; 
                 
-                const logoUrl = 'https://raw.githubusercontent.com/crickerr26/bee26cargomanager/main/BEE26.jpg'; 
+                customers.forEach(cust => {
+                    customersTableTbody.innerHTML += `
+                        <tr>
+                            <td>${cust.name}</td>
+                            <td>${cust.phone}</td>
+                            <td>${cust.lastShipment || 'N/A'}</td>
+                            <td>${cust.totalShipments}</td>
+                            <td class="table-actions">
+                                <button class="btn btn-secondary btn-small">View</button>
+                            </td>
+                        </tr>
+                    `;
+                });
+            }
+
+            function updateDashboardStats() {
+                let pending = 0;
+                let transit = 0;
+                let delivered = 0;
+                let due = 0;
+
+                db_shipments.forEach(s => {
+                    if (s.deliveryStatus === 'Pending') pending++;
+                    if (s.deliveryStatus === 'Shipped') transit++; // Assuming 'Shipped' means in transit
+                    if (s.deliveryStatus === 'Delivered') delivered++;
+                    
+                    if (s.paymentStatus === 'Not-Paid' || s.paymentStatus === 'Partially-Paid') {
+                        due += parseFloat(s.paymentTotal) || 0; // Simple sum, needs balance logic
+                    }
+                });
+                
+                document.getElementById('stat-pending').textContent = pending;
+                document.getElementById('stat-transit').textContent = transit;
+                document.getElementById('stat-delivered').textContent = delivered;
+                document.getElementById('stat-due').textContent = `$${due.toFixed(0)}`;
+                
+                // Update Recent Activity
+                recentActivityTbody.innerHTML = '';
+                const recent = [...db_shipments].sort((a, b) => new Date(b.invoiceDate) - new Date(a.invoiceDate)).slice(0, 3);
+                
+                if (recent.length === 0) {
+                    recentActivityTbody.innerHTML = '<tr><td colspan="5" style="text-align: center;">No recent activity.</td></tr>';
+                    return;
+                }
+
+                recent.forEach(s => {
+                    recentActivityTbody.innerHTML += `
+                        <tr>
+                            <td>${s.invoiceNumber}</td>
+                            <td>${s.senderName}</td>
+                            <td>${s.receiverName}</td>
+                            <td><span class="status-badge status-${s.deliveryStatus}">${s.deliveryStatus}</span></td>
+                            <td>$${parseFloat(s.paymentTotal || 0).toFixed(2)}</td>
+                        </tr>
+                    `;
+                });
+            }
+
+
+            // --- 6. PDF & Excel Export Functions (Adapted from original file) ---
+            
+            let fetchedLogoBase64 = null;
+            async function fetchLogoAsBase64() {
+                if (fetchedLogoBase64) return fetchedLogoBase64;
+                const logoUrl = 'https://raw.githubusercontent.com/crickerr26/bee26cargomanager/main/BEE26.png'; // Using PNG
                 try {
                     const response = await fetch(logoUrl);
-                    if (!response.ok) {
-                        throw new Error(`HTTP error! status: ${response.status}`);
-                    }
+                    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
                     const blob = await response.blob();
-                    
                     return new Promise((resolve, reject) => {
                         const reader = new FileReader();
-                        reader.onloadend = () => {
-                            fetchedLogoBase64 = reader.result; 
-                            resolve(fetchedLogoBase64);
-                        };
+                        reader.onloadend = () => { fetchedLogoBase64 = reader.result; resolve(fetchedLogoBase64); };
                         reader.onerror = reject;
                         reader.readAsDataURL(blob);
                     });
                 } catch (error) {
                     console.error('Error fetching or converting logo:', error);
-                    return null; 
+                    alert('Error: Could not load the company logo for the PDF.');
+                    return null;
                 }
             }
-
 
             function addPdfFooter(doc) {
                  if (!doc || typeof doc.setFontSize !== 'function') return;
@@ -2260,319 +922,272 @@
                      for (let i = 1; i <= pageCount; i++) {
                          doc.setPage(i);
                          doc.text(`Page ${i} of ${pageCount}`, doc.internal.pageSize.width / 2, pageHeight - 5, { align: 'center' });
-                         doc.text("Bee26 Cargo Services • Toronto • +1 416-474-4994", 105, pageHeight - 12, { align: "center" });
+                         doc.text("Bee26 Cargo Services • Toronto • +1 416-474-4994", doc.internal.pageSize.width / 2, pageHeight - 12, { align: "center" });
                      }
-                 } catch (error) {
-                      console.error("Error adding PDF footer:", error);
-                 }
+                 } catch (error) { console.error("Error adding PDF footer:", error); }
             }
 
-
-            async function generatePDF(docType, action = 'save') { 
-                try { 
-                    if (typeof window.jspdf === 'undefined' || typeof window.jspdf.jsPDF === 'undefined') {
-                        alert("Error: jsPDF library not loaded."); 
-                        return; 
+            async function generatePDF(docType, action = 'save') {
+                let pdfWindow = null;
+                if (action === 'open') {
+                    pdfWindow = window.open('', '_blank');
+                    if (pdfWindow) {
+                        pdfWindow.document.write('<html><head><title>Loading PDF...</title></head><body><p>Please wait...</p></body></html>');
+                    } else {
+                        alert('Pop-up blocked! Please allow pop-ups for this site to print.');
+                        return;
                     }
-                    const jsPDF = window.jspdf.jsPDF;
-                    const doc = new jsPDF('p', 'pt', 'a4'); 
-                    if (typeof doc.autoTable !== 'function') { 
+                }
+
+                try {
+                    const { jsPDF } = window.jspdf;
+                    if (!jsPDF || typeof window.jspdf.jsPDF !== 'function') {
+                        alert("Error: jsPDF library not loaded.");
+                        if (pdfWindow) pdfWindow.close();
+                        return;
+                    }
+                    const doc = new jsPDF('p', 'pt', 'a4');
+                    if (typeof doc.autoTable !== 'function') {
                         alert("Error: jsPDF AutoTable plugin not loaded.");
-                        return; 
+                        if (pdfWindow) pdfWindow.close();
+                        return;
                     }
-                    
-                    const logoBase64Data = await fetchLogoAsBase64(); 
 
-                    const pageHeight = doc.internal.pageSize.height || doc.internal.pageSize.getHeight();
-                    const pageWidth = doc.internal.pageSize.width || doc.internal.pageSize.getWidth();
-                    const leftMargin = 40; 
-                    const rightMargin = 40;
-                    const topMargin = 40; 
-                    const bottomMargin = 40; 
+                    // --- Start ASYNC operation ---
+                    const logoBase64Data = await fetchLogoAsBase64();
+                    // --- End ASYNC operation ---
+
+                    const pageHeight = doc.internal.pageSize.height;
+                    const pageWidth = doc.internal.pageSize.width;
+                    const leftMargin = 40, rightMargin = 40, topMargin = 30, bottomMargin = 40;
                     const contentWidth = pageWidth - leftMargin - rightMargin;
                     const halfWidth = contentWidth / 2;
                     const senderX = leftMargin;
-                    const receiverX = leftMargin + halfWidth + 15; 
-                    const receiverWidth = halfWidth - 15; 
-                    const senderWidth = halfWidth - 5;   
-                    let currentY = topMargin; 
-                    const lineSpacing = 10; 
-                    const sectionSpacing = 15; 
+                    const receiverX = leftMargin + halfWidth + 15;
+                    const receiverWidth = halfWidth - 15;
+                    const senderWidth = halfWidth - 5;
+                    let currentY = topMargin;
+                    const lineSpacing = 10;
+                    const sectionSpacing = 15;
+                    
+                    // --- Get data from forms ---
+                    const senderName = document.getElementById('senderName').value;
+                    const receiverName = document.getElementById('receiverName').value;
+                    const receiverPhone = document.getElementById('receiverPhone').value;
+                    const receiverAddress = document.getElementById('receiverAddress').value;
+                    const invoiceNumber = document.getElementById('invoiceNumber').value;
+                    const invoiceDate = document.getElementById('invoiceDate').value;
+                    const hsCode = document.getElementById('hsCode').value;
+                    const totalPackages = document.getElementById('totalPackages').value;
+                    const totalWeight = document.getElementById('totalWeight').value;
+                    const paymentTotal = parseFloat(document.getElementById('paymentTotal').value) || 0;
 
-                    // --- UPDATED: Section 1: Logo and Title ---
-                    if (logoBase64Data) { 
+                    // --- Section 1: Logo and Title ---
+                    if (logoBase64Data) {
                         try {
-                            // UPDATED: Enlarged logo
-                            const imgWidth = 40; 
-                            const imgHeight = 40; 
-                            doc.addImage(logoBase64Data, 'JPEG', leftMargin, currentY, imgWidth, imgHeight); 
-                            currentY += imgHeight + 10; // Move Y below logo
+                            const imgHeight = 40, imgWidth = 107;
+                            doc.addImage(logoBase64Data, 'PNG', leftMargin, currentY, imgWidth, imgHeight);
+                            currentY += imgHeight + 10;
                         } catch (imgError) { console.error("Error adding PDF logo:", imgError); }
-                    } else { 
-                        console.warn("Logo Base64 data not available for PDF."); 
-                    }
+                    } else { currentY += 50; }
 
                     doc.setFontSize(16);
                     doc.setFont("helvetica", "bold");
-                    // UPDATED: Heading below logo, left-aligned
-                    doc.text(docType, leftMargin, currentY); 
-                    currentY += 20; // Space after heading
-
+                    doc.text(docType, pageWidth / 2, currentY, { align: 'center' });
+                    currentY += 20;
 
                     // --- Section 2: Sender Address & Invoice Details ---
-                    let senderBlockY = currentY; 
-                    doc.setFontSize(9); 
+                    let senderBlockY = currentY;
+                    doc.setFontSize(9);
                     doc.setFont("helvetica", "bold");
                     doc.text("BEE26 CARGO SERVICES", leftMargin, senderBlockY);
                     senderBlockY += lineSpacing;
                     doc.setFont("helvetica", "normal");
-
-                    const addressLines = [ 
-                        "MOHAMED IMSAMAM MOHAED RIZAN",
-                        "1001260111 - BIN",
-                        "614-2 MILEPOST PLACE, EAST YORK,",
-                        "ONTARIO, M4H 1C7",
-                        "+1 416 474 4994",
-                        "bee26cargoservices@gmail.com"
-                     ];
+                    const addressLines = [
+                        "MOHAMED IMSAMAM MOHAED RIZAN", "1001260111 - BIN", "614-2 MILEPOST PLACE, EAST YORK,",
+                        "ONTARIO, M4H 1C7", "+1 416 474 4994", "bee26cargoservices@gmail.com"
+                    ];
                     addressLines.forEach(line => {
-                        const splitLines = doc.splitTextToSize(line, senderWidth); 
+                        const splitLines = doc.splitTextToSize(line, senderWidth);
                         doc.text(splitLines, leftMargin, senderBlockY);
-                        senderBlockY += (splitLines.length * lineSpacing); 
+                        senderBlockY += (splitLines.length * lineSpacing);
                     });
-                    
-                    if (invoiceNumberEl.value) {
-                         senderBlockY += lineSpacing * 0.5; 
+                    if (invoiceNumber) {
+                         senderBlockY += lineSpacing * 0.5;
                          doc.setFont("helvetica", "bold");
-                         doc.text(`Invoice #: ${invoiceNumberEl.value}`, leftMargin, senderBlockY);
-                         senderBlockY += lineSpacing; 
+                         doc.text(`Invoice #: ${invoiceNumber}`, leftMargin, senderBlockY);
+                         senderBlockY += lineSpacing;
                     }
-                    if (docType === 'Commercial Invoice') { 
-                         senderBlockY += 0; 
+                    if (docType === 'Commercial Invoice' && invoiceDate) {
                          doc.setFont("helvetica", "bold");
                          doc.text("Date: ", leftMargin, senderBlockY);
                          doc.setFont("helvetica", "normal");
-                         doc.text(invoiceDateEl.value || '', leftMargin + 30, senderBlockY); 
-                         senderBlockY += lineSpacing; 
+                         doc.text(invoiceDate, leftMargin + 30, senderBlockY);
+                         senderBlockY += lineSpacing;
                     }
 
-
-                    // --- Section 3: Receiver Address & Optional HS Code ---
-                    let receiverBlockY = currentY; 
+                    // --- Section 3: Receiver Address ---
+                    let receiverBlockY = currentY;
                     doc.setFontSize(10);
                     doc.setFont("helvetica", "bold");
                     doc.text("TO (Receiver):", receiverX, receiverBlockY);
-                    receiverBlockY += lineSpacing * 1.5; 
-
+                    receiverBlockY += lineSpacing * 1.5;
                     doc.setFont("helvetica", "normal");
-                    doc.setFontSize(9); 
-                    doc.text(receiverNameEl.value || '', receiverX, receiverBlockY); 
-                    receiverBlockY += lineSpacing;
-                    doc.text(receiverPhoneEl.value || '', receiverX, receiverBlockY); 
-                    receiverBlockY += lineSpacing;
-                    const receiverAddressLines = doc.splitTextToSize(receiverAddressEl.value || '', receiverWidth); 
+                    doc.setFontSize(9);
+                    doc.text(receiverName, receiverX, receiverBlockY); receiverBlockY += lineSpacing;
+                    doc.text(receiverPhone, receiverX, receiverBlockY); receiverBlockY += lineSpacing;
+                    const receiverAddressLines = doc.splitTextToSize(receiverAddress, receiverWidth);
                     doc.text(receiverAddressLines, receiverX, receiverBlockY);
-                    receiverBlockY += (receiverAddressLines.length * lineSpacing); 
-                    
-                    if (docType === 'Commercial Invoice' && hsCodeEl.value) {
-                         receiverBlockY += lineSpacing * 0.5; 
+                    receiverBlockY += (receiverAddressLines.length * lineSpacing);
+                    if (docType === 'Commercial Invoice' && hsCode) {
+                         receiverBlockY += lineSpacing * 0.5;
                          doc.setFont("helvetica", "bold");
-                         doc.text("HS Code (Overall): ", receiverX, receiverBlockY); 
+                         doc.text("HS Code (Overall): ", receiverX, receiverBlockY);
                          doc.setFont("helvetica", "normal");
-                         doc.text(hsCodeEl.value, receiverX + 80, receiverBlockY); 
-                         receiverBlockY += lineSpacing * 1.5; 
+                         doc.text(hsCode, receiverX + 80, receiverBlockY);
                     }
 
                     // --- Section 4: Table ---
-                    let tableStartY = Math.max(senderBlockY, receiverBlockY) + sectionSpacing; 
-
-                    // UPDATED: Added Brand to table header
-                    const tableHead = [ 
-                         ['#', 'Description', 'Brand', 'Category', 'Qty', 'Unit Value (CAD)', 'Total Value (CAD)', 'Remarks'] 
-                     ];
-                    const safeItems = Array.isArray(items) ? items : [];
-                    // UPDATED: Added Brand to table body
-                    const tableBody = safeItems.map((item, index) => { 
+                    let tableStartY = Math.max(senderBlockY, receiverBlockY) + sectionSpacing;
+                    const tableHead = [['#', 'Description', 'Category', 'Qty', 'Unit Value (CAD)', 'Total Value (CAD)']];
+                    const safeItems = Array.isArray(db_items) ? db_items : [];
+                    const tableBody = safeItems.map((item, index) => {
                           const qty = parseFloat(item.qty) || 0;
                           const value = parseFloat(item.value) || 0;
-                          return [
-                             index + 1, 
-                             item.desc || '',
-                             item.brand || '-', // Default to dash
-                             item.category || '',
-                             qty,
-                             value.toFixed(2),
-                             (qty * value).toFixed(2),
-                             item.remarks || '' 
-                          ];
+                          return [index + 1, item.desc || '', item.category || '', qty, value.toFixed(2), (qty * value).toFixed(2)];
                      });
-
-                    doc.autoTable({ 
-                        head: tableHead,
-                        body: tableBody,
-                        startY: tableStartY,
-                        theme: 'grid',
-                        headStyles: { fillColor: [230, 230, 230], textColor: 0, fontStyle: 'bold', fontSize: 8 }, 
-                        styles: { fontSize: 8, cellPadding: 2, overflow: 'linebreak' }, 
-                        // UPDATED: Column styles for new brand column
-                        columnStyles: { 
-                            0: { cellWidth: 20, halign: 'center' },  // #
-                            1: { cellWidth: 'auto'},              // Description 
-                            2: { cellWidth: 50 },                 // Brand (NEW)
-                            3: { cellWidth: 50 },                 // Category
-                            4: { cellWidth: 30, halign: 'right' },  // Qty
-                            5: { cellWidth: 50, halign: 'right' },  // Unit Value
-                            6: { cellWidth: 50, halign: 'right' },  // Total Value
-                            7: { cellWidth: 60 }                  // Remarks
+                    doc.autoTable({
+                        head: tableHead, body: tableBody, startY: tableStartY, theme: 'grid',
+                        headStyles: { fillColor: [230, 230, 230], textColor: 0, fontStyle: 'bold', fontSize: 8 },
+                        styles: { fontSize: 8, cellPadding: 2, overflow: 'linebreak' },
+                        columnStyles: {
+                            0: { cellWidth: 20, halign: 'center' }, 3: { cellWidth: 30, halign: 'right' },
+                            4: { cellWidth: 50, halign: 'right' }, 5: { cellWidth: 50, halign: 'right' }
                         },
-                        margin: { left: leftMargin, right: rightMargin } 
+                        margin: { left: leftMargin, right: rightMargin }
                     });
 
                     // --- Section 5: Summary ---
-                    const finalY = doc.autoTable.previous.finalY; 
-                    
-                    const calculatedTotalWeight = safeItems.reduce((sum, item) => sum + ((parseFloat(item.qty) || 0) * (parseFloat(item.weight) || 0)), 0);
+                    const finalY = doc.autoTable.previous.finalY;
                     const calculatedTotalValue = safeItems.reduce((sum, item) => sum + ((parseFloat(item.qty) || 0) * (parseFloat(item.value) || 0)), 0);
                     const totalQty = safeItems.reduce((sum, item) => sum + (parseFloat(item.qty) || 0), 0);
-                    const displayWeight = !isNaN(parseFloat(summaryWeightInput.value)) ? parseFloat(summaryWeightInput.value).toFixed(2) : calculatedTotalWeight.toFixed(2);
-                    const displayValue = !isNaN(parseFloat(summaryValueInput.value)) ? parseFloat(summaryValueInput.value).toFixed(2) : calculatedTotalValue.toFixed(2);
-
-                    doc.setFontSize(10); 
+                    const displayValue = paymentTotal > 0 ? paymentTotal.toFixed(2) : calculatedTotalValue.toFixed(2);
+                    doc.setFontSize(10);
                     doc.setFont("helvetica", "bold");
-                    let summaryY = finalY + sectionSpacing; 
-                    const summaryRightX = pageWidth - rightMargin; 
-                    
-                     if (summaryY > pageHeight - bottomMargin - (lineSpacing * 6)) { 
-                         doc.addPage();
-                         summaryY = topMargin; 
-                     }
-
+                    let summaryY = finalY + sectionSpacing;
+                    const summaryRightX = pageWidth - rightMargin;
+                    if (summaryY > pageHeight - bottomMargin - (lineSpacing * 6)) { doc.addPage(); summaryY = topMargin + 20; }
                     doc.text(`Total Quantity:`, leftMargin, summaryY);
                     doc.text(`${totalQty} pcs`, summaryRightX, summaryY, { align: 'right'});
-                    summaryY += lineSpacing * 1.5; 
-                    
+                    summaryY += lineSpacing * 1.5;
                     doc.text(`Total Packages:`, leftMargin, summaryY);
-                    doc.text(`${totalPackagesEl.value || 'N/A'}`, summaryRightX, summaryY, { align: 'right'});
-                     summaryY += lineSpacing * 1.5; 
-                    
+                    doc.text(`${totalPackages || 'N/A'}`, summaryRightX, summaryY, { align: 'right'});
+                    summaryY += lineSpacing * 1.5;
                     doc.text(`Total Net Weight:`, leftMargin, summaryY);
-                    doc.text(`${displayWeight} kg`, summaryRightX, summaryY, { align: 'right'}); 
-                    summaryY += lineSpacing * 1.5; 
-                    
+                    doc.text(`${totalWeight || 'N/A'} kg`, summaryRightX, summaryY, { align: 'right'});
+                    summaryY += lineSpacing * 1.5;
                     doc.text(`Total Declared Value:`, leftMargin, summaryY);
                     doc.text(`$${displayValue} CAD`, summaryRightX, summaryY, { align: 'right'});
-                   
-                    
+
                     // --- Section 6: Declaration ---
-                    doc.setFontSize(9); 
+                    doc.setFontSize(9);
                     doc.setFont("helvetica", "bold");
-                    let declarationY = summaryY + sectionSpacing * 1.5; 
-                    if (declarationY > pageHeight - bottomMargin) { 
-                        doc.addPage();
-                        declarationY = topMargin; 
-                    }
+                    let declarationY = summaryY + sectionSpacing * 1.5;
+                    if (declarationY > pageHeight - bottomMargin - lineSpacing) { doc.addPage(); declarationY = topMargin + 20; }
                     doc.text("Declaration: Personal Use – Not for Resale", leftMargin, declarationY);
 
-                    addPdfFooter(doc); 
+                    addPdfFooter(doc);
+                    const fileName = `${docType.replace(/ /g, '_')}_${invoiceNumber || 'Shipment'}.pdf`;
 
-                    const fileName = `${docType.replace(/ /g, '_')}_${invoiceNumberEl.value || 'Shipment'}.pdf`; 
                     if (action === 'open') {
-                        doc.output('dataurlnewwindow'); 
+                        if (pdfWindow && doc && typeof doc.output === 'function') {
+                           pdfWindow.location.href = doc.output('datauristring');
+                        } else {
+                           if (pdfWindow) pdfWindow.close();
+                           alert("Error: Could not generate the PDF for printing.");
+                        }
                     } else {
-                        doc.save(fileName); 
+                        if (doc && typeof doc.save === 'function') {
+                           doc.save(fileName);
+                        } else {
+                            alert("Error: Could not generate the PDF for saving.");
+                        }
                     }
-
-                } catch (error) { 
+                } catch (error) {
+                    if (action === 'open' && pdfWindow) pdfWindow.close();
                     console.error("Error generating PDF:", error);
-                    alert("Sorry, there was an error generating the PDF. Please ensure all item details are entered correctly and check the console (F12) for more details.");
+                    alert("Sorry, there was an error generating the PDF. Check console for details.");
                 }
             }
 
-
-            function generateExcel() { 
-                 try { 
+            function generateExcel() {
+                 try {
                     if (typeof XLSX === 'undefined') {
-                         console.error("XLSX (SheetJS) library not loaded correctly.");
-                         alert("Error: XLSX library not found. Cannot generate Excel file.");
-                         return;
+                         alert("Error: XLSX library not found."); return;
                     }
+                    
+                    // --- Get data ---
+                    const senderName = document.getElementById('senderName').value;
+                    const receiverName = document.getElementById('receiverName').value;
+                    const receiverPhone = document.getElementById('receiverPhone').value;
+                    const receiverAddress = document.getElementById('receiverAddress').value;
+                    const invoiceNumber = document.getElementById('invoiceNumber').value;
+                    const invoiceDate = document.getElementById('invoiceDate').value;
+                    const totalPackages = document.getElementById('totalPackages').value;
+                    const hsCode = document.getElementById('hsCode').value;
+                    const totalWeight = document.getElementById('totalWeight').value;
+                    const paymentTotal = parseFloat(document.getElementById('paymentTotal').value) || 0;
 
                     const infoData = [
                         ["Shipment Details", ""],
-                        ["Sender Name", senderNameEl.value],
-                        ["Receiver Name", receiverNameEl.value],
-                        ["Receiver Phone", receiverPhoneEl.value],
-                        ["Receiver Address", receiverAddressEl.value],
-                        ["", ""],
-                        ["Invoice #", invoiceNumberEl.value],
-                        ["Date", invoiceDateEl.value],
-                        ["Total Packages", totalPackagesEl.value],
-                        ["HS Code", hsCodeEl.value]
+                        ["Sender Name", senderName], ["Receiver Name", receiverName], ["Receiver Phone", receiverPhone],
+                        ["Receiver Address", receiverAddress], ["", ""], ["Invoice #", invoiceNumber], ["Date", invoiceDate],
+                        ["Total Packages", totalPackages], ["HS Code", hsCode]
                     ];
                     const wsInfo = XLSX.utils.aoa_to_sheet(infoData);
-                    
-                    // UPDATED: Added Brand to header
-                    const itemsHeader = [
-                        'Description', 'Brand', 'Category', 'Quantity', 'Unit Weight (kg)', 'Total Weight (kg)', 'Unit Value (CAD)', 'Total Value (CAD)', 'Remarks'
-                    ];
-                     const safeItems = Array.isArray(items) ? items : [];
-                     // UPDATED: Added Brand to body
-                     const itemsBody = safeItems.map(item => {
-                         const qty = parseFloat(item.qty) || 0;
-                         const weight = parseFloat(item.weight) || 0; 
-                         const value = parseFloat(item.value) || 0;
-                         return [
-                            item.desc || '',
-                            item.brand || '-', // Default to dash
-                            item.category || '',
-                            qty,
-                            weight,
-                            qty * weight,
-                            value,
-                            qty * value,
-                            item.remarks || ''
-                         ];
-                     });
-                    
-                    const totalQty = safeItems.reduce((sum, item) => sum + (parseFloat(item.qty) || 0), 0);
-                    const calculatedTotalWeight = safeItems.reduce((sum, item) => sum + ((parseFloat(item.qty) || 0) * (parseFloat(item.weight) || 0)), 0); 
-                    const calculatedTotalValue = safeItems.reduce((sum, item) => sum + ((parseFloat(item.qty) || 0) * (parseFloat(item.value) || 0)), 0);
 
-                    const displayWeight = !isNaN(parseFloat(summaryWeightInput.value)) ? parseFloat(summaryWeightInput.value).toFixed(2) : calculatedTotalWeight.toFixed(2);
-                    const displayValue = !isNaN(parseFloat(summaryValueInput.value)) ? parseFloat(summaryValueInput.value).toFixed(2) : calculatedTotalValue.toFixed(2);
-                    
-                    // UPDATED: Added empty cells for brand/category column in footer
-                    const itemsFooter = [
-                        'TOTAL', '', '', totalQty, '', displayWeight, '', displayValue, ''
-                    ];
-                    
+                    const itemsHeader = ['Description', 'Category', 'Quantity', 'Unit Value (CAD)', 'Total Value (CAD)'];
+                    const safeItems = Array.isArray(db_items) ? db_items : [];
+                    const itemsBody = safeItems.map(item => {
+                         const qty = parseFloat(item.qty) || 0;
+                         const value = parseFloat(item.value) || 0;
+                         return [item.desc || '', item.category || '', qty, value, qty * value];
+                    });
+                    const totalQty = safeItems.reduce((sum, item) => sum + (parseFloat(item.qty) || 0), 0);
+                    const calculatedTotalValue = safeItems.reduce((sum, item) => sum + ((parseFloat(item.qty) || 0) * (parseFloat(item.value) || 0)), 0);
+                    const displayValue = paymentTotal > 0 ? paymentTotal : calculatedTotalValue;
+                    const itemsFooter = ['TOTAL', '', totalQty, '', displayValue];
+
                     const wsItems = XLSX.utils.aoa_to_sheet([itemsHeader, ...itemsBody, [], itemsFooter]);
+                    
+                    // Add total weight to info sheet
+                    XLSX.utils.sheet_add_aoa(wsInfo, [["Total Weight (kg)", totalWeight]], { origin: -1 });
 
                     const wb = XLSX.utils.book_new();
                     XLSX.utils.book_append_sheet(wb, wsInfo, "Shipment Info");
                     XLSX.utils.book_append_sheet(wb, wsItems, "Packing List");
 
-                    const fileName = `Bee26_Shipment_${invoiceNumberEl.value || ''}.xlsx`;
+                    const fileName = `Bee26_Shipment_${invoiceNumber || ''}.xlsx`;
                     XLSX.writeFile(wb, fileName);
-                 } catch (error) { 
+                 } catch (error) {
                     console.error("Error generating Excel:", error);
-                    alert("Sorry, there was an error generating the Excel file. Check the console (F12) for details.");
+                    alert("Sorry, there was an error generating the Excel file.");
                  }
              }
 
-            // --- 6. Connect buttons to export/print functions ---
-            if (exportPackingListPDF) exportPackingListPDF.addEventListener('click', () => generatePDF('Packing List', 'save')); 
-            if (exportInvoicePDF) exportInvoicePDF.addEventListener('click', () => generatePDF('Commercial Invoice', 'save')); 
-            
-            if (exportPackingListExcel) exportPackingListExcel.addEventListener('click', generateExcel);
-            if (exportInvoiceExcel) exportInvoiceExcel.addEventListener('click', generateExcel);
-            
-            if (printPackingListBtn) printPackingListBtn.addEventListener('click', () => generatePDF('Packing List', 'open')); 
-            if (printInvoiceBtn) printInvoiceBtn.addEventListener('click', () => generatePDF('Commercial Invoice', 'open')); 
+            // *** THIS IS THE FIX ***
+            // Attach listeners to Doc buttons with correct syntax
+            document.getElementById('printPackingListBtn').addEventListener('click', () => generatePDF('Packing List', 'open'));
+            document.getElementById('exportInvoicePDF').addEventListener('click', () => generatePDF('Commercial Invoice', 'save'));
+            document.getElementById('exportPackingListExcel').addEventListener('click', generateExcel);
 
 
-            // --- 7. Load data when the app starts ---
-            loadData();
+            // --- 7. Initial Load ---
+            updateDashboardStats(); // Run on load
+            
+            // Set default invoice date
+            document.getElementById('invoiceDate').valueAsDate = new Date();
+
         });
     </script>
 
