@@ -9,6 +9,39 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
+      import { getDatabase, ref, set, get, push, remove, update, onValue } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-database.js";
+      
+      // --- YOUR FIREBASE CONFIG ---
+      const firebaseConfig = {
+        apiKey: "AIzaSyAMZHYef6CXhkfJNdewMQ8M2gifGgS07k",
+        authDomain: "bee26cargoservices-2651f.firebaseapp.com",
+        projectId: "bee26cargoservices-2651f",
+        storageBucket: "bee26cargoservices-2651f.appspot.com", // Corrected storage bucket
+        messagingSenderId: "508829616627",
+        appId: "1:508829616627:web:062d3f033cad60a9089686",
+        measurementId: "G-YSB8DJ5PE6",
+        databaseURL: "https://bee26cargoservices-2651f-default-rtdb.firebaseio.com" // Explicitly add Database URL
+      };
+
+      // --- Initialize Firebase ---
+      const app = initializeApp(firebaseConfig);
+      const database = getDatabase(app);
+
+      // --- Expose Firebase functions ---
+      window.db = database;
+      window.dbRef = ref;
+      window.dbSet = set;
+      window.dbGet = get;
+      window.dbPush = push;
+      window.dbRemove = remove;
+      window.dbUpdate = update;
+      window.dbOnValue = onValue;
+      
+    </script>
+
+
     <style>
         /* --- 1. Root Variables --- */
         :root {
@@ -50,7 +83,7 @@
 
         /* --- 3. Sidebar --- */
         .sidebar {
-            width: var(--sidebar-width-collapsed);
+            width: var(--sidebar-width-expanded); /* CHANGED: Always expanded */
             height: 100vh;
             background-color: var(--sidebar-dark);
             border-right: 1px solid var(--sidebar-dark);
@@ -63,23 +96,23 @@
             flex-direction: column;
             overflow: hidden;
         }
-        .sidebar:hover { width: var(--sidebar-width-expanded); }
+        /* .sidebar:hover { width: var(--sidebar-width-expanded); } */ /* REMOVED */
         .sidebar-logo { display: flex; align-items: center; justify-content: center; height: 70px; font-size: 1.5rem; font-weight: 700; color: var(--bg-white); flex-shrink: 0; }
-        .sidebar-logo .logo-text { opacity: 0; visibility: hidden; transition: opacity 0.2s ease 0.1s; margin-left: 10px; }
-        .sidebar:hover .sidebar-logo .logo-text { opacity: 1; visibility: visible; }
+        .sidebar-logo .logo-text { opacity: 1; visibility: visible; transition: opacity 0.2s ease 0.1s; margin-left: 10px; } /* CHANGED: Always visible */
+        /* .sidebar:hover .sidebar-logo .logo-text { opacity: 1; visibility: visible; } */ /* REMOVED */
         .sidebar-nav { list-style: none; padding: 0 1rem; margin: 1rem 0 0 0; flex-grow: 1; }
         .sidebar-nav li a { display: flex; align-items: center; padding: 0.9rem 0.75rem; text-decoration: none; font-weight: 500; color: var(--sidebar-text); border-radius: 8px; transition: background-color 0.2s ease, color 0.2s ease; white-space: nowrap; cursor: pointer; }
         .sidebar-nav li a:hover { background-color: #2d3748; color: var(--sidebar-text-hover); }
         .sidebar-nav li a.active { background-color: var(--blue); color: var(--bg-white); font-weight: 600; }
         .nav-icon { font-size: 1.5rem; width: 30px; text-align: center; flex-shrink: 0; transition: transform 0.2s ease; }
-        .nav-text { margin-left: 1.25rem; opacity: 0; visibility: hidden; transition: opacity 0.2s ease 0.1s; }
-        .sidebar:hover .nav-text { opacity: 1; visibility: visible; }
-        .sidebar:hover .nav-icon { transform: scale(0.9); }
+        .nav-text { margin-left: 1.25rem; opacity: 1; visibility: visible; transition: opacity 0.2s ease 0.1s; } /* CHANGED: Always visible */
+        /* .sidebar:hover .nav-text { opacity: 1; visibility: visible; } */ /* REMOVED */
+        /* .sidebar:hover .nav-icon { transform: scale(0.9); } */ /* REMOVED */
         .sidebar-bottom { padding: 0 1rem 1rem 1rem; }
 
         /* --- 4. Main Content Area --- */
-        .main-content { margin-left: var(--sidebar-width-collapsed); width: calc(100% - var(--sidebar-width-collapsed)); padding: 2rem; box-sizing: border-box; transition: margin-left 0.3s ease-in-out; opacity: 1; }
-        .sidebar:hover ~ .main-content { margin-left: var(--sidebar-width-expanded); width: calc(100% - var(--sidebar-width-expanded)); }
+        .main-content { margin-left: var(--sidebar-width-expanded); width: calc(100% - var(--sidebar-width-expanded)); padding: 2rem; box-sizing: border-box; transition: margin-left 0.3s ease-in-out; opacity: 1; } /* CHANGED */
+        /* .sidebar:hover ~ .main-content { margin-left: var(--sidebar-width-expanded); width: calc(100% - var(--sidebar-width-expanded)); } */ /* REMOVED */
         .page-content { display: none; }
         .page-content.active { display: block; }
         header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 2rem; }
@@ -113,7 +146,7 @@
         /* --- 6. Styled Table (Used on multiple pages) --- */
         .table-container { width: 100%; overflow-x: auto; }
         .styled-table { width: 100%; border-collapse: collapse; font-size: 0.95rem; }
-        .styled-table th, .styled-table td { padding: 1rem; text-align: left; border-bottom: 1px solid var(--grey-mid); }
+        .styled-table th, .styled-table td { padding: 1rem; text-align: left; border-bottom: 1px solid var(--grey-mid); vertical-align: middle; } /* Added vertical-align */
         .styled-table th { color: var(--text-secondary); font-weight: 600; background-color: #fcfcfc; }
         .styled-table tbody tr:last-child td { border-bottom: none; }
         .styled-table tbody tr:hover { background-color: var(--grey-light); }
@@ -168,24 +201,50 @@
         .modal-header .close-btn { font-size: 2rem; font-weight: 300; cursor: pointer; background: none; border: none; line-height: 1; padding: 0; }
         .modal-footer { display: flex; justify-content: flex-end; gap: 1rem; margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--grey-mid); }
         
-        /* --- 11. Responsive (Mobile) --- */
+        /* --- 11. Payments Page Specific --- */
+        .filters-bar { display: flex; gap: 1rem; margin-bottom: 1.5rem; flex-wrap: wrap; }
+        .payment-summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
+        .payment-summary-card { background-color: var(--bg-white); border-radius: var(--border-radius); padding: 1rem; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+        .payment-summary-card h3 { margin: 0 0 0.5rem 0; font-size: 0.9rem; color: var(--text-secondary); font-weight: 500; }
+        .payment-summary-card .value { font-size: 1.5rem; font-weight: 600; color: var(--text-primary); }
+        .payments-table input, .payments-table select {
+            width: 100%;
+            padding: 0.5rem;
+            font-size: 0.9rem;
+            border: 1px solid var(--grey-mid);
+            border-radius: 6px;
+            box-sizing: border-box;
+            background-color: #fdfdfd;
+        }
+        .payments-table input:focus, .payments-table select:focus {
+            outline: none;
+            border-color: var(--blue);
+            box-shadow: 0 0 0 1px var(--blue-light);
+        }
+        .payments-table td.number-cell { text-align: right; } /* Align numbers */
+        .payments-table td.balance-due { font-weight: 600; }
+        .payments-table td.balance-due.zero { color: var(--green); }
+        .payments-table td.balance-due.negative { color: var(--red); }
+
+
+        /* --- 12. Responsive (Mobile) --- */
         @media (max-width: 768px) {
             .sidebar { width: 100%; height: 65px; bottom: 0; top: auto; left: 0; flex-direction: row; border-top: 1px solid #2d3748; }
-            .sidebar:hover { width: 100%; }
+            /* .sidebar:hover { width: 100%; } */ /* REMOVED */
             .sidebar-logo, .sidebar-bottom { display: none; }
             .sidebar-nav { display: flex; flex-direction: row; justify-content: space-around; width: 100%; height: 100%; margin: 0; padding: 0 0.5rem; }
             .sidebar-nav li { flex-grow: 1; }
             .sidebar-nav li a { flex-direction: column; justify-content: center; height: 100%; padding: 0.5rem 0.25rem; }
             .nav-icon { font-size: 1.25rem; width: auto; }
             .nav-text { opacity: 1; visibility: visible; font-size: 0.7rem; margin-left: 0; margin-top: 0.25rem; }
-            .sidebar:hover .nav-text { opacity: 1; }
-            .sidebar:hover .nav-icon { transform: none; }
+            /* .sidebar:hover .nav-text { opacity: 1; } */ /* REMOVED */
+            /* .sidebar:hover .nav-icon { transform: none; } */ /* REMOVED */
             .main-content { margin-left: 0; width: 100%; padding: 1rem; padding-bottom: 80px; }
-            .sidebar:hover ~ .main-content { margin-left: 0; width: 100%; }
+            /* .sidebar:hover ~ .main-content { margin-left: 0; width: 100%; } */ /* REMOVED */
             header { flex-direction: column; align-items: flex-start; gap: 0.5rem; }
             header h1 { font-size: 1.8rem; }
             header p { font-size: 1rem; margin-bottom: 1rem; }
-            .stats-grid, .form-grid-two-col, .form-grid-three-col { grid-template-columns: 1fr; }
+            .stats-grid, .form-grid-two-col, .form-grid-three-col, .payment-summary-grid { grid-template-columns: 1fr; }
             .stepper { padding: 1rem 0.5rem; }
             .step-label { font-size: 0.7rem; text-align: center; }
             .summary-grid { grid-template-columns: 100px 1fr; }
@@ -193,6 +252,7 @@
             .modal-content { width: 95%; padding: 1.5rem; }
             .modal-footer { flex-direction: column; }
             .modal-footer .btn { width: 100%; }
+            .filters-bar { flex-direction: column; }
         }
     </style>
 </head>
@@ -200,8 +260,7 @@
 
     <nav class="sidebar">
         <div class="sidebar-logo">
-            <span>B26</span>
-            <span class="logo-text">Bee26 Cargo</span>
+            <img src="https://raw.githubusercontent.com/crickerr26/bee26cargomanager/main/BEE26.png" alt="Bee26 Cargo Logo" style="height: 40px; width: auto;">
         </div>
         <ul class="sidebar-nav">
             <li><a class="nav-link active" data-page="page-dashboard"><span class="nav-icon">🏠</span><span class="nav-text">Dashboard</span></a></li>
@@ -238,7 +297,7 @@
                     <table class="styled-table">
                         <thead><tr><th>Invoice #</th><th>Sender</th><th>Receiver</th><th>Status</th><th>Total</th></tr></thead>
                         <tbody id="recent-activity-tbody">
-                            <tr><td colspan="5" style="text-align: center;">No recent activity. Create a shipment!</td></tr>
+                            <tr><td colspan="5" style="text-align: center;">Loading data from Firebase...</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -246,15 +305,14 @@
         </div>
 
         <div id="page-new-shipment" class="page-content">
-            <div class="stepper">
+             <div class="stepper">
                 <div class="step active" data-step="1"><div class="step-icon">1</div><div class="step-label">Customer Info</div></div>
                 <div class="step" data-step="2"><div class="step-icon">2</div><div class="step-label">Item Details</div></div>
                 <div class="step" data-step="3"><div class="step-icon">3</div><div class="step-label">Shipment & Payment</div></div>
                 <div class="step" data-step="4"><div class="step-icon">4</div><div class="step-label">Review & Docs</div></div>
             </div>
-
             <div id="step-1" class="step-content active">
-                <div class="card">
+                 <div class="card">
                     <h2>Sender Details (Canada)</h2>
                     <div class="form-grid-two-col">
                         <div class="input-group"><label for="senderName">Full Name</label><input type="text" id="senderName" placeholder="John Doe"></div>
@@ -271,9 +329,8 @@
                     </div>
                 </div>
             </div>
-
             <div id="step-2" class="step-content">
-                <div class="card">
+                 <div class="card">
                     <h2>Itemized List</h2>
                     <div class="table-container">
                         <table class="styled-table">
@@ -288,9 +345,8 @@
                     </div>
                 </div>
             </div>
-
-            <div id="step-3" class="step-content">
-                <div class="card">
+             <div id="step-3" class="step-content">
+                 <div class="card">
                     <h2>Shipment Details</h2>
                     <div class="form-grid-two-col">
                         <div class="input-group"><label for="totalPackages">Total Packages</label><input type="number" id="totalPackages" placeholder="e.g., 2" min="0"></div>
@@ -306,10 +362,11 @@
                     <div class="form-grid-two-col">
                         <div class="input-group"><label for="paymentTotal">Total Amount (CAD)</label><input type="number" id="paymentTotal" placeholder="0.00" min="0" step="0.01"></div>
                         <div class="input-group"><label for="paymentStatus">Payment Status</label><select id="paymentStatus"><option value="Not-Paid">Not Paid</option><option value="Paid">Paid</option><option value="Partially-Paid">Partially Paid</option></select></div>
+                        <div class="input-group"><label for="amountPaid">Amount Paid (CAD)</label><input type="number" id="amountPaid" placeholder="0.00" min="0" step="0.01"></div>
+                         <div class="input-group"><label for="paymentMethod">Payment Method</label><select id="paymentMethod"><option value="">N/A</option><option value="Cash">Cash</option><option value="E-Transfer">E-Transfer</option><option value="Card">Card</option></select></div>
                     </div>
                 </div>
             </div>
-
             <div id="step-4" class="step-content">
                 <div class="card">
                     <h2>Review Shipment</h2>
@@ -324,7 +381,7 @@
                         <h3>Shipment & Payment</h3>
                         <div class="form-grid-two-col">
                             <div><strong>Shipment</strong><div class="summary-grid"><strong>Invoice #:</strong> <span id="review-invoiceNumber">--</span><strong>Packages:</strong> <span id="review-totalPackages">--</span><strong>Weight:</strong> <span id="review-totalWeight">--</span><strong>Status:</strong> <span id="review-deliveryStatus">--</span></div></div>
-                            <div><strong>Payment</strong><div class="summary-grid"><strong>Total:</strong> <span id="review-paymentTotal">--</span><strong>Status:</strong> <span id="review-paymentStatus">--</span></div></div>
+                            <div><strong>Payment</strong><div class="summary-grid"><strong>Total:</strong> <span id="review-paymentTotal">--</span><strong>Status:</strong> <span id="review-paymentStatus">--</span><strong>Paid:</strong> <span id="review-amountPaid">--</span><strong>Method:</strong> <span id="review-paymentMethod">--</span></div></div>
                         </div>
                     </div>
                     <div class="review-section">
@@ -348,19 +405,20 @@
                     </div>
                 </div>
             </div>
-
             <div class="wizard-nav">
                 <button class="btn btn-secondary" id="prev-step" disabled>← Back</button>
                 <button class="btn btn-primary" id="next-step">Next: Add Items →</button>
             </div>
-        </div> <div id="page-all-shipments" class="page-content">
-            <div class="card">
+        </div> 
+        
+        <div id="page-all-shipments" class="page-content">
+             <div class="card">
                 <h2>All Shipments</h2>
                 <div class="table-container">
                     <table class="styled-table">
                         <thead><tr><th>Invoice #</th><th>Date</th><th>Sender</th><th>Receiver</th><th>Status</th><th>Payment</th><th>Actions</th></tr></thead>
                         <tbody id="shipmentsTableTbody">
-                            <tr><td colspan="7" style="text-align: center;">No shipments created yet.</td></tr>
+                            <tr><td colspan="7" style="text-align: center;">Loading data from Firebase...</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -368,13 +426,13 @@
         </div>
 
         <div id="page-customers" class="page-content">
-            <div class="card">
+             <div class="card">
                 <h2>Customer List</h2>
                 <div class="table-container">
                     <table class="styled-table">
                         <thead><tr><th>Name (Sender)</th><th>Phone</th><th>Last Shipment</th><th>Total Shipments</th><th>Actions</th></tr></thead>
                         <tbody id="customersTableTbody">
-                            <tr><td colspan="5" style="text-align: center;">No customers found.</td></tr>
+                            <tr><td colspan="5" style="text-align: center;">Loading data from Firebase...</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -383,8 +441,60 @@
 
         <div id="page-payments" class="page-content">
             <div class="card">
+                <h2>Filter Payments</h2>
+                <div class="filters-bar">
+                     <div class="input-group" style="flex-grow: 1;">
+                        <label for="paymentSearch">Search Invoice # / Customer Name</label>
+                        <input type="text" id="paymentSearch" placeholder="Search...">
+                    </div>
+                    <div class="input-group">
+                        <label for="paymentStatusFilter">Filter by Status</label>
+                        <select id="paymentStatusFilter">
+                            <option value="All">All Statuses</option>
+                            <option value="Not-Paid">Not Paid</option>
+                            <option value="Partially-Paid">Partially Paid</option>
+                            <option value="Paid">Paid</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="payment-summary-grid">
+                <div class="payment-summary-card">
+                    <h3>Total Amount Due</h3>
+                    <div class="value" id="payment-summary-due">$0.00</div>
+                </div>
+                <div class="payment-summary-card">
+                    <h3>Total Amount Paid</h3>
+                    <div class="value" id="payment-summary-paid">$0.00</div>
+                </div>
+                <div class="payment-summary-card">
+                    <h3>Shipments Displayed</h3>
+                    <div class="value" id="payment-summary-count">0</div>
+                </div>
+            </div>
+
+            <div class="card">
                 <h2>Payment Tracker</h2>
-                <p>This page is under construction.</p>
+                <div class="table-container">
+                    <table class="styled-table payments-table">
+                        <thead>
+                            <tr>
+                                <th>Invoice #</th>
+                                <th>Date</th>
+                                <th>Sender</th>
+                                <th>Total Amt</th>
+                                <th style="width: 120px;">Amt Paid</th> 
+                                <th>Balance Due</th>
+                                <th style="width: 150px;">Pay Status</th> 
+                                <th style="width: 150px;">Pay Method</th> 
+                            </tr>
+                        </thead>
+                        <tbody id="paymentsTableTbody">
+                            <tr><td colspan="8" style="text-align: center;">Loading data from Firebase...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </main>
@@ -401,18 +511,55 @@
                         <label for="modalItemDesc">Description</label>
                         <input type="text" id="modalItemDesc" placeholder="e.g., Men's T-Shirts" required>
                     </div>
-                    <div class="input-group">
+                     <div class="input-group">
                         <label for="modalItemCat">Category</label>
                         <select id="modalItemCat" required>
                             <option value="">Select category...</option>
-                            <option value="Packaged Food">Packaged Food</option>
-                            <option value="Electronics">Electronics</option>
-                            <option value="Clothing">Clothing</option>
-                            <option value="Household">Household</option>
-                            <option value="Other">Other</option>
+                            <optgroup label="Apparel & Textiles">
+                                <option value="Clothing">Clothing</option>
+                                <option value="Footwear & Shoes">Footwear & Shoes</option>
+                                <option value="Fabrics & Textiles">Fabrics & Textiles</option>
+                            </optgroup>
+                            <optgroup label="Electronics & Media">
+                                <option value="Computers & Laptops">Computers & Laptops</option>
+                                <option value="Phones & Accessories">Phones & Accessories</option>
+                                <option value="Cameras & Equipment">Cameras & Equipment</option>
+                                <option value="Batteries / Power Banks">Batteries / Power Banks</option>
+                                <option value="Books & Media">Books & Media</option>
+                            </optgroup>
+                            <optgroup label="Food & Perishables">
+                                <option value="Packaged Food (Non-Perishable)">Packaged Food (Non-Perishable)</option>
+                                <option value="Perishables (Special Handling)">Perishables (Special Handling)</option>
+                                <option value="Liquids & Beverages">Liquids & Beverages</option>
+                            </optgroup>
+                            <optgroup label="Health & Beauty">
+                                <option value="Cosmetics & Toiletries">Cosmetics & Toiletries</option>
+                                <option value="Medicines & Vitamins">Medicines & Vitamins</option>
+                            </optgroup>
+                            <optgroup label="Household & Goods">
+                                <option value="Kitchenware">Kitchenware</option>
+                                <option value="Home Decor">Home Decor</option>
+                                <option value="Tools & Hardware">Tools & Hardware</option>
+                                <option value="Household Supplies">Household Supplies</option>
+                            </optgroup>
+                            <optgroup label="Personal Items & Gifts">
+                                <option value="Toys & Hobbies">Toys & Hobbies</option>
+                                <option value="Jewelry & Accessories">Jewelry & Accessories</option>
+                                <option value="Gifts & Souvenirs">Gifts & Souvenirs</option>
+                                <option value="Sports Equipment">Sports Equipment</option>
+                            </optgroup>
+                            <optgroup label="Documents & Special">
+                                <option value="Documents">Documents</option>
+                                <option value="Fragile Items">Fragile Items</option>
+                                <option value="Restricted / Special Handling">Restricted / Special Handling</option>
+                            </optgroup>
+                            <optgroup label="Other">
+                                <option value="General Merchandise">General Merchandise</option>
+                                <option value="Other">Other</option>
+                            </optgroup>
                         </select>
                     </div>
-                    <div class="input-group">
+                     <div class="input-group">
                         <label for="modalItemQty">Quantity</label>
                         <input type="number" id="modalItemQty" placeholder="1" min="1" required>
                     </div>
@@ -430,14 +577,26 @@
     </div>
 
 
-    <script>
+    <script type="text/javascript"> 
         document.addEventListener('DOMContentLoaded', () => {
 
-            // --- 0. Simulated Database ---
-            let db_items = [];
-            let db_shipments = [];
+            // --- 0. Get Firebase Functions ---
+            const db = window.db;
+            const dbRef = window.dbRef;
+            const dbUpdate = window.dbUpdate;
+            const dbPush = window.dbPush;
+            const dbOnValue = window.dbOnValue;
+
+            if (!db || !dbRef || !dbUpdate || !dbPush || !dbOnValue) {
+                alert("FATAL ERROR: Firebase Database functions not found. Check initialization.");
+                return;
+            }
+
+            // --- App State ---
+            let local_items = []; 
+            let local_shipments_cache = []; 
             let currentEditItemId = null;
-            let currentEditShipmentId = null;
+            let currentEditShipmentId = null; 
             let wizardCurrentStep = 1;
 
             // --- 1. Page Navigation (Sidebar) ---
@@ -447,17 +606,17 @@
             const pageSubtitle = document.getElementById('page-subtitle');
             const headerActionBtn = document.getElementById('header-action-btn');
 
-            const pageMeta = {
-                'page-dashboard': { title: 'Dashboard', subtitle: "Welcome back, here's an overview of your business.", actionText: '+ Create New Shipment', actionPage: 'page-new-shipment' },
+            const pageMeta = { /* ... pageMeta object remains the same ... */ 
+                 'page-dashboard': { title: 'Dashboard', subtitle: "Welcome back, here's an overview of your business.", actionText: '+ Create New Shipment', actionPage: 'page-new-shipment' },
                 'page-new-shipment': { title: 'New Shipment', subtitle: 'Create a new shipment using the steps below.', actionText: null },
                 'page-all-shipments': { title: 'All Shipments', subtitle: 'Search, filter, and manage all shipments.', actionText: '+ Create New Shipment', actionPage: 'page-new-shipment' },
-                'page-customers': { title: 'Customers', subtitle: 'Manage your list of senders and receivers.', actionText: '+ Add New Customer', actionPage: 'page-new-shipment' },
+                'page-customers': { title: 'Customers', subtitle: 'Manage your list of senders and receivers.', actionText: '+ Add New Customer', actionPage: 'page-new-shipment' }, // Maybe change action later
                 'page-payments': { title: 'Payments', subtitle: 'Track all pending and completed payments.', actionText: null }
             };
 
             function navigateToPage(pageId) {
                 if (pageId === 'page-new-shipment' && (headerActionBtn.textContent.includes('Create') || headerActionBtn.textContent.includes('Add'))) {
-                    clearWizard(); // Reset form only if it's a "Create New" action
+                    clearWizard(); 
                 }
                 pages.forEach(p => p.classList.remove('active'));
                 document.getElementById(pageId).classList.add('active');
@@ -475,8 +634,10 @@
                         headerActionBtn.style.display = 'none';
                     }
                 }
-                if (pageId === 'page-dashboard') updateDashboardStats();
-                if (pageId === 'page-customers') renderCustomersTable();
+                // Data render functions are called by the onValue listener or filter changes
+                 if (pageId === 'page-payments') {
+                    renderPaymentsTable(); // Re-render payment table when navigating to it
+                }
             }
 
             navLinks.forEach(link => {
@@ -493,51 +654,43 @@
             const stepContents = wizard.querySelectorAll('.step-content');
             const totalSteps = 4;
 
-            const nextLabels = [
-                'Next: Add Items →',
+            const nextLabels = [/* ... nextLabels array remains the same ... */
+                 'Next: Add Items →',
                 'Next: Shipment →',
                 'Next: Review →',
                 'Save & Finish Shipment'
             ];
 
-            function updateWizard(jumpToStep = null) {
+            function updateWizard(jumpToStep = null) { /* ... updateWizard function remains the same ... */ 
                 wizardCurrentStep = jumpToStep !== null ? jumpToStep : wizardCurrentStep;
-                
-                // Update step content
                 stepContents.forEach((content, index) => {
                     content.classList.toggle('active', (index + 1) === wizardCurrentStep);
                 });
-                
-                // Update stepper icons
                 steps.forEach((step, index) => {
                     const stepNum = index + 1;
                     step.classList.toggle('active', stepNum === wizardCurrentStep);
                     step.classList.toggle('completed', stepNum < wizardCurrentStep);
                 });
-
-                // Update navigation buttons
                 prevBtn.disabled = (wizardCurrentStep === 1);
-                
-                // Check if we are editing
-                if (currentEditShipmentId !== null) {
+                if (currentEditShipmentId !== null) { 
                     nextBtn.textContent = (wizardCurrentStep === totalSteps) ? 'Update Shipment' : nextLabels[wizardCurrentStep - 1];
-                } else {
+                } else { 
                     nextBtn.textContent = nextLabels[wizardCurrentStep - 1];
                 }
-
-                // Populate review screen if on step 4
                 if (wizardCurrentStep === 4) {
                     populateReviewStep();
                 }
             }
 
-            nextBtn.addEventListener('click', () => {
+            nextBtn.addEventListener('click', async () => { 
                 if (wizardCurrentStep < totalSteps) {
                     wizardCurrentStep++;
                     updateWizard();
                 } else {
-                    // This is the "Save" or "Update" click
-                    saveShipment();
+                    nextBtn.disabled = true;
+                    nextBtn.textContent = "Saving...";
+                    await saveShipment(); 
+                    nextBtn.disabled = false; 
                 }
             });
 
@@ -548,31 +701,28 @@
                 }
             });
 
-            function clearWizard() {
-                // Reset all form fields in the wizard
-                const formInputs = wizard.querySelectorAll('input, textarea, select');
+            function clearWizard() { /* ... clearWizard function remains the same ... */ 
+                 const formInputs = wizard.querySelectorAll('input, textarea, select');
                 formInputs.forEach(input => {
                     if (input.type === 'select-one') {
-                        input.selectedIndex = 0; // Reset select
-                    } else {
-                        input.value = ''; // Reset text, tel, number, textarea
+                        input.selectedIndex = 0; 
+                    } else if (input.type !== 'date') { // Don't clear date by default
+                        input.value = ''; 
                     }
                 });
-
-                // Set default values
                 document.getElementById('deliveryStatus').value = 'Pending';
                 document.getElementById('paymentStatus').value = 'Not-Paid';
-                document.getElementById('invoiceDate').valueAsDate = new Date();
+                document.getElementById('invoiceDate').valueAsDate = new Date(); // Reset date
                 
-                db_items = [];
+                local_items = []; 
                 currentEditItemId = null;
-                currentEditShipmentId = null;
+                currentEditShipmentId = null; 
                 wizardCurrentStep = 1;
                 renderItemTable();
                 updateWizard();
             }
 
-            // --- 3. Item CRUD (Create, Read, Update, Delete) ---
+            // --- 3. Item CRUD (Manages local_items array) ---
             const modal = document.getElementById('addItemModal');
             const addNewItemBtn = document.getElementById('addNewItemBtn');
             const closeModalBtn = document.getElementById('closeModalBtn');
@@ -580,7 +730,7 @@
             const addItemForm = document.getElementById('addItemForm');
             const itemTableTbody = document.getElementById('itemTableTbody');
             
-            addNewItemBtn.addEventListener('click', () => {
+            addNewItemBtn.addEventListener('click', () => { /* ... unchanged ... */ 
                 currentEditItemId = null;
                 addItemForm.reset();
                 document.getElementById('modal-title').textContent = 'Add New Item';
@@ -592,7 +742,7 @@
             closeModalBtn.addEventListener('click', closeModal);
             cancelModalBtn.addEventListener('click', closeModal);
             
-            addItemForm.addEventListener('submit', (e) => {
+            addItemForm.addEventListener('submit', (e) => { /* ... unchanged ... */ 
                 e.preventDefault();
                 const item = {
                     desc: document.getElementById('modalItemDesc').value,
@@ -600,25 +750,22 @@
                     qty: parseFloat(document.getElementById('modalItemQty').value),
                     value: parseFloat(document.getElementById('modalItemValue').value)
                 };
-                
                 if (currentEditItemId !== null) {
-                    db_items[currentEditItemId] = item; // Update existing
+                    local_items[currentEditItemId] = item; 
                 } else {
-                    db_items.push(item); // Add new
+                    local_items.push(item); 
                 }
-                
                 renderItemTable();
                 closeModal();
             });
 
-            function renderItemTable() {
+            function renderItemTable() { /* ... unchanged ... */ 
                 itemTableTbody.innerHTML = '';
-                if (db_items.length === 0) {
+                if (local_items.length === 0) {
                     itemTableTbody.innerHTML = '<tr><td colspan="6" style="text-align: center;">No items added yet.</td></tr>';
                     return;
                 }
-                
-                db_items.forEach((item, index) => {
+                local_items.forEach((item, index) => {
                     const totalVal = (item.qty * item.value).toFixed(2);
                     const row = document.createElement('tr');
                     row.innerHTML = `
@@ -636,17 +783,16 @@
                 });
             }
 
-            itemTableTbody.addEventListener('click', (e) => {
+            itemTableTbody.addEventListener('click', (e) => { /* ... unchanged ... */ 
                 const index = e.target.dataset.index;
                 if (e.target.classList.contains('delete-item-btn')) {
                     if (confirm('Are you sure you want to delete this item?')) {
-                        db_items.splice(index, 1);
+                        local_items.splice(index, 1);
                         renderItemTable();
                     }
                 }
-                
                 if (e.target.classList.contains('edit-item-btn')) {
-                    const item = db_items[index];
+                    const item = local_items[index];
                     currentEditItemId = index;
                     document.getElementById('modal-title').textContent = 'Edit Item';
                     document.getElementById('saveItemBtn').textContent = 'Update Item';
@@ -659,9 +805,9 @@
             });
 
 
-            // --- 4. Shipment Save, Review, and Load ---
+            // --- 4. Shipment Save, Review, and Load (FIREBASE CONNECTED) ---
             
-            function populateReviewStep() {
+            function populateReviewStep() { /* ... updated to include amountPaid and paymentMethod ... */ 
                 // Customer
                 document.getElementById('review-senderName').textContent = document.getElementById('senderName').value || '--';
                 document.getElementById('review-senderPhone').textContent = document.getElementById('senderPhone').value || '--';
@@ -675,16 +821,21 @@
                 document.getElementById('review-deliveryStatus').innerHTML = `<span class="status-badge status-${document.getElementById('deliveryStatus').value}">${document.getElementById('deliveryStatus').value}</span>`;
                 // Payment
                 const paymentTotal = parseFloat(document.getElementById('paymentTotal').value) || 0;
+                const amountPaid = parseFloat(document.getElementById('amountPaid').value) || 0; // Get amount paid
+                const paymentMethod = document.getElementById('paymentMethod').value || 'N/A'; // Get method
+
                 document.getElementById('review-paymentTotal').textContent = `$${paymentTotal.toFixed(2)}`;
                 document.getElementById('review-paymentStatus').innerHTML = `<span class="status-badge status-${document.getElementById('paymentStatus').value.replace(' ','-')}">${document.getElementById('paymentStatus').value.replace('-',' ')}</span>`;
+                document.getElementById('review-amountPaid').textContent = `$${amountPaid.toFixed(2)}`; // Display amount paid
+                document.getElementById('review-paymentMethod').textContent = paymentMethod; // Display method
                 // Items
-                document.getElementById('review-itemCount').textContent = db_items.length;
+                document.getElementById('review-itemCount').textContent = local_items.length;
                 const reviewTbody = document.getElementById('review-itemTableTbody');
                 reviewTbody.innerHTML = '';
-                if (db_items.length === 0) {
+                if (local_items.length === 0) {
                     reviewTbody.innerHTML = '<tr><td colspan="4" style="text-align: center;">--</td></tr>';
                 } else {
-                    db_items.forEach(item => {
+                    local_items.forEach(item => {
                         reviewTbody.innerHTML += `
                             <tr>
                                 <td>${item.desc}</td>
@@ -697,7 +848,7 @@
                 }
             }
 
-            function saveShipment() {
+            async function saveShipment() { /* ... updated to include amountPaid and paymentMethod ... */ 
                 const shipment = {
                     senderName: document.getElementById('senderName').value,
                     senderPhone: document.getElementById('senderPhone').value,
@@ -713,72 +864,75 @@
                     hsCode: document.getElementById('hsCode').value,
                     paymentTotal: document.getElementById('paymentTotal').value,
                     paymentStatus: document.getElementById('paymentStatus').value,
-                    items: [...db_items] // Clone the items array
+                    amountPaid: document.getElementById('amountPaid').value || '0', // Save amount paid
+                    paymentMethod: document.getElementById('paymentMethod').value || '', // Save method
+                    items: [...local_items] 
                 };
 
-                if (currentEditShipmentId !== null) {
-                    db_shipments[currentEditShipmentId] = shipment; // Update
-                    alert('Shipment ' + shipment.invoiceNumber + ' updated!');
-                } else {
-                    db_shipments.push(shipment); // Create new
-                    alert('Shipment ' + shipment.invoiceNumber + ' saved!');
+                try {
+                    if (currentEditShipmentId !== null) {
+                        const shipmentRef = dbRef(db, 'shipments/' + currentEditShipmentId);
+                        await dbUpdate(shipmentRef, shipment);
+                        alert('Shipment ' + shipment.invoiceNumber + ' updated!');
+                    } else {
+                        const shipmentListRef = dbRef(db, 'shipments');
+                        await dbPush(shipmentListRef, shipment);
+                        alert('Shipment ' + shipment.invoiceNumber + ' saved!');
+                    }
+                    clearWizard();
+                    navigateToPage('page-all-shipments');
+                } catch (error) {
+                    console.error("Error saving shipment to Firebase:", error);
+                    alert("Error: Could not save shipment. See console for details.");
                 }
-                
-                renderShipmentsTable();
-                clearWizard();
-                navigateToPage('page-all-shipments');
             }
 
-            function loadShipmentForEdit(index) {
-                const shipment = db_shipments[index];
-                if (!shipment) return;
+            function loadShipmentForEdit(shipmentId) { /* ... updated to load amountPaid and paymentMethod ... */ 
+                const shipment = local_shipments_cache.find(s => s.id === shipmentId);
+                if (!shipment) { alert("Error: Could not find shipment to load."); return; }
+                clearWizard(); 
+                currentEditShipmentId = shipmentId; 
                 
-                clearWizard(); // Clear first
-                currentEditShipmentId = index;
+                document.getElementById('senderName').value = shipment.senderName || '';
+                document.getElementById('senderPhone').value = shipment.senderPhone || '';
+                document.getElementById('receiverName').value = shipment.receiverName || '';
+                document.getElementById('receiverPhone').value = shipment.receiverPhone || '';
+                document.getElementById('receiverAddress').value = shipment.receiverAddress || '';
+                document.getElementById('customerRemarks').value = shipment.customerRemarks || '';
+                document.getElementById('totalPackages').value = shipment.totalPackages || '';
+                document.getElementById('totalWeight').value = shipment.totalWeight || '';
+                document.getElementById('invoiceNumber').value = shipment.invoiceNumber || '';
+                document.getElementById('invoiceDate').value = shipment.invoiceDate || '';
+                document.getElementById('deliveryStatus').value = shipment.deliveryStatus || 'Pending';
+                document.getElementById('hsCode').value = shipment.hsCode || '';
+                document.getElementById('paymentTotal').value = shipment.paymentTotal || '';
+                document.getElementById('paymentStatus').value = shipment.paymentStatus || 'Not-Paid';
+                document.getElementById('amountPaid').value = shipment.amountPaid || '0'; // Load amount paid
+                document.getElementById('paymentMethod').value = shipment.paymentMethod || ''; // Load method
                 
-                document.getElementById('senderName').value = shipment.senderName;
-                document.getElementById('senderPhone').value = shipment.senderPhone;
-                document.getElementById('receiverName').value = shipment.receiverName;
-                document.getElementById('receiverPhone').value = shipment.receiverPhone;
-                document.getElementById('receiverAddress').value = shipment.receiverAddress;
-                document.getElementById('customerRemarks').value = shipment.customerRemarks;
-                document.getElementById('totalPackages').value = shipment.totalPackages;
-                document.getElementById('totalWeight').value = shipment.totalWeight;
-                document.getElementById('invoiceNumber').value = shipment.invoiceNumber;
-                document.getElementById('invoiceDate').value = shipment.invoiceDate;
-                document.getElementById('deliveryStatus').value = shipment.deliveryStatus;
-                document.getElementById('hsCode').value = shipment.hsCode;
-                document.getElementById('paymentTotal').value = shipment.paymentTotal;
-                document.getElementById('paymentStatus').value = shipment.paymentStatus;
-                
-                db_items = [...shipment.items]; // Load items
-                renderItemTable();
-                
+                local_items = [...(shipment.items || [])]; 
+                renderItemTable(); 
                 navigateToPage('page-new-shipment');
-                pageTitle.textContent = 'Edit Shipment'; // Override title
+                pageTitle.textContent = 'Edit Shipment'; 
                 pageSubtitle.textContent = 'Editing Invoice #' + shipment.invoiceNumber;
-                
-                updateWizard(4); // Jump to review step
+                updateWizard(1); 
             }
 
 
-            // --- 5. Data Table Rendering ---
+            // --- 5. Data Table Rendering (Reads from local_shipments_cache) ---
             const shipmentsTableTbody = document.getElementById('shipmentsTableTbody');
             const customersTableTbody = document.getElementById('customersTableTbody');
             const recentActivityTbody = document.getElementById('recent-activity-tbody');
+            const paymentsTableTbody = document.getElementById('paymentsTableTbody'); // Get payments table body
 
-            function renderShipmentsTable() {
-                shipmentsTableTbody.innerHTML = '';
-                if (db_shipments.length === 0) {
+            function renderShipmentsTable() { /* ... unchanged ... */ 
+                 shipmentsTableTbody.innerHTML = '';
+                if (local_shipments_cache.length === 0) {
                     shipmentsTableTbody.innerHTML = '<tr><td colspan="7" style="text-align: center;">No shipments created yet.</td></tr>';
                     return;
                 }
-
-                // Sort by date, newest first (optional, but nice)
-                const sortedShipments = [...db_shipments].sort((a, b) => new Date(b.invoiceDate) - new Date(a.invoiceDate));
-                
-                sortedShipments.forEach((shipment, index) => {
-                    const originalIndex = db_shipments.indexOf(shipment); // Get original index for editing
+                const sortedShipments = [...local_shipments_cache].sort((a, b) => new Date(b.invoiceDate) - new Date(a.invoiceDate));
+                sortedShipments.forEach(shipment => {
                     const row = document.createElement('tr');
                     row.innerHTML = `
                         <td>${shipment.invoiceNumber}</td>
@@ -788,7 +942,7 @@
                         <td><span class="status-badge status-${shipment.deliveryStatus}">${shipment.deliveryStatus}</span></td>
                         <td><span class="status-badge status-${shipment.paymentStatus.replace(' ','-')}">${shipment.paymentStatus.replace('-',' ')}</span></td>
                         <td class="table-actions">
-                            <button class="btn btn-secondary btn-small view-shipment-btn" data-index="${originalIndex}">View</button>
+                            <button class="btn btn-secondary btn-small view-shipment-btn" data-id="${shipment.id}">View</button>
                         </td>
                     `;
                     shipmentsTableTbody.appendChild(row);
@@ -797,18 +951,16 @@
 
             shipmentsTableTbody.addEventListener('click', (e) => {
                 if (e.target.classList.contains('view-shipment-btn')) {
-                    const index = e.target.dataset.index;
-                    loadShipmentForEdit(index);
+                    const shipmentId = e.target.dataset.id; 
+                    loadShipmentForEdit(shipmentId);
                 }
             });
             
-            function renderCustomersTable() {
+            function renderCustomersTable() { /* ... unchanged ... */ 
                 customersTableTbody.innerHTML = '';
-                const customers = new Map(); // Use a Map to store unique customers by phone
-                
-                db_shipments.forEach(s => {
+                const customers = new Map(); 
+                local_shipments_cache.forEach(s => {
                     if (!s.senderName || !s.senderPhone) return;
-                    
                     if (customers.has(s.senderPhone)) {
                         const customer = customers.get(s.senderPhone);
                         customer.totalShipments += 1;
@@ -817,84 +969,207 @@
                         }
                     } else {
                         customers.set(s.senderPhone, {
-                            name: s.senderName,
-                            phone: s.senderPhone,
-                            lastShipment: s.invoiceDate,
-                            totalShipments: 1
+                            name: s.senderName, phone: s.senderPhone, lastShipment: s.invoiceDate, totalShipments: 1
                         });
                     }
                 });
-
                 if (customers.size === 0) {
                     customersTableTbody.innerHTML = '<tr><td colspan="5" style="text-align: center;">No customers found.</td></tr>';
                     return;
                 }
-                
                 customers.forEach(cust => {
                     customersTableTbody.innerHTML += `
                         <tr>
-                            <td>${cust.name}</td>
-                            <td>${cust.phone}</td>
-                            <td>${cust.lastShipment || 'N/A'}</td>
-                            <td>${cust.totalShipments}</td>
-                            <td class="table-actions">
-                                <button class="btn btn-secondary btn-small">View</button>
-                            </td>
-                        </tr>
-                    `;
+                            <td>${cust.name}</td><td>${cust.phone}</td><td>${cust.lastShipment || 'N/A'}</td>
+                            <td>${cust.totalShipments}</td><td class="table-actions"><button class="btn btn-secondary btn-small">View</button></td>
+                        </tr>`;
                 });
             }
 
-            function updateDashboardStats() {
-                let pending = 0;
-                let transit = 0;
-                let delivered = 0;
-                let due = 0;
-
-                db_shipments.forEach(s => {
+            function updateDashboardStats() { /* ... unchanged ... */ 
+                 let pending = 0, transit = 0, delivered = 0, due = 0;
+                local_shipments_cache.forEach(s => {
                     if (s.deliveryStatus === 'Pending') pending++;
-                    if (s.deliveryStatus === 'Shipped') transit++; // Assuming 'Shipped' means in transit
+                    if (s.deliveryStatus === 'Shipped') transit++; 
                     if (s.deliveryStatus === 'Delivered') delivered++;
-                    
                     if (s.paymentStatus === 'Not-Paid' || s.paymentStatus === 'Partially-Paid') {
-                        due += parseFloat(s.paymentTotal) || 0; // Simple sum, needs balance logic
+                         const total = parseFloat(s.paymentTotal) || 0;
+                         const paid = parseFloat(s.amountPaid) || 0;
+                         due += (total - paid); // Calculate actual balance due
                     }
                 });
-                
                 document.getElementById('stat-pending').textContent = pending;
                 document.getElementById('stat-transit').textContent = transit;
                 document.getElementById('stat-delivered').textContent = delivered;
                 document.getElementById('stat-due').textContent = `$${due.toFixed(0)}`;
-                
-                // Update Recent Activity
                 recentActivityTbody.innerHTML = '';
-                const recent = [...db_shipments].sort((a, b) => new Date(b.invoiceDate) - new Date(a.invoiceDate)).slice(0, 3);
-                
+                const recent = [...local_shipments_cache].sort((a, b) => new Date(b.invoiceDate) - new Date(a.invoiceDate)).slice(0, 3);
                 if (recent.length === 0) {
-                    recentActivityTbody.innerHTML = '<tr><td colspan="5" style="text-align: center;">No recent activity.</td></tr>';
-                    return;
+                    recentActivityTbody.innerHTML = '<tr><td colspan="5" style="text-align: center;">No recent activity.</td></tr>'; return;
                 }
-
                 recent.forEach(s => {
                     recentActivityTbody.innerHTML += `
-                        <tr>
-                            <td>${s.invoiceNumber}</td>
-                            <td>${s.senderName}</td>
-                            <td>${s.receiverName}</td>
-                            <td><span class="status-badge status-${s.deliveryStatus}">${s.deliveryStatus}</span></td>
-                            <td>$${parseFloat(s.paymentTotal || 0).toFixed(2)}</td>
-                        </tr>
-                    `;
+                        <tr><td>${s.invoiceNumber}</td><td>${s.senderName}</td><td>${s.receiverName}</td>
+                        <td><span class="status-badge status-${s.deliveryStatus}">${s.deliveryStatus}</span></td>
+                        <td>$${parseFloat(s.paymentTotal || 0).toFixed(2)}</td></tr>`;
                 });
             }
 
 
-            // --- 6. PDF & Excel Export Functions (Adapted from original file) ---
+            // --- 6. Payments Page Logic ---
+            const paymentSearchInput = document.getElementById('paymentSearch');
+            const paymentStatusFilterSelect = document.getElementById('paymentStatusFilter');
+
+            function renderPaymentsTable() {
+                paymentsTableTbody.innerHTML = '';
+                
+                // Apply Filters
+                const searchTerm = paymentSearchInput.value.toLowerCase();
+                const statusFilter = paymentStatusFilterSelect.value;
+                
+                const filteredShipments = local_shipments_cache.filter(s => {
+                    const nameMatch = (s.senderName?.toLowerCase().includes(searchTerm) || s.receiverName?.toLowerCase().includes(searchTerm) || s.invoiceNumber?.toLowerCase().includes(searchTerm));
+                    const statusMatch = (statusFilter === 'All' || s.paymentStatus === statusFilter);
+                    return nameMatch && statusMatch;
+                });
+
+                if (filteredShipments.length === 0) {
+                    paymentsTableTbody.innerHTML = '<tr><td colspan="8" style="text-align: center;">No shipments match your filters.</td></tr>';
+                    updatePaymentSummary(filteredShipments); // Update summary even if empty
+                    return;
+                }
+
+                // Sort by date, newest first
+                filteredShipments.sort((a, b) => new Date(b.invoiceDate) - new Date(a.invoiceDate));
+                
+                filteredShipments.forEach(shipment => {
+                    const totalAmount = parseFloat(shipment.paymentTotal) || 0;
+                    const amountPaid = parseFloat(shipment.amountPaid) || 0;
+                    const balanceDue = totalAmount - amountPaid;
+                    
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${shipment.invoiceNumber}</td>
+                        <td>${shipment.invoiceDate}</td>
+                        <td>${shipment.senderName}</td>
+                        <td class="number-cell">$${totalAmount.toFixed(2)}</td>
+                        <td>
+                            <input type="number" class="payment-update" data-id="${shipment.id}" data-field="amountPaid" value="${amountPaid.toFixed(2)}" min="0" step="0.01">
+                        </td>
+                        <td class="number-cell balance-due ${balanceDue <= 0 ? 'zero' : (balanceDue < 0 ? 'negative' : '')}">
+                            $${balanceDue.toFixed(2)}
+                        </td>
+                        <td>
+                            <select class="payment-update" data-id="${shipment.id}" data-field="paymentStatus">
+                                <option value="Not-Paid" ${shipment.paymentStatus === 'Not-Paid' ? 'selected' : ''}>Not Paid</option>
+                                <option value="Partially-Paid" ${shipment.paymentStatus === 'Partially-Paid' ? 'selected' : ''}>Partially Paid</option>
+                                <option value="Paid" ${shipment.paymentStatus === 'Paid' ? 'selected' : ''}>Paid</option>
+                            </select>
+                        </td>
+                        <td>
+                             <select class="payment-update" data-id="${shipment.id}" data-field="paymentMethod">
+                                <option value="" ${!shipment.paymentMethod ? 'selected' : ''}>N/A</option>
+                                <option value="Cash" ${shipment.paymentMethod === 'Cash' ? 'selected' : ''}>Cash</option>
+                                <option value="E-Transfer" ${shipment.paymentMethod === 'E-Transfer' ? 'selected' : ''}>E-Transfer</option>
+                                <option value="Card" ${shipment.paymentMethod === 'Card' ? 'selected' : ''}>Card</option>
+                            </select>
+                        </td>
+                    `;
+                    paymentsTableTbody.appendChild(row);
+                });
+
+                updatePaymentSummary(filteredShipments);
+            }
+
+            function updatePaymentSummary(filteredData) {
+                let totalDue = 0;
+                let totalPaid = 0;
+                
+                filteredData.forEach(s => {
+                    const total = parseFloat(s.paymentTotal) || 0;
+                    const paid = parseFloat(s.amountPaid) || 0;
+                    const balance = total - paid;
+                    
+                    if (balance > 0) {
+                        totalDue += balance;
+                    }
+                    if (paid > 0) {
+                         totalPaid += paid;
+                    }
+                });
+
+                document.getElementById('payment-summary-due').textContent = `$${totalDue.toFixed(2)}`;
+                document.getElementById('payment-summary-paid').textContent = `$${totalPaid.toFixed(2)}`;
+                document.getElementById('payment-summary-count').textContent = filteredData.length;
+            }
+
+            // Event listeners for payment filters
+            paymentSearchInput.addEventListener('input', renderPaymentsTable);
+            paymentStatusFilterSelect.addEventListener('change', renderPaymentsTable);
+
+            // Event listener for updating payment fields in the table
+            paymentsTableTbody.addEventListener('change', async (e) => {
+                if (e.target.classList.contains('payment-update')) {
+                    const shipmentId = e.target.dataset.id;
+                    const field = e.target.dataset.field;
+                    const value = e.target.value;
+
+                    if (!shipmentId || !field) return;
+
+                    const updateData = {};
+                    updateData[field] = value;
+                    
+                    // Optional: Auto-update status based on amount paid
+                    if (field === 'amountPaid') {
+                        const row = e.target.closest('tr');
+                        const totalAmountText = row.cells[3].textContent.replace('$', '');
+                        const totalAmount = parseFloat(totalAmountText) || 0;
+                        const newAmountPaid = parseFloat(value) || 0;
+                        const statusSelect = row.querySelector('select[data-field="paymentStatus"]');
+                        
+                        if (newAmountPaid <= 0) {
+                             updateData['paymentStatus'] = 'Not-Paid';
+                             if(statusSelect) statusSelect.value = 'Not-Paid'; // Update UI immediately
+                        } else if (newAmountPaid >= totalAmount) {
+                             updateData['paymentStatus'] = 'Paid';
+                             if(statusSelect) statusSelect.value = 'Paid';
+                        } else {
+                             updateData['paymentStatus'] = 'Partially-Paid';
+                             if(statusSelect) statusSelect.value = 'Partially-Paid';
+                        }
+                    }
+
+                    try {
+                        const shipmentRef = dbRef(db, 'shipments/' + shipmentId);
+                        await dbUpdate(shipmentRef, updateData);
+                        // No need to manually re-render, onValue listener handles it.
+                        // However, recalculate balance immediately for visual feedback
+                        const row = e.target.closest('tr');
+                        const totalAmountText = row.cells[3].textContent.replace('$', '');
+                        const totalAmount = parseFloat(totalAmountText) || 0;
+                        const currentAmountPaid = parseFloat(row.querySelector('input[data-field="amountPaid"]').value) || 0;
+                        const balanceCell = row.cells[5];
+                        const newBalance = totalAmount - currentAmountPaid;
+                        balanceCell.textContent = `$${newBalance.toFixed(2)}`;
+                        balanceCell.className = `number-cell balance-due ${newBalance <= 0 ? 'zero' : (newBalance < 0 ? 'negative' : '')}`;
+
+                    } catch (error) {
+                        console.error("Error updating payment field:", error);
+                        alert("Error saving payment update. See console.");
+                        // Optional: Revert UI change on error
+                        e.target.value = e.target.defaultValue; // Revert input/select
+                    }
+                }
+            });
+
+
+            // --- 7. PDF & Excel Export Functions (Adapted from original file) ---
+            // These functions remain largely the same, using `local_items` and form values
             
             let fetchedLogoBase64 = null;
-            async function fetchLogoAsBase64() {
+            async function fetchLogoAsBase64() { /* ... unchanged ... */ 
                 if (fetchedLogoBase64) return fetchedLogoBase64;
-                const logoUrl = 'https://raw.githubusercontent.com/crickerr26/bee26cargomanager/main/BEE26.png'; // Using PNG
+                const logoUrl = 'https://raw.githubusercontent.com/crickerr26/bee26cargomanager/main/BEE26.png'; 
                 try {
                     const response = await fetch(logoUrl);
                     if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
@@ -912,11 +1187,10 @@
                 }
             }
 
-            function addPdfFooter(doc) {
-                 if (!doc || typeof doc.setFontSize !== 'function') return;
+            function addPdfFooter(doc) { /* ... unchanged ... */ 
+                if (!doc || typeof doc.setFontSize !== 'function') return;
                  try {
-                     doc.setFontSize(9);
-                     doc.setFont("helvetica", "normal");
+                     doc.setFontSize(9); doc.setFont("helvetica", "normal");
                      const pageHeight = doc.internal.pageSize.height || doc.internal.pageSize.getHeight();
                      const pageCount = doc.internal.getNumberOfPages();
                      for (let i = 1; i <= pageCount; i++) {
@@ -927,266 +1201,143 @@
                  } catch (error) { console.error("Error adding PDF footer:", error); }
             }
 
-            async function generatePDF(docType, action = 'save') {
-                let pdfWindow = null;
+            async function generatePDF(docType, action = 'save') { /* ... unchanged ... */ 
+                 let pdfWindow = null;
                 if (action === 'open') {
                     pdfWindow = window.open('', '_blank');
-                    if (pdfWindow) {
-                        pdfWindow.document.write('<html><head><title>Loading PDF...</title></head><body><p>Please wait...</p></body></html>');
-                    } else {
-                        alert('Pop-up blocked! Please allow pop-ups for this site to print.');
-                        return;
-                    }
+                    if (pdfWindow) { pdfWindow.document.write('...'); } else { alert('Pop-up blocked!'); return; }
                 }
-
                 try {
                     const { jsPDF } = window.jspdf;
-                    if (!jsPDF || typeof window.jspdf.jsPDF !== 'function') {
-                        alert("Error: jsPDF library not loaded.");
-                        if (pdfWindow) pdfWindow.close();
-                        return;
-                    }
+                    if (!jsPDF) { throw new Error("jsPDF library not loaded."); }
                     const doc = new jsPDF('p', 'pt', 'a4');
-                    if (typeof doc.autoTable !== 'function') {
-                        alert("Error: jsPDF AutoTable plugin not loaded.");
-                        if (pdfWindow) pdfWindow.close();
-                        return;
-                    }
-
-                    // --- Start ASYNC operation ---
+                    if (typeof doc.autoTable !== 'function') { throw new Error("jsPDF AutoTable plugin not loaded."); }
                     const logoBase64Data = await fetchLogoAsBase64();
-                    // --- End ASYNC operation ---
-
-                    const pageHeight = doc.internal.pageSize.height;
-                    const pageWidth = doc.internal.pageSize.width;
+                    const pageHeight = doc.internal.pageSize.height, pageWidth = doc.internal.pageSize.width;
                     const leftMargin = 40, rightMargin = 40, topMargin = 30, bottomMargin = 40;
                     const contentWidth = pageWidth - leftMargin - rightMargin;
                     const halfWidth = contentWidth / 2;
-                    const senderX = leftMargin;
-                    const receiverX = leftMargin + halfWidth + 15;
-                    const receiverWidth = halfWidth - 15;
-                    const senderWidth = halfWidth - 5;
+                    const senderX = leftMargin, receiverX = leftMargin + halfWidth + 15;
+                    const receiverWidth = halfWidth - 15, senderWidth = halfWidth - 5;
                     let currentY = topMargin;
-                    const lineSpacing = 10;
-                    const sectionSpacing = 15;
-                    
-                    // --- Get data from forms ---
-                    const senderName = document.getElementById('senderName').value;
-                    const receiverName = document.getElementById('receiverName').value;
-                    const receiverPhone = document.getElementById('receiverPhone').value;
-                    const receiverAddress = document.getElementById('receiverAddress').value;
-                    const invoiceNumber = document.getElementById('invoiceNumber').value;
-                    const invoiceDate = document.getElementById('invoiceDate').value;
-                    const hsCode = document.getElementById('hsCode').value;
-                    const totalPackages = document.getElementById('totalPackages').value;
-                    const totalWeight = document.getElementById('totalWeight').value;
-                    const paymentTotal = parseFloat(document.getElementById('paymentTotal').value) || 0;
+                    const lineSpacing = 10, sectionSpacing = 15;
+                    const senderName = document.getElementById('senderName').value, receiverName = document.getElementById('receiverName').value;
+                    const receiverPhone = document.getElementById('receiverPhone').value, receiverAddress = document.getElementById('receiverAddress').value;
+                    const invoiceNumber = document.getElementById('invoiceNumber').value, invoiceDate = document.getElementById('invoiceDate').value;
+                    const hsCode = document.getElementById('hsCode').value, totalPackages = document.getElementById('totalPackages').value;
+                    const totalWeight = document.getElementById('totalWeight').value, paymentTotal = parseFloat(document.getElementById('paymentTotal').value) || 0;
 
-                    // --- Section 1: Logo and Title ---
-                    if (logoBase64Data) {
-                        try {
-                            const imgHeight = 40, imgWidth = 107;
-                            doc.addImage(logoBase64Data, 'PNG', leftMargin, currentY, imgWidth, imgHeight);
-                            currentY += imgHeight + 10;
-                        } catch (imgError) { console.error("Error adding PDF logo:", imgError); }
-                    } else { currentY += 50; }
-
-                    doc.setFontSize(16);
-                    doc.setFont("helvetica", "bold");
-                    doc.text(docType, pageWidth / 2, currentY, { align: 'center' });
-                    currentY += 20;
-
-                    // --- Section 2: Sender Address & Invoice Details ---
-                    let senderBlockY = currentY;
-                    doc.setFontSize(9);
-                    doc.setFont("helvetica", "bold");
-                    doc.text("BEE26 CARGO SERVICES", leftMargin, senderBlockY);
-                    senderBlockY += lineSpacing;
-                    doc.setFont("helvetica", "normal");
-                    const addressLines = [
-                        "MOHAMED IMSAMAM MOHAED RIZAN", "1001260111 - BIN", "614-2 MILEPOST PLACE, EAST YORK,",
-                        "ONTARIO, M4H 1C7", "+1 416 474 4994", "bee26cargoservices@gmail.com"
-                    ];
-                    addressLines.forEach(line => {
-                        const splitLines = doc.splitTextToSize(line, senderWidth);
-                        doc.text(splitLines, leftMargin, senderBlockY);
-                        senderBlockY += (splitLines.length * lineSpacing);
-                    });
-                    if (invoiceNumber) {
-                         senderBlockY += lineSpacing * 0.5;
-                         doc.setFont("helvetica", "bold");
-                         doc.text(`Invoice #: ${invoiceNumber}`, leftMargin, senderBlockY);
-                         senderBlockY += lineSpacing;
-                    }
-                    if (docType === 'Commercial Invoice' && invoiceDate) {
-                         doc.setFont("helvetica", "bold");
-                         doc.text("Date: ", leftMargin, senderBlockY);
-                         doc.setFont("helvetica", "normal");
-                         doc.text(invoiceDate, leftMargin + 30, senderBlockY);
-                         senderBlockY += lineSpacing;
-                    }
-
-                    // --- Section 3: Receiver Address ---
-                    let receiverBlockY = currentY;
-                    doc.setFontSize(10);
-                    doc.setFont("helvetica", "bold");
-                    doc.text("TO (Receiver):", receiverX, receiverBlockY);
-                    receiverBlockY += lineSpacing * 1.5;
-                    doc.setFont("helvetica", "normal");
-                    doc.setFontSize(9);
-                    doc.text(receiverName, receiverX, receiverBlockY); receiverBlockY += lineSpacing;
-                    doc.text(receiverPhone, receiverX, receiverBlockY); receiverBlockY += lineSpacing;
-                    const receiverAddressLines = doc.splitTextToSize(receiverAddress, receiverWidth);
-                    doc.text(receiverAddressLines, receiverX, receiverBlockY);
-                    receiverBlockY += (receiverAddressLines.length * lineSpacing);
-                    if (docType === 'Commercial Invoice' && hsCode) {
-                         receiverBlockY += lineSpacing * 0.5;
-                         doc.setFont("helvetica", "bold");
-                         doc.text("HS Code (Overall): ", receiverX, receiverBlockY);
-                         doc.setFont("helvetica", "normal");
-                         doc.text(hsCode, receiverX + 80, receiverBlockY);
-                    }
-
-                    // --- Section 4: Table ---
+                    if (logoBase64Data) { try { const imgHeight = 40, imgWidth = 107; doc.addImage(logoBase64Data, 'PNG', leftMargin, currentY, imgWidth, imgHeight); currentY += imgHeight + 10; } catch (e) { console.error(e); } } else { currentY += 50; }
+                    doc.setFontSize(16); doc.setFont("helvetica", "bold"); doc.text(docType, pageWidth / 2, currentY, { align: 'center' }); currentY += 20;
+                    let senderBlockY = currentY; doc.setFontSize(9); doc.setFont("helvetica", "bold"); doc.text("BEE26 CARGO SERVICES", leftMargin, senderBlockY); senderBlockY += lineSpacing; doc.setFont("helvetica", "normal");
+                    const addressLines = ["MOHAMED IMSAMAM MOHAED RIZAN", "1001260111 - BIN", "614-2 MILEPOST PLACE, EAST YORK,", "ONTARIO, M4H 1C7", "+1 416 474 4994", "bee26cargoservices@gmail.com"];
+                    addressLines.forEach(line => { const splitLines = doc.splitTextToSize(line, senderWidth); doc.text(splitLines, leftMargin, senderBlockY); senderBlockY += (splitLines.length * lineSpacing); });
+                    if (invoiceNumber) { senderBlockY += lineSpacing * 0.5; doc.setFont("helvetica", "bold"); doc.text(`Invoice #: ${invoiceNumber}`, leftMargin, senderBlockY); senderBlockY += lineSpacing; }
+                    if (docType === 'Commercial Invoice' && invoiceDate) { doc.setFont("helvetica", "bold"); doc.text("Date: ", leftMargin, senderBlockY); doc.setFont("helvetica", "normal"); doc.text(invoiceDate, leftMargin + 30, senderBlockY); senderBlockY += lineSpacing; }
+                    let receiverBlockY = currentY; doc.setFontSize(10); doc.setFont("helvetica", "bold"); doc.text("TO (Receiver):", receiverX, receiverBlockY); receiverBlockY += lineSpacing * 1.5; doc.setFont("helvetica", "normal"); doc.setFontSize(9);
+                    doc.text(receiverName, receiverX, receiverBlockY); receiverBlockY += lineSpacing; doc.text(receiverPhone, receiverX, receiverBlockY); receiverBlockY += lineSpacing;
+                    const receiverAddressLines = doc.splitTextToSize(receiverAddress, receiverWidth); doc.text(receiverAddressLines, receiverX, receiverBlockY); receiverBlockY += (receiverAddressLines.length * lineSpacing);
+                    if (docType === 'Commercial Invoice' && hsCode) { receiverBlockY += lineSpacing * 0.5; doc.setFont("helvetica", "bold"); doc.text("HS Code (Overall): ", receiverX, receiverBlockY); doc.setFont("helvetica", "normal"); doc.text(hsCode, receiverX + 80, receiverBlockY); }
                     let tableStartY = Math.max(senderBlockY, receiverBlockY) + sectionSpacing;
                     const tableHead = [['#', 'Description', 'Category', 'Qty', 'Unit Value (CAD)', 'Total Value (CAD)']];
-                    const safeItems = Array.isArray(db_items) ? db_items : [];
-                    const tableBody = safeItems.map((item, index) => {
-                          const qty = parseFloat(item.qty) || 0;
-                          const value = parseFloat(item.value) || 0;
-                          return [index + 1, item.desc || '', item.category || '', qty, value.toFixed(2), (qty * value).toFixed(2)];
-                     });
-                    doc.autoTable({
-                        head: tableHead, body: tableBody, startY: tableStartY, theme: 'grid',
-                        headStyles: { fillColor: [230, 230, 230], textColor: 0, fontStyle: 'bold', fontSize: 8 },
-                        styles: { fontSize: 8, cellPadding: 2, overflow: 'linebreak' },
-                        columnStyles: {
-                            0: { cellWidth: 20, halign: 'center' }, 3: { cellWidth: 30, halign: 'right' },
-                            4: { cellWidth: 50, halign: 'right' }, 5: { cellWidth: 50, halign: 'right' }
-                        },
-                        margin: { left: leftMargin, right: rightMargin }
-                    });
-
-                    // --- Section 5: Summary ---
+                    const safeItems = Array.isArray(local_items) ? local_items : [];
+                    const tableBody = safeItems.map((item, index) => [index + 1, item.desc || '', item.category || '', parseFloat(item.qty) || 0, (parseFloat(item.value) || 0).toFixed(2), ((parseFloat(item.qty) || 0) * (parseFloat(item.value) || 0)).toFixed(2)]);
+                    doc.autoTable({ head: tableHead, body: tableBody, startY: tableStartY, theme: 'grid', headStyles: { fillColor: [230, 230, 230], textColor: 0, fontStyle: 'bold', fontSize: 8 }, styles: { fontSize: 8, cellPadding: 2, overflow: 'linebreak' }, columnStyles: { 0: { cellWidth: 20, halign: 'center' }, 3: { cellWidth: 30, halign: 'right' }, 4: { cellWidth: 50, halign: 'right' }, 5: { cellWidth: 50, halign: 'right' } }, margin: { left: leftMargin, right: rightMargin } });
                     const finalY = doc.autoTable.previous.finalY;
                     const calculatedTotalValue = safeItems.reduce((sum, item) => sum + ((parseFloat(item.qty) || 0) * (parseFloat(item.value) || 0)), 0);
                     const totalQty = safeItems.reduce((sum, item) => sum + (parseFloat(item.qty) || 0), 0);
                     const displayValue = paymentTotal > 0 ? paymentTotal.toFixed(2) : calculatedTotalValue.toFixed(2);
-                    doc.setFontSize(10);
-                    doc.setFont("helvetica", "bold");
-                    let summaryY = finalY + sectionSpacing;
-                    const summaryRightX = pageWidth - rightMargin;
+                    doc.setFontSize(10); doc.setFont("helvetica", "bold"); let summaryY = finalY + sectionSpacing; const summaryRightX = pageWidth - rightMargin;
                     if (summaryY > pageHeight - bottomMargin - (lineSpacing * 6)) { doc.addPage(); summaryY = topMargin + 20; }
-                    doc.text(`Total Quantity:`, leftMargin, summaryY);
-                    doc.text(`${totalQty} pcs`, summaryRightX, summaryY, { align: 'right'});
-                    summaryY += lineSpacing * 1.5;
-                    doc.text(`Total Packages:`, leftMargin, summaryY);
-                    doc.text(`${totalPackages || 'N/A'}`, summaryRightX, summaryY, { align: 'right'});
-                    summaryY += lineSpacing * 1.5;
-                    doc.text(`Total Net Weight:`, leftMargin, summaryY);
-                    doc.text(`${totalWeight || 'N/A'} kg`, summaryRightX, summaryY, { align: 'right'});
-                    summaryY += lineSpacing * 1.5;
-                    doc.text(`Total Declared Value:`, leftMargin, summaryY);
-                    doc.text(`$${displayValue} CAD`, summaryRightX, summaryY, { align: 'right'});
-
-                    // --- Section 6: Declaration ---
-                    doc.setFontSize(9);
-                    doc.setFont("helvetica", "bold");
-                    let declarationY = summaryY + sectionSpacing * 1.5;
+                    doc.text(`Total Quantity:`, leftMargin, summaryY); doc.text(`${totalQty} pcs`, summaryRightX, summaryY, { align: 'right'}); summaryY += lineSpacing * 1.5;
+                    doc.text(`Total Packages:`, leftMargin, summaryY); doc.text(`${totalPackages || 'N/A'}`, summaryRightX, summaryY, { align: 'right'}); summaryY += lineSpacing * 1.5;
+                    doc.text(`Total Net Weight:`, leftMargin, summaryY); doc.text(`${totalWeight || 'N/A'} kg`, summaryRightX, summaryY, { align: 'right'}); summaryY += lineSpacing * 1.5;
+                    doc.text(`Total Declared Value:`, leftMargin, summaryY); doc.text(`$${displayValue} CAD`, summaryRightX, summaryY, { align: 'right'});
+                    doc.setFontSize(9); doc.setFont("helvetica", "bold"); let declarationY = summaryY + sectionSpacing * 1.5;
                     if (declarationY > pageHeight - bottomMargin - lineSpacing) { doc.addPage(); declarationY = topMargin + 20; }
                     doc.text("Declaration: Personal Use – Not for Resale", leftMargin, declarationY);
-
-                    addPdfFooter(doc);
-                    const fileName = `${docType.replace(/ /g, '_')}_${invoiceNumber || 'Shipment'}.pdf`;
-
-                    if (action === 'open') {
-                        if (pdfWindow && doc && typeof doc.output === 'function') {
-                           pdfWindow.location.href = doc.output('datauristring');
-                        } else {
-                           if (pdfWindow) pdfWindow.close();
-                           alert("Error: Could not generate the PDF for printing.");
-                        }
-                    } else {
-                        if (doc && typeof doc.save === 'function') {
-                           doc.save(fileName);
-                        } else {
-                            alert("Error: Could not generate the PDF for saving.");
-                        }
-                    }
-                } catch (error) {
-                    if (action === 'open' && pdfWindow) pdfWindow.close();
-                    console.error("Error generating PDF:", error);
-                    alert("Sorry, there was an error generating the PDF. Check console for details.");
-                }
+                    addPdfFooter(doc); const fileName = `${docType.replace(/ /g, '_')}_${invoiceNumber || 'Shipment'}.pdf`;
+                    if (action === 'open') { if (pdfWindow && doc) { pdfWindow.location.href = doc.output('datauristring'); } else { if (pdfWindow) pdfWindow.close(); throw new Error("Could not generate PDF for printing."); } } else { if (doc) { doc.save(fileName); } else { throw new Error("Could not generate PDF for saving."); } }
+                } catch (error) { if (action === 'open' && pdfWindow) pdfWindow.close(); console.error("Error generating PDF:", error); alert("Sorry, there was an error generating the PDF."); }
             }
 
-            function generateExcel() {
+            function generateExcel() { /* ... unchanged ... */ 
                  try {
-                    if (typeof XLSX === 'undefined') {
-                         alert("Error: XLSX library not found."); return;
-                    }
-                    
-                    // --- Get data ---
-                    const senderName = document.getElementById('senderName').value;
-                    const receiverName = document.getElementById('receiverName').value;
-                    const receiverPhone = document.getElementById('receiverPhone').value;
-                    const receiverAddress = document.getElementById('receiverAddress').value;
-                    const invoiceNumber = document.getElementById('invoiceNumber').value;
-                    const invoiceDate = document.getElementById('invoiceDate').value;
-                    const totalPackages = document.getElementById('totalPackages').value;
-                    const hsCode = document.getElementById('hsCode').value;
-                    const totalWeight = document.getElementById('totalWeight').value;
+                    if (typeof XLSX === 'undefined') { alert("Error: XLSX library not found."); return; }
+                    const senderName = document.getElementById('senderName').value, receiverName = document.getElementById('receiverName').value, receiverPhone = document.getElementById('receiverPhone').value;
+                    const receiverAddress = document.getElementById('receiverAddress').value, invoiceNumber = document.getElementById('invoiceNumber').value, invoiceDate = document.getElementById('invoiceDate').value;
+                    const totalPackages = document.getElementById('totalPackages').value, hsCode = document.getElementById('hsCode').value, totalWeight = document.getElementById('totalWeight').value;
                     const paymentTotal = parseFloat(document.getElementById('paymentTotal').value) || 0;
-
-                    const infoData = [
-                        ["Shipment Details", ""],
-                        ["Sender Name", senderName], ["Receiver Name", receiverName], ["Receiver Phone", receiverPhone],
-                        ["Receiver Address", receiverAddress], ["", ""], ["Invoice #", invoiceNumber], ["Date", invoiceDate],
-                        ["Total Packages", totalPackages], ["HS Code", hsCode]
-                    ];
+                    const infoData = [ ["Shipment Details", ""], ["Sender Name", senderName], ["Receiver Name", receiverName], ["Receiver Phone", receiverPhone], ["Receiver Address", receiverAddress], ["", ""], ["Invoice #", invoiceNumber], ["Date", invoiceDate], ["Total Packages", totalPackages], ["HS Code", hsCode] ];
                     const wsInfo = XLSX.utils.aoa_to_sheet(infoData);
-
                     const itemsHeader = ['Description', 'Category', 'Quantity', 'Unit Value (CAD)', 'Total Value (CAD)'];
-                    const safeItems = Array.isArray(db_items) ? db_items : [];
-                    const itemsBody = safeItems.map(item => {
-                         const qty = parseFloat(item.qty) || 0;
-                         const value = parseFloat(item.value) || 0;
-                         return [item.desc || '', item.category || '', qty, value, qty * value];
-                    });
+                    const safeItems = Array.isArray(local_items) ? local_items : [];
+                    const itemsBody = safeItems.map(item => { const qty = parseFloat(item.qty) || 0, value = parseFloat(item.value) || 0; return [item.desc || '', item.category || '', qty, value, qty * value]; });
                     const totalQty = safeItems.reduce((sum, item) => sum + (parseFloat(item.qty) || 0), 0);
                     const calculatedTotalValue = safeItems.reduce((sum, item) => sum + ((parseFloat(item.qty) || 0) * (parseFloat(item.value) || 0)), 0);
                     const displayValue = paymentTotal > 0 ? paymentTotal : calculatedTotalValue;
                     const itemsFooter = ['TOTAL', '', totalQty, '', displayValue];
-
                     const wsItems = XLSX.utils.aoa_to_sheet([itemsHeader, ...itemsBody, [], itemsFooter]);
-                    
-                    // Add total weight to info sheet
                     XLSX.utils.sheet_add_aoa(wsInfo, [["Total Weight (kg)", totalWeight]], { origin: -1 });
-
                     const wb = XLSX.utils.book_new();
                     XLSX.utils.book_append_sheet(wb, wsInfo, "Shipment Info");
                     XLSX.utils.book_append_sheet(wb, wsItems, "Packing List");
-
                     const fileName = `Bee26_Shipment_${invoiceNumber || ''}.xlsx`;
                     XLSX.writeFile(wb, fileName);
-                 } catch (error) {
-                    console.error("Error generating Excel:", error);
-                    alert("Sorry, there was an error generating the Excel file.");
-                 }
+                 } catch (error) { console.error("Error generating Excel:", error); alert("Sorry, there was an error generating the Excel file."); }
              }
 
-            // *** THIS IS THE FIX ***
-            // Attach listeners to Doc buttons with correct syntax
+            // Attach listeners to Doc buttons
             document.getElementById('printPackingListBtn').addEventListener('click', () => generatePDF('Packing List', 'open'));
             document.getElementById('exportInvoicePDF').addEventListener('click', () => generatePDF('Commercial Invoice', 'save'));
             document.getElementById('exportPackingListExcel').addEventListener('click', generateExcel);
 
 
-            // --- 7. Initial Load ---
-            updateDashboardStats(); // Run on load
+            // --- 8. Initial Load & Firebase Data Listener ---
+            
+            function listenForData() {
+                const shipmentsRef = dbRef(db, 'shipments');
+                
+                dbOnValue(shipmentsRef, (snapshot) => {
+                    console.log("Firebase data received"); // Add log
+                    local_shipments_cache = []; 
+                    if (snapshot.exists()) {
+                        const data = snapshot.val();
+                        for (const key in data) {
+                            // Ensure items is always an array, even if missing in Firebase
+                            const shipmentData = data[key];
+                            if (!shipmentData.items) {
+                                shipmentData.items = [];
+                            }
+                            local_shipments_cache.push({ id: key, ...shipmentData });
+                        }
+                        console.log("Shipments loaded:", local_shipments_cache.length); // Add log
+                    } else {
+                         console.log("No shipments found in Firebase."); // Add log
+                    }
+                    
+                    // Re-render all relevant UI elements
+                    renderShipmentsTable();
+                    renderCustomersTable();
+                    renderPaymentsTable(); // Render payments table too
+                    updateDashboardStats();
+                    
+                }, (error) => {
+                    console.error("Firebase data read failed: ", error);
+                    alert("Could not load data from Firebase. See console.");
+                     // Optionally clear tables or show error message in tables
+                    shipmentsTableTbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: red;">Error loading data.</td></tr>';
+                    customersTableTbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: red;">Error loading data.</td></tr>';
+                    paymentsTableTbody.innerHTML = '<tr><td colspan="8" style="text-align: center; color: red;">Error loading data.</td></tr>';
+                    recentActivityTbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: red;">Error loading data.</td></tr>';
+                });
+            }
             
             // Set default invoice date
             document.getElementById('invoiceDate').valueAsDate = new Date();
+            
+            // Start listening
+            listenForData();
 
         });
     </script>
