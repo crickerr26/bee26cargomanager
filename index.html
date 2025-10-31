@@ -159,6 +159,36 @@
         .status-Paid { background-color: var(--green-light); color: var(--green); }
         .status-Partially-Paid { background-color: var(--orange-light); color: var(--orange); }
 
+        /* --- NEW CSS for status selects --- */
+        .status-select {
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            border: none;
+            background-color: transparent;
+            font-size: 0.8rem;
+            font-weight: 600;
+            padding: 0.25rem 0.75rem;
+            border-radius: 12px;
+            cursor: pointer;
+            width: 100%;
+            min-width: 110px; /* Ensure it's wide enough */
+        }
+        .status-select:focus {
+            outline: none;
+            box-shadow: 0 0 0 2px var(--blue-light);
+        }
+        
+        /* Color coding for the select itself */
+        .status-select.status-Pending { background-color: var(--orange-light); color: var(--orange); }
+        .status-select.status-Shipped { background-color: var(--blue-light); color: var(--blue); }
+        .status-select.status-Delivered { background-color: var(--green-light); color: var(--green); }
+        
+        .status-select.status-Not-Paid { background-color: var(--red-light); color: var(--red); }
+        .status-select.status-Paid { background-color: var(--green-light); color: var(--green); }
+        .status-select.status-Partially-Paid { background-color: var(--orange-light); color: var(--orange); }
+
+
         /* --- 7. New Shipment Wizard --- */
         .stepper { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; padding: 1rem; background-color: var(--bg-white); border-radius: var(--border-radius); box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
         .step { display: flex; align-items: center; flex-direction: column; flex-grow: 1; position: relative; }
@@ -648,9 +678,15 @@
 
             function navigateToPage(pageId) {
                 // BUGGY LOGIC WAS HERE. This logic is now fixed.
-                if (pageId === 'page-new-shipment' && (headerActionBtn.textContent.includes('Create') || headerActionBtn.textContent.includes('Add'))) {
+                // Clear wizard only if navigating TO new shipment AND the button suggests creating new
+                 if (pageId === 'page-new-shipment' && currentEditShipmentId === null && (headerActionBtn.textContent.includes('Create') || headerActionBtn.textContent.includes('Add'))) {
                     clearWizard(); 
-                }
+                 } else if (pageId !== 'page-new-shipment') {
+                     // If leaving the wizard page, ensure nav buttons are re-enabled
+                     prevBtn.disabled = false;
+                     nextBtn.disabled = false;
+                 }
+
                 pages.forEach(p => p.classList.remove('active'));
                 document.getElementById(pageId).classList.add('active');
                 navLinks.forEach(l => l.classList.remove('active'));
@@ -658,14 +694,18 @@
                 
                 const meta = pageMeta[pageId];
                 
-                // This check prevents the title from being reset to "New Shipment" when editing.
-                if (meta && pageTitle.textContent !== 'Edit Shipment') { 
+                // This check prevents the title from being reset to "New Shipment" when editing or viewing.
+                const isViewingOrEditing = pageTitle.textContent === 'Edit Shipment' || pageTitle.textContent === 'Review Shipment';
+                if (meta && (!isViewingOrEditing || pageId !== 'page-new-shipment')) { 
                     pageTitle.textContent = meta.title;
                     pageSubtitle.textContent = meta.subtitle;
-                } else if (meta) {
-                    // It is the "Edit Shipment" page, just update the button
-                    pageSubtitle.textContent = pageSubtitle.textContent || meta.subtitle; // Keep the "Editing Invoice..." subtitle
+                } else if (meta && isViewingOrEditing && pageId === 'page-new-shipment') {
+                     // Keep the "Editing/Viewing Invoice..." subtitle if staying on the page
+                    pageSubtitle.textContent = pageSubtitle.textContent || meta.subtitle; 
+                } else if (!meta && pageId === 'page-new-shipment') {
+                     // Keep title/subtitle if navigating within wizard steps without meta (e.g., during load)
                 }
+
 
                 if (meta) { // This part always runs to set the button correctly
                     if (meta.actionText) {
@@ -685,9 +725,10 @@
 
             navLinks.forEach(link => {
                 link.addEventListener('click', (e) => {
-                    // When manually clicking a nav link, if we leave the edit page, reset the title
-                    if(pageTitle.textContent === 'Edit Shipment' && e.currentTarget.dataset.page !== 'page-new-shipment') {
+                    // When manually clicking a nav link, if we leave the edit/view page, reset the title
+                    if((pageTitle.textContent === 'Edit Shipment' || pageTitle.textContent === 'Review Shipment') && e.currentTarget.dataset.page !== 'page-new-shipment') {
                          pageTitle.textContent = ''; // Allow navigateToPage to set it
+                         currentEditShipmentId = null; // Clear edit/view mode
                     }
                     navigateToPage(e.currentTarget.dataset.page)
                 });
@@ -710,7 +751,7 @@
                 'Save & Finish Shipment'
             ];
 
-            function updateWizard(jumpToStep = null) { /* ... updateWizard function remains the same ... */ 
+            function updateWizard(jumpToStep = null) { 
                 wizardCurrentStep = jumpToStep !== null ? jumpToStep : wizardCurrentStep;
                 stepContents.forEach((content, index) => {
                     content.classList.toggle('active', (index + 1) === wizardCurrentStep);
@@ -720,18 +761,34 @@
                     step.classList.toggle('active', stepNum === wizardCurrentStep);
                     step.classList.toggle('completed', stepNum < wizardCurrentStep);
                 });
-                prevBtn.disabled = (wizardCurrentStep === 1);
-                if (currentEditShipmentId !== null) { 
+
+                // --- Logic for enabling/disabling buttons ---
+                const isViewing = pageTitle.textContent === 'Review Shipment'; // Check if in view mode
+
+                prevBtn.disabled = (wizardCurrentStep === 1) || isViewing; // Disable if first step OR viewing
+
+                if (isViewing) {
+                    nextBtn.disabled = true;
+                    nextBtn.textContent = 'Viewing...';
+                } else if (currentEditShipmentId !== null) { 
+                    nextBtn.disabled = false;
                     nextBtn.textContent = (wizardCurrentStep === totalSteps) ? 'Update Shipment' : nextLabels[wizardCurrentStep - 1];
                 } else { 
+                    nextBtn.disabled = false;
                     nextBtn.textContent = nextLabels[wizardCurrentStep - 1];
                 }
+                // --- End button logic ---
+
                 if (wizardCurrentStep === 4) {
                     populateReviewStep();
                 }
             }
 
+
             nextBtn.addEventListener('click', async () => { 
+                 // Prevent action if viewing
+                 if (pageTitle.textContent === 'Review Shipment') return;
+
                 if (wizardCurrentStep < totalSteps) {
                     wizardCurrentStep++;
                     updateWizard();
@@ -744,6 +801,9 @@
             });
 
             prevBtn.addEventListener('click', () => {
+                 // Prevent action if viewing
+                 if (pageTitle.textContent === 'Review Shipment') return;
+                 
                 if (wizardCurrentStep > 1) {
                     wizardCurrentStep--;
                     updateWizard();
@@ -767,16 +827,20 @@
                 currentEditItemId = null;
                 currentEditShipmentId = null; 
 
-                // Reset page title if it was in edit mode
-                if (pageTitle.textContent === 'Edit Shipment') {
+                // Reset page title if it was in edit/view mode
+                if (pageTitle.textContent === 'Edit Shipment' || pageTitle.textContent === 'Review Shipment') {
                      const meta = pageMeta['page-new-shipment'];
                      pageTitle.textContent = meta.title;
                      pageSubtitle.textContent = meta.subtitle;
+                     // Ensure nav buttons are re-enabled
+                     prevBtn.disabled = false;
+                     nextBtn.disabled = false;
                 }
 
+                
                 wizardCurrentStep = 1;
                 renderItemTable();
-                updateWizard();
+                updateWizard(); // Update wizard state after clearing
             }
 
             // --- 3. Item CRUD (Manages local_items array) ---
@@ -965,6 +1029,9 @@
                 }
             }
 
+             // =============================================
+             // --- THIS IS THE NEW HELPER FUNCTION ---
+             // =============================================
             // Helper function to load data into the wizard form
             function _populateWizardWithData(shipment) {
                  if (!shipment) return false;
@@ -993,7 +1060,11 @@
                 renderItemTable();
                 return true; // Indicate success
             }
-// Function called when EDIT button is clicked
+
+            // =============================================
+            // --- THESE ARE THE NEW loadShipment... FUNCTIONS ---
+            // =============================================
+            // Function called when EDIT button is clicked
             function loadShipmentForEdit(shipmentId) {
                 const shipment = local_shipments_cache.find(s => s.id === shipmentId);
                 if (!_populateWizardWithData(shipment)) {
@@ -1037,11 +1108,8 @@
                  headerActionBtn.style.display = 'none'; // Hide header action button
 
                  updateWizard(4); // Set wizard to step 4
-                 // Disable wizard navigation buttons in view mode (optional but recommended)
-                 prevBtn.disabled = true;
-                 nextBtn.disabled = true;
-                 nextBtn.textContent = 'Viewing...'; // Indicate view-only mode
             }
+
 
             // --- 5. Data Table Rendering (Reads from local_shipments_cache) ---
             const shipmentsTableTbody = document.getElementById('shipmentsTableTbody');
@@ -1059,15 +1127,60 @@
                     return;
                 }
                 const sortedShipments = [...local_shipments_cache].sort((a, b) => new Date(b.invoiceDate) - new Date(a.invoiceDate));
+                
+                // Helper function to apply color class to select
+                const updateSelectColor = (select) => {
+                    select.className = 'status-select'; // Reset classes
+                    select.classList.add(`status-${select.value.replace(' ','-')}`);
+                };
+
                 sortedShipments.forEach(shipment => {
                     const row = document.createElement('tr');
+                    
+                    // --- Create Delivery Status Select ---
+                    const deliveryStatusSelect = document.createElement('select');
+                    deliveryStatusSelect.className = 'status-select';
+                    deliveryStatusSelect.dataset.id = shipment.id;
+                    deliveryStatusSelect.dataset.field = 'deliveryStatus';
+                    deliveryStatusSelect.innerHTML = `
+                        <option value="Pending" ${shipment.deliveryStatus === 'Pending' ? 'selected' : ''}>Pending</option>
+                        <option value="Shipped" ${shipment.deliveryStatus === 'Shipped' ? 'selected' : ''}>Shipped</option>
+                        <option value="Delivered" ${shipment.deliveryStatus === 'Delivered' ? 'selected' : ''}>Delivered</option>
+                    `;
+                    updateSelectColor(deliveryStatusSelect); // Set initial color
+                    deliveryStatusSelect.onchange = () => updateSelectColor(deliveryStatusSelect); // Update color on change
+
+                    // --- Create Payment Status Select ---
+                    const paymentStatusSelect = document.createElement('select');
+                    paymentStatusSelect.className = 'status-select';
+                    paymentStatusSelect.dataset.id = shipment.id;
+                    paymentStatusSelect.dataset.field = 'paymentStatus';
+                    paymentStatusSelect.innerHTML = `
+                        <option value="Not-Paid" ${shipment.paymentStatus === 'Not-Paid' ? 'selected' : ''}>Not Paid</option>
+                        <option value="Partially-Paid" ${shipment.paymentStatus === 'Partially-Paid' ? 'selected' : ''}>Partially Paid</option>
+                        <option value="Paid" ${shipment.paymentStatus === 'Paid' ? 'selected' : ''}>Paid</option>
+                    `;
+                    updateSelectColor(paymentStatusSelect); // Set initial color
+                    paymentStatusSelect.onchange = () => updateSelectColor(paymentStatusSelect); // Update color on change
+
+                    // --- Build Row ---
                     row.innerHTML = `
                         <td>${shipment.invoiceNumber}</td>
                         <td>${shipment.invoiceDate}</td>
                         <td>${shipment.senderName}</td>
                         <td>${shipment.receiverName}</td>
-                        <td><span class="status-badge status-${shipment.deliveryStatus}">${shipment.deliveryStatus}</span></td>
-                        <td><span class="status-badge status-${shipment.paymentStatus.replace(' ','-')}">${shipment.paymentStatus.replace('-',' ')}</span></td>
+                    `;
+                    
+                    // Append elements to preserve event listeners
+                    const deliveryTd = document.createElement('td');
+                    deliveryTd.appendChild(deliveryStatusSelect);
+                    row.appendChild(deliveryTd);
+                    
+                    const paymentTd = document.createElement('td');
+                    paymentTd.appendChild(paymentStatusSelect);
+                    row.appendChild(paymentTd);
+
+                    row.innerHTML += `
                         <td class="table-actions">
                             <button class="btn btn-secondary btn-small view-shipment-btn" data-id="${shipment.id}">View</button>
                             <button class="btn btn-primary btn-small edit-shipment-btn" data-id="${shipment.id}">Edit</button>
@@ -1081,6 +1194,31 @@
             // =============================================
             // --- THIS IS THE UPDATED addEventListener FUNCTION ---
             // =============================================
+            // This new listener handles the dropdown changes
+            shipmentsTableTbody.addEventListener('change', async (e) => {
+                if (e.target.classList.contains('status-select')) {
+                    const shipmentId = e.target.dataset.id;
+                    const field = e.target.dataset.field;
+                    const value = e.target.value;
+
+                    if (!shipmentId || !field) return;
+
+                    const updateData = {};
+                    updateData[field] = value;
+
+                    try {
+                        const shipmentRef = dbRef(db, 'shipments/' + shipmentId);
+                        await dbUpdate(shipmentRef, updateData);
+                        // The onValue listener will handle the full re-render,
+                        // and the select's onchange handler already updated its color.
+                    } catch (error) {
+                        console.error("Error updating status:", error);
+                        alert("Error: Could not save status update. See console.");
+                    }
+                }
+            });
+
+            // This listener now just handles the button clicks
             shipmentsTableTbody.addEventListener('click', (e) => {
                 const shipmentId = e.target.dataset.id;
                 if (!shipmentId) return; // Ignore clicks without a data-id
