@@ -251,7 +251,7 @@
             border-color: var(--blue);
             box-shadow: 0 0 0 1px var(--blue-light);
         }
-        .payments-table td.number-cell { text-align: right; } /* Align numbers */
+        .payments-table td.number-cell, .styled-table td.number-cell { text-align: right; } /* Align numbers */
         .payments-table td.balance-due { font-weight: 600; }
         .payments-table td.balance-due.zero { color: var(--green); }
         .payments-table td.balance-due.negative { color: var(--red); }
@@ -1157,10 +1157,16 @@
             // =============================================
             // --- THIS IS THE UPDATED renderShipmentsTable FUNCTION ---
             // =============================================
-            function renderShipmentsTable() { 
+            function renderShipmentsTable() {
+                // *** Find the table header and update it ***
+                const tableHeader = document.querySelector('#page-all-shipments .styled-table thead tr');
+                if (tableHeader) {
+                    tableHeader.innerHTML = '<th>Invoice #</th><th>Date</th><th>Sender</th><th>Receiver</th><th>Total Amt</th><th>Status</th><th>Payment</th><th>Actions</th>';
+                }
+
                  shipmentsTableTbody.innerHTML = '';
                 if (local_shipments_cache.length === 0) {
-                    shipmentsTableTbody.innerHTML = '<tr><td colspan="7" style="text-align: center;">No shipments created yet.</td></tr>';
+                    shipmentsTableTbody.innerHTML = '<tr><td colspan="8" style="text-align: center;">No shipments created yet.</td></tr>'; // Colspan is now 8
                     return;
                 }
                 const sortedShipments = [...local_shipments_cache].sort((a, b) => new Date(b.invoiceDate) - new Date(a.invoiceDate));
@@ -1174,6 +1180,12 @@
                 sortedShipments.forEach(shipment => {
                     const row = document.createElement('tr');
                     
+                    // *** NEW: Calculate Total Amount ***
+                    const serviceFee = parseFloat(shipment.paymentTotal) || 0;
+                    const additionalCharges = parseFloat(shipment.additionalChargesAmt) || 0;
+                    const totalAmount = serviceFee + additionalCharges;
+                    // *** END NEW ***
+
                     // --- Create Delivery Status Select ---
                     const deliveryStatusSelect = document.createElement('select');
                     deliveryStatusSelect.className = 'status-select';
@@ -1206,6 +1218,7 @@
                         <td>${shipment.invoiceDate}</td>
                         <td>${shipment.senderName}</td>
                         <td>${shipment.receiverName}</td>
+                        <td class="number-cell">$${totalAmount.toFixed(2)}</td> 
                     `;
                     
                     // Append elements to preserve event listeners
@@ -1217,8 +1230,10 @@
                     paymentTd.appendChild(paymentStatusSelect);
                     row.appendChild(paymentTd);
 
+                    // *** NEW: Updated Actions ***
                     row.innerHTML += `
                         <td class="table-actions">
+                            <button class="btn btn-secondary btn-small view-invoice-btn" data-id="${shipment.id}">View Invoice</button>
                             <button class="btn btn-secondary btn-small view-shipment-btn" data-id="${shipment.id}">View</button>
                             <button class="btn btn-primary btn-small edit-shipment-btn" data-id="${shipment.id}">Edit</button>
                             <button class="btn btn-danger btn-small delete-shipment-btn" data-id="${shipment.id}">Delete</button>
@@ -1266,6 +1281,11 @@
                 else if (e.target.classList.contains('view-shipment-btn')) {
                      loadShipmentForView(shipmentId); // Go directly to Step 4 for viewing
                 }
+                // *** UPDATED: Handle View Invoice click ***
+                else if (e.target.classList.contains('view-invoice-btn')) {
+                     viewShipmentInvoice(shipmentId); // Silently load data and generate PDF
+                }
+                // *** END UPDATE ***
                 else if (e.target.classList.contains('delete-shipment-btn')) {
                     // Find shipment for confirmation message
                     const shipment = local_shipments_cache.find(s => s.id === shipmentId);
@@ -1276,6 +1296,18 @@
                     }
                 }
             });
+            // =============================================
+            // --- THIS IS THE NEW viewShipmentInvoice FUNCTION ---
+            // =============================================
+            function viewShipmentInvoice(shipmentId) {
+                const shipment = local_shipments_cache.find(s => s.id === shipmentId);
+                if (!_populateWizardWithData(shipment)) {
+                     alert("Error: Could not find shipment data to generate PDF.");
+                    return;
+                }
+                // Data is now silently loaded into the hidden form, so generatePDF will use it.
+                generatePDF('Commercial Invoice', 'open');
+            }
 
             // =============================================
             // --- THIS IS THE NEW deleteShipment FUNCTION ---
