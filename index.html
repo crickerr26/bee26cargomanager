@@ -390,11 +390,20 @@
                 <div class="card">
                     <h2>Payment Details</h2>
                     <div class="form-grid-two-col">
-<div class="input-group"><label for="paymentTotal">Service Fee / Customer Payment (CAD)</label><input type="number" id="paymentTotal" placeholder="0.00" min="0" step="0.01"></div>
+                        <div class="input-group"><label for="paymentTotal">Service Fee (CAD)</label><input type="number" id="paymentTotal" placeholder="0.00" min="0" step="0.01"></div>
                         <div class="input-group"><label for="paymentStatus">Payment Status</label><select id="paymentStatus"><option value="Not-Paid">Not Paid</option><option value="Paid">Paid</option><option value="Partially-Paid">Partially Paid</option></select></div>
                         <div class="input-group"><label for="amountPaid">Amount Paid (CAD)</label><input type="number" id="amountPaid" placeholder="0.00" min="0" step="0.01"></div>
                          <div class="input-group"><label for="paymentMethod">Payment Method</label><select id="paymentMethod"><option value="">N/A</option><option value="Cash">Cash</option><option value="E-Transfer">E-Transfer</option><option value="Card">Card</option></select></div>
-                    </div>
+                         
+                         <div class="input-group" style="grid-column: 1 / -1;">
+                             <label for="additionalChargesDesc">Additional Charges Description (Optional)</label>
+                             <textarea id="additionalChargesDesc" rows="2" placeholder="e.g., Carton box charge, Special handling..."></textarea>
+                         </div>
+                         <div class="input-group">
+                             <label for="additionalChargesAmt">Additional Charges Amount (CAD)</label>
+                             <input type="number" id="additionalChargesAmt" placeholder="0.00" min="0" step="0.01">
+                         </div>
+                         </div>
                 </div>
             </div>
             <div id="step-4" class="step-content">
@@ -411,8 +420,17 @@
                         <h3>Shipment & Payment</h3>
                         <div class="form-grid-two-col">
                             <div><strong>Shipment</strong><div class="summary-grid"><strong>Invoice #:</strong> <span id="review-invoiceNumber">--</span><strong>Packages:</strong> <span id="review-totalPackages">--</span><strong>Weight:</strong> <span id="review-totalWeight">--</span><strong>Status:</strong> <span id="review-deliveryStatus">--</span></div></div>
-                            <div><strong>Payment</strong><div class="summary-grid"><strong>Total:</strong> <span id="review-paymentTotal">--</span><strong>Status:</strong> <span id="review-paymentStatus">--</span><strong>Paid:</strong> <span id="review-amountPaid">--</span><strong>Method:</strong> <span id="review-paymentMethod">--</span></div></div>
-                        </div>
+                            <div><strong>Payment</strong>
+                                <div class="summary-grid">
+                                    <strong>Service Fee:</strong> <span id="review-paymentTotal">--</span>
+                                    <strong>Addt'l Charges:</strong> <span id="review-additionalCharges">--</span>
+                                    <strong style="color:var(--blue);">Total Amount Due:</strong> <strong id="review-totalAmountDue" style="color:var(--blue); font-size: 1.1rem;">--</strong>
+                                    <strong>Payment Status:</strong> <span id="review-paymentStatus">--</span>
+                                    <strong>Amount Paid:</strong> <span id="review-amountPaid">--</span>
+                                    <strong>Method:</strong> <span id="review-paymentMethod">--</span>
+                                </div>
+                            </div>
+                            </div>
                     </div>
                     <div class="review-section">
                         <h3>Itemized List (<span id="review-itemCount">0</span> items) - Total Declared Value: <strong id="review-declaredTotal" style="color:var(--blue);">$0.00</strong></h3>
@@ -810,7 +828,7 @@
                 }
             });
 
-            function clearWizard() { /* ... clearWizard function remains the same ... */ 
+            function clearWizard() { 
                  const formInputs = wizard.querySelectorAll('input, textarea, select');
                 formInputs.forEach(input => {
                     if (input.type === 'select-one') {
@@ -823,6 +841,11 @@
                 document.getElementById('paymentStatus').value = 'Not-Paid';
                 document.getElementById('invoiceDate').valueAsDate = new Date(); // Reset date
                 
+                // --- NEW ---
+                document.getElementById('additionalChargesDesc').value = '';
+                document.getElementById('additionalChargesAmt').value = '';
+                // --- END NEW ---
+
                 local_items = []; 
                 currentEditItemId = null;
                 currentEditShipmentId = null; 
@@ -937,7 +960,7 @@
             // --- 4. Shipment Save, Review, and Load (FIREBASE CONNECTED) ---
             
             // =============================================
-            // --- THIS IS THE FIXED populateReviewStep FUNCTION ---
+            // --- THIS IS THE NEW populateReviewStep FUNCTION ---
             // =============================================
             function populateReviewStep() { 
                 // Customer
@@ -952,28 +975,33 @@
                 document.getElementById('review-totalWeight').textContent = document.getElementById('totalWeight').value ? document.getElementById('totalWeight').value + ' kg' : '--';
                 document.getElementById('review-deliveryStatus').innerHTML = `<span class="status-badge status-${document.getElementById('deliveryStatus').value}">${document.getElementById('deliveryStatus').value}</span>`;
                 
-                // Payment (Service Fee)
-                const paymentTotal = parseFloat(document.getElementById('paymentTotal').value) || 0;
+                // --- UPDATED PAYMENT SECTION ---
+                const paymentTotal = parseFloat(document.getElementById('paymentTotal').value) || 0; // Service Fee
                 const amountPaid = parseFloat(document.getElementById('amountPaid').value) || 0; 
-                const paymentMethod = document.getElementById('paymentMethod').value || 'N/A'; 
+                const paymentMethod = document.getElementById('paymentMethod').value || 'N/A';
+                const additionalChargesAmt = parseFloat(document.getElementById('additionalChargesAmt').value) || 0;
+                const totalAmountDue = paymentTotal + additionalChargesAmt;
 
                 document.getElementById('review-paymentTotal').textContent = `$${paymentTotal.toFixed(2)}`;
+                document.getElementById('review-additionalCharges').textContent = `$${additionalChargesAmt.toFixed(2)}`;
+                document.getElementById('review-totalAmountDue').textContent = `$${totalAmountDue.toFixed(2)}`;
                 document.getElementById('review-paymentStatus').innerHTML = `<span class="status-badge status-${document.getElementById('paymentStatus').value.replace(' ','-')}">${document.getElementById('paymentStatus').value.replace('-',' ')}</span>`;
                 document.getElementById('review-amountPaid').textContent = `$${amountPaid.toFixed(2)}`; 
                 document.getElementById('review-paymentMethod').textContent = paymentMethod; 
+                // --- END UPDATED PAYMENT SECTION ---
                 
                 // Items & Declared Value
                 document.getElementById('review-itemCount').textContent = local_items.length;
                 const reviewTbody = document.getElementById('review-itemTableTbody');
                 reviewTbody.innerHTML = '';
-                let declaredTotal = 0; // <-- FIX
+                let declaredTotal = 0;
                 
                 if (local_items.length === 0) {
                     reviewTbody.innerHTML = '<tr><td colspan="7" style="text-align: center;">--</td></tr>';
                 } else {
                     local_items.forEach(item => {
-                        const itemTotal = (parseFloat(item.qty) || 0) * (parseFloat(item.value) || 0); // <-- FIX
-                        declaredTotal += itemTotal; // <-- FIX
+                        const itemTotal = (parseFloat(item.qty) || 0) * (parseFloat(item.value) || 0);
+                        declaredTotal += itemTotal;
                         reviewTbody.innerHTML += `
                             <tr>
                                 <td>${item.desc}</td>
@@ -987,10 +1015,10 @@
                         `;
                     });
                 }
-                document.getElementById('review-declaredTotal').textContent = `$${declaredTotal.toFixed(2)}`; // <-- FIX
+                document.getElementById('review-declaredTotal').textContent = `$${declaredTotal.toFixed(2)}`;
             }
 
-            async function saveShipment() { /* ... updated to include amountPaid and paymentMethod ... */ 
+            async function saveShipment() { 
                 const shipment = {
                     senderName: document.getElementById('senderName').value,
                     senderPhone: document.getElementById('senderPhone').value,
@@ -1004,10 +1032,14 @@
                     invoiceDate: document.getElementById('invoiceDate').value,
                     deliveryStatus: document.getElementById('deliveryStatus').value,
                     hsCode: document.getElementById('hsCode').value,
-                    paymentTotal: document.getElementById('paymentTotal').value,
+                    paymentTotal: document.getElementById('paymentTotal').value || '0', // Service Fee
                     paymentStatus: document.getElementById('paymentStatus').value,
-                    amountPaid: document.getElementById('amountPaid').value || '0', // Save amount paid
-                    paymentMethod: document.getElementById('paymentMethod').value || '', // Save method
+                    amountPaid: document.getElementById('amountPaid').value || '0', 
+                    paymentMethod: document.getElementById('paymentMethod').value || '',
+                    // --- NEW ---
+                    additionalChargesDesc: document.getElementById('additionalChargesDesc').value || '',
+                    additionalChargesAmt: document.getElementById('additionalChargesAmt').value || '0',
+                    // --- END NEW ---
                     items: [...local_items] 
                 };
 
@@ -1055,6 +1087,11 @@
                 document.getElementById('paymentStatus').value = shipment.paymentStatus || 'Not-Paid';
                 document.getElementById('amountPaid').value = shipment.amountPaid || '0';
                 document.getElementById('paymentMethod').value = shipment.paymentMethod || '';
+
+                // --- NEW ---
+                document.getElementById('additionalChargesDesc').value = shipment.additionalChargesDesc || '';
+                document.getElementById('additionalChargesAmt').value = shipment.additionalChargesAmt || '';
+                // --- END NEW ---
 
                 local_items = [...(shipment.items || [])];
                 renderItemTable();
@@ -1343,7 +1380,12 @@
                 filteredShipments.sort((a, b) => new Date(b.invoiceDate) - new Date(a.invoiceDate));
                 
                 filteredShipments.forEach(shipment => {
-                    const totalAmount = parseFloat(shipment.paymentTotal) || 0;
+                    // --- TOTAL AMOUNT CALCULATION UPDATED ---
+                    const serviceFee = parseFloat(shipment.paymentTotal) || 0;
+                    const additionalCharges = parseFloat(shipment.additionalChargesAmt) || 0;
+                    const totalAmount = serviceFee + additionalCharges;
+                    // --- END UPDATE ---
+                    
                     const amountPaid = parseFloat(shipment.amountPaid) || 0;
                     const balanceDue = totalAmount - amountPaid;
                     
@@ -1386,7 +1428,12 @@
                 let totalPaid = 0;
                 
                 filteredData.forEach(s => {
-                    const total = parseFloat(s.paymentTotal) || 0;
+                    // --- TOTAL AMOUNT CALCULATION UPDATED ---
+                    const serviceFee = parseFloat(s.paymentTotal) || 0;
+                    const additionalCharges = parseFloat(s.additionalChargesAmt) || 0;
+                    const total = serviceFee + additionalCharges;
+                    // --- END UPDATE ---
+
                     const paid = parseFloat(s.amountPaid) || 0;
                     const balance = total - paid;
                     
@@ -1501,20 +1548,43 @@
             }
 
             // =============================================
-            // --- THIS IS THE FIXED generatePDF FUNCTION ---
+            // --- THIS IS THE NEW generatePDF FUNCTION ---
             // =============================================
             async function generatePDF(docType, action = 'save') { 
                  let pdfWindow = null;
                 if (action === 'open') {
                     pdfWindow = window.open('', '_blank');
-                    if (pdfWindow) { pdfWindow.document.write('...'); } else { alert('Pop-up blocked!'); return; }
+                    if (pdfWindow) { pdfWindow.document.write('<html><head><title>Loading PDF...</title></head><body><p>Please wait while the PDF is generated...</p></body></html>'); } else { alert('Pop-up blocked!'); return; }
                 }
                 try {
                     const { jsPDF } = window.jspdf;
                     if (!jsPDF) { throw new Error("jsPDF library not loaded."); }
                     const doc = new jsPDF('p', 'pt', 'a4');
                     if (typeof doc.autoTable !== 'function') { throw new Error("jsPDF AutoTable plugin not loaded."); }
+                    
+                    // --- Get All Data ---
                     const logoBase64Data = await fetchLogoAsBase64();
+                    const senderName = document.getElementById('senderName').value, receiverName = document.getElementById('receiverName').value;
+                    const receiverPhone = document.getElementById('receiverPhone').value, receiverAddress = document.getElementById('receiverAddress').value;
+                    const invoiceNumber = document.getElementById('invoiceNumber').value, invoiceDate = document.getElementById('invoiceDate').value;
+                    const hsCode = document.getElementById('hsCode').value, totalPackages = document.getElementById('totalPackages').value;
+                    const totalWeight = document.getElementById('totalWeight').value;
+                    
+                    // --- Payment Data ---
+                    const serviceFee = parseFloat(document.getElementById('paymentTotal').value) || 0;
+                    const additionalCharges = parseFloat(document.getElementById('additionalChargesAmt').value) || 0;
+                    // *** THIS IS THE FIX ***
+                    const additionalChargesDesc = document.getElementById('additionalChargesDesc').value.trim() || 'Additional Charges'; // Get description or use default
+                    // *** END FIX ***
+                    const totalAmountDue = serviceFee + additionalCharges;
+                    
+                    // --- Item & Declared Value Data ---
+                    const safeItems = Array.isArray(local_items) ? local_items : [];
+                    const calculatedTotalValue = safeItems.reduce((sum, item) => sum + ((parseFloat(item.qty) || 0) * (parseFloat(item.value) || 0)), 0);
+                    const totalQty = safeItems.reduce((sum, item) => sum + (parseFloat(item.qty) || 0), 0);
+                    const displayValue = calculatedTotalValue.toFixed(2); // This is the Declared Value
+
+                    // --- PDF Setup ---
                     const pageHeight = doc.internal.pageSize.height, pageWidth = doc.internal.pageSize.width;
                     const leftMargin = 40, rightMargin = 40, topMargin = 30, bottomMargin = 40;
                     const contentWidth = pageWidth - leftMargin - rightMargin;
@@ -1523,56 +1593,61 @@
                     const receiverWidth = halfWidth - 15, senderWidth = halfWidth - 5;
                     let currentY = topMargin;
                     const lineSpacing = 10, sectionSpacing = 15;
-                    const senderName = document.getElementById('senderName').value, receiverName = document.getElementById('receiverName').value;
-                    const receiverPhone = document.getElementById('receiverPhone').value, receiverAddress = document.getElementById('receiverAddress').value;
-                    const invoiceNumber = document.getElementById('invoiceNumber').value, invoiceDate = document.getElementById('invoiceDate').value;
-                    const hsCode = document.getElementById('hsCode').value, totalPackages = document.getElementById('totalPackages').value;
-                    const totalWeight = document.getElementById('totalWeight').value;
-                    // const paymentTotal = parseFloat(document.getElementById('paymentTotal').value) || 0; // <-- REMOVED, not for customs docs
 
+                    // --- Section 1: Logo and Title ---
                     if (logoBase64Data) { try { const imgHeight = 40, imgWidth = 107; doc.addImage(logoBase64Data, 'PNG', leftMargin, currentY, imgWidth, imgHeight); currentY += imgHeight + 10; } catch (e) { console.error(e); } } else { currentY += 50; }
                     doc.setFontSize(16); doc.setFont("helvetica", "bold"); doc.text(docType, pageWidth / 2, currentY, { align: 'center' }); currentY += 20;
+                    
+                    // --- Section 2: Sender Address ---
                     let senderBlockY = currentY; doc.setFontSize(9); doc.setFont("helvetica", "bold"); doc.text("BEE26 CARGO SERVICES", leftMargin, senderBlockY); senderBlockY += lineSpacing; doc.setFont("helvetica", "normal");
                     const addressLines = ["MOHAMED IMSAMAM MOHAED RIZAN", "1001260111 - BIN", "614-2 MILEPOST PLACE, EAST YORK,", "ONTARIO, M4H 1C7", "+1 416 474 4994", "bee26cargoservices@gmail.com"];
                     addressLines.forEach(line => { const splitLines = doc.splitTextToSize(line, senderWidth); doc.text(splitLines, leftMargin, senderBlockY); senderBlockY += (splitLines.length * lineSpacing); });
                     if (invoiceNumber) { senderBlockY += lineSpacing * 0.5; doc.setFont("helvetica", "bold"); doc.text(`Invoice #: ${invoiceNumber}`, leftMargin, senderBlockY); senderBlockY += lineSpacing; }
                     if (docType === 'Commercial Invoice' && invoiceDate) { doc.setFont("helvetica", "bold"); doc.text("Date: ", leftMargin, senderBlockY); doc.setFont("helvetica", "normal"); doc.text(invoiceDate, leftMargin + 30, senderBlockY); senderBlockY += lineSpacing; }
+                    
+                    // --- Section 3: Receiver Address ---
                     let receiverBlockY = currentY; doc.setFontSize(10); doc.setFont("helvetica", "bold"); doc.text("TO (Receiver):", receiverX, receiverBlockY); receiverBlockY += lineSpacing * 1.5; doc.setFont("helvetica", "normal"); doc.setFontSize(9);
                     doc.text(receiverName, receiverX, receiverBlockY); receiverBlockY += lineSpacing; doc.text(receiverPhone, receiverX, receiverBlockY); receiverBlockY += lineSpacing;
                     const receiverAddressLines = doc.splitTextToSize(receiverAddress, receiverWidth); doc.text(receiverAddressLines, receiverX, receiverBlockY); receiverBlockY += (receiverAddressLines.length * lineSpacing);
                     if (docType === 'Commercial Invoice' && hsCode) { receiverBlockY += lineSpacing * 0.5; doc.setFont("helvetica", "bold"); doc.text("HS Code (Overall): ", receiverX, receiverBlockY); doc.setFont("helvetica", "normal"); doc.text(hsCode, receiverX + 80, receiverBlockY); }
+                    
+                    // --- Section 4: Table (Items) ---
                     let tableStartY = Math.max(senderBlockY, receiverBlockY) + sectionSpacing;
                     const tableHead = [['#', 'Description', 'Condition', 'Brand', 'Country', 'Category', 'Qty', 'Unit Value', 'Total Value']];
-                    const safeItems = Array.isArray(local_items) ? local_items : [];
                     const tableBody = safeItems.map((item, index) => [
-                        index + 1, 
-                        item.desc || '', 
-                        item.condition || '--',
-                        item.brand || '--',
-                        item.country || '--',
-                        item.category || '', 
-                        parseFloat(item.qty) || 0, 
-                        (parseFloat(item.value) || 0).toFixed(2), 
-                        ((parseFloat(item.qty) || 0) * (parseFloat(item.value) || 0)).toFixed(2)
+                        index + 1, item.desc || '', item.condition || '--', item.brand || '--', item.country || '--', item.category || '', 
+                        parseFloat(item.qty) || 0, (parseFloat(item.value) || 0).toFixed(2), ((parseFloat(item.qty) || 0) * (parseFloat(item.value) || 0)).toFixed(2)
                     ]);
                     doc.autoTable({ head: tableHead, body: tableBody, startY: tableStartY, theme: 'grid', headStyles: { fillColor: [230, 230, 230], textColor: 0, fontStyle: 'bold', fontSize: 8 }, styles: { fontSize: 8, cellPadding: 2, overflow: 'linebreak' }, columnStyles: { 0: { cellWidth: 20, halign: 'center' }, 6: { cellWidth: 30, halign: 'right' }, 7: { cellWidth: 50, halign: 'right' }, 8: { cellWidth: 50, halign: 'right' } }, margin: { left: leftMargin, right: rightMargin } });
-                    const finalY = doc.autoTable.previous.finalY;
-                    const calculatedTotalValue = safeItems.reduce((sum, item) => sum + ((parseFloat(item.qty) || 0) * (parseFloat(item.value) || 0)), 0);
-                    const totalQty = safeItems.reduce((sum, item) => sum + (parseFloat(item.qty) || 0), 0);
                     
-                    // --- THIS IS THE FIX ---
-                    const displayValue = calculatedTotalValue.toFixed(2); // <-- Always use calculated value
-                    // --- END FIX ---
-
+                    // --- Section 5: Shipment Summary (Customs) ---
+                    const finalY = doc.autoTable.previous.finalY;
                     doc.setFontSize(10); doc.setFont("helvetica", "bold"); let summaryY = finalY + sectionSpacing; const summaryRightX = pageWidth - rightMargin;
-                    if (summaryY > pageHeight - bottomMargin - (lineSpacing * 6)) { doc.addPage(); summaryY = topMargin + 20; }
+                    if (summaryY > pageHeight - bottomMargin - (lineSpacing * 10)) { doc.addPage(); summaryY = topMargin + 20; } // Check for more space
                     doc.text(`Total Quantity:`, leftMargin, summaryY); doc.text(`${totalQty} pcs`, summaryRightX, summaryY, { align: 'right'}); summaryY += lineSpacing * 1.5;
                     doc.text(`Total Packages:`, leftMargin, summaryY); doc.text(`${totalPackages || 'N/A'}`, summaryRightX, summaryY, { align: 'right'}); summaryY += lineSpacing * 1.5;
                     doc.text(`Total Net Weight:`, leftMargin, summaryY); doc.text(`${totalWeight || 'N/A'} kg`, summaryRightX, summaryY, { align: 'right'}); summaryY += lineSpacing * 1.5;
                     doc.text(`Total Declared Value:`, leftMargin, summaryY); doc.text(`$${displayValue} CAD`, summaryRightX, summaryY, { align: 'right'});
+                    
+                    // --- *** NEW Section 6: Payment Summary (Customer) *** ---
+                    summaryY += sectionSpacing * 1.5; // Add extra space
+                    doc.setFont("helvetica", "bold");
+                    doc.text("Payment Summary (Customer)", leftMargin, summaryY);
+                    summaryY += lineSpacing * 1.5;
+                    doc.setFont("helvetica", "normal");
+                    doc.text(`Service Fee:`, leftMargin, summaryY); doc.text(`$${serviceFee.toFixed(2)} CAD`, summaryRightX, summaryY, { align: 'right'}); summaryY += lineSpacing * 1.5;
+                    // *** THIS IS THE FIX ***
+                    doc.text(`${additionalChargesDesc}:`, leftMargin, summaryY); doc.text(`$${additionalCharges.toFixed(2)} CAD`, summaryRightX, summaryY, { align: 'right'}); summaryY += lineSpacing * 1.5;
+                    // *** END FIX ***
+                    doc.setFont("helvetica", "bold");
+                    doc.text(`Total Amount Due:`, leftMargin, summaryY); doc.text(`$${totalAmountDue.toFixed(2)} CAD`, summaryRightX, summaryY, { align: 'right'});
+
+                    // --- Section 7: Declaration ---
                     doc.setFontSize(9); doc.setFont("helvetica", "bold"); let declarationY = summaryY + sectionSpacing * 1.5;
                     if (declarationY > pageHeight - bottomMargin - lineSpacing) { doc.addPage(); declarationY = topMargin + 20; }
                     doc.text("Declaration: Personal Use – Not for Resale", leftMargin, declarationY);
+                    
+                    // --- Footer & Output ---
                     addPdfFooter(doc); const fileName = `${docType.replace(/ /g, '_')}_${invoiceNumber || 'Shipment'}.pdf`;
                     if (action === 'open') { if (pdfWindow && doc) { pdfWindow.location.href = doc.output('datauristring'); } else { if (pdfWindow) pdfWindow.close(); throw new Error("Could not generate PDF for printing."); } } else { if (doc) { doc.save(fileName); } else { throw new Error("Could not generate PDF for saving."); } }
                 } catch (error) { if (action === 'open' && pdfWindow) pdfWindow.close(); console.error("Error generating PDF:", error); alert("Sorry, there was an error generating the PDF."); }
