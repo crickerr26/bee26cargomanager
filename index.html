@@ -18,11 +18,11 @@
         apiKey: "AIzaSyAMZHYef6CXhkfJNdewMQ8M2gifGgS07k",
         authDomain: "bee26cargoservices-2651f.firebaseapp.com",
         projectId: "bee26cargoservices-2651f",
-        storageBucket: "bee26cargoservices-2651f.appspot.com", // Corrected storage bucket
+        storageBucket: "bee26cargoservices-2651f.appspot.com", 
         messagingSenderId: "508829616627",
         appId: "1:508829616627:web:062d3f033cad60a9089686",
         measurementId: "G-YSB8DJ5PE6",
-        databaseURL: "https://bee26cargoservices-2651f-default-rtdb.firebaseio.com" // Explicitly add Database URL
+        databaseURL: "https://bee26cargoservices-2651f-default-rtdb.firebaseio.com" 
       };
 
       // --- Initialize Firebase ---
@@ -35,7 +35,7 @@
       window.dbSet = set;
       window.dbGet = get;
       window.dbPush = push;
-      window.dbRemove = remove; // <-- Make sure dbRemove is exposed
+      window.dbRemove = remove; 
       window.dbUpdate = update;
       window.dbOnValue = onValue;
       
@@ -83,7 +83,7 @@
 
         /* --- 3. Sidebar --- */
         .sidebar {
-            width: var(--sidebar-width-expanded); /* CHANGED: Always expanded */
+            width: var(--sidebar-width-expanded); 
             height: 100vh;
             background-color: var(--sidebar-dark);
             border-right: 1px solid var(--sidebar-dark);
@@ -96,23 +96,18 @@
             flex-direction: column;
             overflow: hidden;
         }
-        /* .sidebar:hover { width: var(--sidebar-width-expanded); } */ /* REMOVED */
         .sidebar-logo { display: flex; align-items: center; justify-content: center; height: 70px; font-size: 1.5rem; font-weight: 700; color: var(--bg-white); flex-shrink: 0; }
-        .sidebar-logo .logo-text { opacity: 1; visibility: visible; transition: opacity 0.2s ease 0.1s; margin-left: 10px; } /* CHANGED: Always visible */
-        /* .sidebar:hover .sidebar-logo .logo-text { opacity: 1; visibility: visible; } */ /* REMOVED */
+        .sidebar-logo .logo-text { opacity: 1; visibility: visible; transition: opacity 0.2s ease 0.1s; margin-left: 10px; } 
         .sidebar-nav { list-style: none; padding: 0 1rem; margin: 1rem 0 0 0; flex-grow: 1; }
         .sidebar-nav li a { display: flex; align-items: center; padding: 0.9rem 0.75rem; text-decoration: none; font-weight: 500; color: var(--sidebar-text); border-radius: 8px; transition: background-color 0.2s ease, color 0.2s ease; white-space: nowrap; cursor: pointer; }
         .sidebar-nav li a:hover { background-color: #2d3748; color: var(--sidebar-text-hover); }
         .sidebar-nav li a.active { background-color: var(--blue); color: var(--bg-white); font-weight: 600; }
         .nav-icon { font-size: 1.5rem; width: 30px; text-align: center; flex-shrink: 0; transition: transform 0.2s ease; }
-        .nav-text { margin-left: 1.25rem; opacity: 1; visibility: visible; transition: opacity 0.2s ease 0.1s; } /* CHANGED: Always visible */
-        /* .sidebar:hover .nav-text { opacity: 1; visibility: visible; } */ /* REMOVED */
-        /* .sidebar:hover .nav-icon { transform: scale(0.9); } */ /* REMOVED */
+        .nav-text { margin-left: 1.25rem; opacity: 1; visibility: visible; transition: opacity 0.2s ease 0.1s; } 
         .sidebar-bottom { padding: 0 1rem 1rem 1rem; }
 
         /* --- 4. Main Content Area --- */
-        .main-content { margin-left: var(--sidebar-width-expanded); width: calc(100% - var(--sidebar-width-expanded)); padding: 2rem; box-sizing: border-box; transition: margin-left 0.3s ease-in-out; opacity: 1; } /* CHANGED */
-        /* .sidebar:hover ~ .main-content { margin-left: var(--sidebar-width-expanded); width: calc(100% - var(--sidebar-width-expanded)); } */ /* REMOVED */
+        .main-content { margin-left: var(--sidebar-width-expanded); width: calc(100% - var(--sidebar-width-expanded)); padding: 2rem; box-sizing: border-box; transition: margin-left 0.3s ease-in-out; opacity: 1; } 
         .page-content { display: none; }
         .page-content.active { display: block; }
         header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 2rem; }
@@ -146,7 +141,7 @@
         /* --- 6. Styled Table (Used on multiple pages) --- */
         .table-container { width: 100%; overflow-x: auto; }
         .styled-table { width: 100%; border-collapse: collapse; font-size: 0.95rem; }
-        .styled-table th, .styled-table td { padding: 1rem; text-align: left; border-bottom: 1px solid var(--grey-mid); vertical-align: middle; } /* Added vertical-align */
+        .styled-table th, .styled-table td { padding: 1rem; text-align: left; border-bottom: 1px solid var(--grey-mid); vertical-align: middle; } 
         .styled-table th { color: var(--text-secondary); font-weight: 600; background-color: #fcfcfc; }
         .styled-table tbody tr:last-child td { border-bottom: none; }
         .styled-table tbody tr:hover { background-color: var(--grey-light); }
@@ -172,14 +167,13 @@
             border-radius: 12px;
             cursor: pointer;
             width: 100%;
-            min-width: 110px; /* Ensure it's wide enough */
+            min-width: 110px; 
         }
         .status-select:focus {
             outline: none;
             box-shadow: 0 0 0 2px var(--blue-light);
         }
         
-        /* Color coding for the select itself */
         .status-select.status-Pending { background-color: var(--orange-light); color: var(--orange); }
         .status-select.status-Shipped { background-color: var(--blue-light); color: var(--blue); }
         .status-select.status-Delivered { background-color: var(--green-light); color: var(--green); }
@@ -251,7 +245,7 @@
             border-color: var(--blue);
             box-shadow: 0 0 0 1px var(--blue-light);
         }
-        .payments-table td.number-cell, .styled-table td.number-cell { text-align: right; } /* Align numbers */
+        .payments-table td.number-cell, .styled-table td.number-cell { text-align: right; } 
         .payments-table td.balance-due { font-weight: 600; }
         .payments-table td.balance-due.zero { color: var(--green); }
         .payments-table td.balance-due.negative { color: var(--red); }
@@ -260,17 +254,13 @@
         /* --- 12. Responsive (Mobile) --- */
         @media (max-width: 768px) {
             .sidebar { width: 100%; height: 65px; bottom: 0; top: auto; left: 0; flex-direction: row; border-top: 1px solid #2d3748; }
-            /* .sidebar:hover { width: 100%; } */ /* REMOVED */
             .sidebar-logo, .sidebar-bottom { display: none; }
             .sidebar-nav { display: flex; flex-direction: row; justify-content: space-around; width: 100%; height: 100%; margin: 0; padding: 0 0.5rem; }
             .sidebar-nav li { flex-grow: 1; }
             .sidebar-nav li a { flex-direction: column; justify-content: center; height: 100%; padding: 0.5rem 0.25rem; }
             .nav-icon { font-size: 1.25rem; width: auto; }
             .nav-text { opacity: 1; visibility: visible; font-size: 0.7rem; margin-left: 0; margin-top: 0.25rem; }
-            /* .sidebar:hover .nav-text { opacity: 1; } */ /* REMOVED */
-            /* .sidebar:hover .nav-icon { transform: none; } */ /* REMOVED */
             .main-content { margin-left: 0; width: 100%; padding: 1rem; padding-bottom: 80px; }
-            /* .sidebar:hover ~ .main-content { margin-left: 0; width: 100%; } */ /* REMOVED */
             header { flex-direction: column; align-items: flex-start; gap: 0.5rem; }
             header h1 { font-size: 1.8rem; }
             header p { font-size: 1rem; margin-bottom: 1rem; }
@@ -665,9 +655,9 @@
             const dbUpdate = window.dbUpdate;
             const dbPush = window.dbPush;
             const dbOnValue = window.dbOnValue;
-            const dbRemove = window.dbRemove; // <-- ADDED THIS
+            const dbRemove = window.dbRemove; 
 
-            if (!db || !dbRef || !dbUpdate || !dbPush || !dbOnValue || !dbRemove) { // <-- ADDED dbRemove
+            if (!db || !dbRef || !dbUpdate || !dbPush || !dbOnValue || !dbRemove) { 
                 alert("FATAL ERROR: Firebase Database functions not found. Check initialization.");
                 return;
             }
@@ -686,21 +676,18 @@
             const pageSubtitle = document.getElementById('page-subtitle');
             const headerActionBtn = document.getElementById('header-action-btn');
 
-            const pageMeta = { /* ... pageMeta object remains the same ... */ 
+            const pageMeta = {  
                  'page-dashboard': { title: 'Dashboard', subtitle: "Welcome back, here's an overview of your business.", actionText: '+ Create New Shipment', actionPage: 'page-new-shipment' },
                 'page-new-shipment': { title: 'New Shipment', subtitle: 'Create a new shipment using the steps below.', actionText: null },
                 'page-all-shipments': { title: 'All Shipments', subtitle: 'Search, filter, and manage all shipments.', actionText: '+ Create New Shipment', actionPage: 'page-new-shipment' },
-                'page-customers': { title: 'Customers', subtitle: 'Manage your list of senders and receivers.', actionText: '+ Add New Customer', actionPage: 'page-new-shipment' }, // Maybe change action later
+                'page-customers': { title: 'Customers', subtitle: 'Manage your list of senders and receivers.', actionText: '+ Add New Customer', actionPage: 'page-new-shipment' }, 
                 'page-payments': { title: 'Payments', subtitle: 'Track all pending and completed payments.', actionText: null }
             };
 
             function navigateToPage(pageId) {
-                // BUGGY LOGIC WAS HERE. This logic is now fixed.
-                // Clear wizard only if navigating TO new shipment AND the button suggests creating new
                  if (pageId === 'page-new-shipment' && currentEditShipmentId === null && (headerActionBtn.textContent.includes('Create') || headerActionBtn.textContent.includes('Add'))) {
                     clearWizard(); 
                  } else if (pageId !== 'page-new-shipment') {
-                     // If leaving the wizard page, ensure nav buttons are re-enabled
                      prevBtn.disabled = false;
                      nextBtn.disabled = false;
                  }
@@ -712,20 +699,17 @@
                 
                 const meta = pageMeta[pageId];
                 
-                // This check prevents the title from being reset to "New Shipment" when editing or viewing.
                 const isViewingOrEditing = pageTitle.textContent === 'Edit Shipment' || pageTitle.textContent === 'Review Shipment';
                 if (meta && (!isViewingOrEditing || pageId !== 'page-new-shipment')) { 
                     pageTitle.textContent = meta.title;
                     pageSubtitle.textContent = meta.subtitle;
                 } else if (meta && isViewingOrEditing && pageId === 'page-new-shipment') {
-                     // Keep the "Editing/Viewing Invoice..." subtitle if staying on the page
                     pageSubtitle.textContent = pageSubtitle.textContent || meta.subtitle; 
                 } else if (!meta && pageId === 'page-new-shipment') {
-                     // Keep title/subtitle if navigating within wizard steps without meta (e.g., during load)
                 }
 
 
-                if (meta) { // This part always runs to set the button correctly
+                if (meta) { 
                     if (meta.actionText) {
                         headerActionBtn.textContent = meta.actionText;
                         headerActionBtn.style.display = 'block';
@@ -735,18 +719,16 @@
                     }
                 }
 
-                // Data render functions are called by the onValue listener or filter changes
                  if (pageId === 'page-payments') {
-                    renderPaymentsTable(); // Re-render payment table when navigating to it
+                    renderPaymentsTable(); 
                 }
             }
 
             navLinks.forEach(link => {
                 link.addEventListener('click', (e) => {
-                    // When manually clicking a nav link, if we leave the edit/view page, reset the title
                     if((pageTitle.textContent === 'Edit Shipment' || pageTitle.textContent === 'Review Shipment') && e.currentTarget.dataset.page !== 'page-new-shipment') {
-                         pageTitle.textContent = ''; // Allow navigateToPage to set it
-                         currentEditShipmentId = null; // Clear edit/view mode
+                         pageTitle.textContent = ''; 
+                         currentEditShipmentId = null; 
                     }
                     navigateToPage(e.currentTarget.dataset.page)
                 });
@@ -762,7 +744,7 @@
             const stepContents = wizard.querySelectorAll('.step-content');
             const totalSteps = 4;
 
-            const nextLabels = [/* ... nextLabels array remains the same ... */
+            const nextLabels = [
                  'Next: Add Items →',
                 'Next: Shipment →',
                 'Next: Review →',
@@ -780,10 +762,9 @@
                     step.classList.toggle('completed', stepNum < wizardCurrentStep);
                 });
 
-                // --- Logic for enabling/disabling buttons ---
-                const isViewing = pageTitle.textContent === 'Review Shipment'; // Check if in view mode
+                const isViewing = pageTitle.textContent === 'Review Shipment'; 
 
-                prevBtn.disabled = (wizardCurrentStep === 1) || isViewing; // Disable if first step OR viewing
+                prevBtn.disabled = (wizardCurrentStep === 1) || isViewing; 
 
                 if (isViewing) {
                     nextBtn.disabled = true;
@@ -795,7 +776,6 @@
                     nextBtn.disabled = false;
                     nextBtn.textContent = nextLabels[wizardCurrentStep - 1];
                 }
-                // --- End button logic ---
 
                 if (wizardCurrentStep === 4) {
                     populateReviewStep();
@@ -804,7 +784,6 @@
 
 
             nextBtn.addEventListener('click', async () => { 
-                 // Prevent action if viewing
                  if (pageTitle.textContent === 'Review Shipment') return;
 
                 if (wizardCurrentStep < totalSteps) {
@@ -819,7 +798,6 @@
             });
 
             prevBtn.addEventListener('click', () => {
-                 // Prevent action if viewing
                  if (pageTitle.textContent === 'Review Shipment') return;
                  
                 if (wizardCurrentStep > 1) {
@@ -833,29 +811,25 @@
                 formInputs.forEach(input => {
                     if (input.type === 'select-one') {
                         input.selectedIndex = 0; 
-                    } else if (input.type !== 'date') { // Don't clear date by default
+                    } else if (input.type !== 'date') { 
                         input.value = ''; 
                     }
                 });
                 document.getElementById('deliveryStatus').value = 'Pending';
                 document.getElementById('paymentStatus').value = 'Not-Paid';
-                document.getElementById('invoiceDate').valueAsDate = new Date(); // Reset date
+                document.getElementById('invoiceDate').valueAsDate = new Date(); 
                 
-                // --- NEW ---
                 document.getElementById('additionalChargesDesc').value = '';
                 document.getElementById('additionalChargesAmt').value = '';
-                // --- END NEW ---
 
                 local_items = []; 
                 currentEditItemId = null;
                 currentEditShipmentId = null; 
 
-                // Reset page title if it was in edit/view mode
                 if (pageTitle.textContent === 'Edit Shipment' || pageTitle.textContent === 'Review Shipment') {
                      const meta = pageMeta['page-new-shipment'];
                      pageTitle.textContent = meta.title;
                      pageSubtitle.textContent = meta.subtitle;
-                     // Ensure nav buttons are re-enabled
                      prevBtn.disabled = false;
                      nextBtn.disabled = false;
                 }
@@ -863,7 +837,7 @@
                 
                 wizardCurrentStep = 1;
                 renderItemTable();
-                updateWizard(); // Update wizard state after clearing
+                updateWizard(); 
             }
 
             // --- 3. Item CRUD (Manages local_items array) ---
@@ -874,7 +848,7 @@
             const addItemForm = document.getElementById('addItemForm');
             const itemTableTbody = document.getElementById('itemTableTbody');
             
-            addNewItemBtn.addEventListener('click', () => { /* ... unchanged ... */ 
+            addNewItemBtn.addEventListener('click', () => { 
                 currentEditItemId = null;
                 addItemForm.reset();
                 document.getElementById('modal-title').textContent = 'Add New Item';
@@ -886,7 +860,7 @@
             closeModalBtn.addEventListener('click', closeModal);
             cancelModalBtn.addEventListener('click', closeModal);
             
-            addItemForm.addEventListener('submit', (e) => { /* ... unchanged ... */ 
+            addItemForm.addEventListener('submit', (e) => { 
                 e.preventDefault();
                 const item = {
                     desc: document.getElementById('modalItemDesc').value,
@@ -906,7 +880,7 @@
                 closeModal();
             });
 
-            function renderItemTable() { /* ... unchanged ... */ 
+            function renderItemTable() { 
                 itemTableTbody.innerHTML = '';
                 if (local_items.length === 0) {
                     itemTableTbody.innerHTML = '<tr><td colspan="8" style="text-align: center;">No items added yet.</td></tr>';
@@ -932,7 +906,7 @@
                 });
             }
 
-            itemTableTbody.addEventListener('click', (e) => { /* ... unchanged ... */ 
+            itemTableTbody.addEventListener('click', (e) => { 
                 const index = e.target.dataset.index;
                 if (e.target.classList.contains('delete-item-btn')) {
                     if (confirm('Are you sure you want to delete this item?')) {
@@ -959,9 +933,6 @@
 
             // --- 4. Shipment Save, Review, and Load (FIREBASE CONNECTED) ---
             
-            // =============================================
-            // --- THIS IS THE NEW populateReviewStep FUNCTION ---
-            // =============================================
             function populateReviewStep() { 
                 // Customer
                 document.getElementById('review-senderName').textContent = document.getElementById('senderName').value || '--';
@@ -975,7 +946,6 @@
                 document.getElementById('review-totalWeight').textContent = document.getElementById('totalWeight').value ? document.getElementById('totalWeight').value + ' kg' : '--';
                 document.getElementById('review-deliveryStatus').innerHTML = `<span class="status-badge status-${document.getElementById('deliveryStatus').value}">${document.getElementById('deliveryStatus').value}</span>`;
                 
-                // --- UPDATED PAYMENT SECTION ---
                 const paymentTotal = parseFloat(document.getElementById('paymentTotal').value) || 0; // Service Fee
                 const amountPaid = parseFloat(document.getElementById('amountPaid').value) || 0; 
                 const paymentMethod = document.getElementById('paymentMethod').value || 'N/A';
@@ -988,9 +958,7 @@
                 document.getElementById('review-paymentStatus').innerHTML = `<span class="status-badge status-${document.getElementById('paymentStatus').value.replace(' ','-')}">${document.getElementById('paymentStatus').value.replace('-',' ')}</span>`;
                 document.getElementById('review-amountPaid').textContent = `$${amountPaid.toFixed(2)}`; 
                 document.getElementById('review-paymentMethod').textContent = paymentMethod; 
-                // --- END UPDATED PAYMENT SECTION ---
                 
-                // Items & Declared Value
                 document.getElementById('review-itemCount').textContent = local_items.length;
                 const reviewTbody = document.getElementById('review-itemTableTbody');
                 reviewTbody.innerHTML = '';
@@ -1032,14 +1000,12 @@
                     invoiceDate: document.getElementById('invoiceDate').value,
                     deliveryStatus: document.getElementById('deliveryStatus').value,
                     hsCode: document.getElementById('hsCode').value,
-                    paymentTotal: document.getElementById('paymentTotal').value || '0', // Service Fee
+                    paymentTotal: document.getElementById('paymentTotal').value || '0', 
                     paymentStatus: document.getElementById('paymentStatus').value,
                     amountPaid: document.getElementById('amountPaid').value || '0', 
                     paymentMethod: document.getElementById('paymentMethod').value || '',
-                    // --- NEW ---
                     additionalChargesDesc: document.getElementById('additionalChargesDesc').value || '',
                     additionalChargesAmt: document.getElementById('additionalChargesAmt').value || '0',
-                    // --- END NEW ---
                     items: [...local_items] 
                 };
 
@@ -1061,16 +1027,11 @@
                 }
             }
 
-             // =============================================
-             // --- THIS IS THE NEW HELPER FUNCTION ---
-             // =============================================
-            // Helper function to load data into the wizard form
             function _populateWizardWithData(shipment) {
                  if (!shipment) return false;
 
-                clearWizard(); // Clear first
+                clearWizard(); 
 
-                // Populate all fields
                 document.getElementById('senderName').value = shipment.senderName || '';
                 document.getElementById('senderPhone').value = shipment.senderPhone || '';
                 document.getElementById('receiverName').value = shipment.receiverName || '';
@@ -1088,63 +1049,52 @@
                 document.getElementById('amountPaid').value = shipment.amountPaid || '0';
                 document.getElementById('paymentMethod').value = shipment.paymentMethod || '';
 
-                // --- NEW ---
                 document.getElementById('additionalChargesDesc').value = shipment.additionalChargesDesc || '';
                 document.getElementById('additionalChargesAmt').value = shipment.additionalChargesAmt || '';
-                // --- END NEW ---
 
                 local_items = [...(shipment.items || [])];
                 renderItemTable();
-                return true; // Indicate success
+                return true; 
             }
 
-            // =============================================
-            // --- THESE ARE THE NEW loadShipment... FUNCTIONS ---
-            // =============================================
-            // Function called when EDIT button is clicked
             function loadShipmentForEdit(shipmentId) {
                 const shipment = local_shipments_cache.find(s => s.id === shipmentId);
                 if (!_populateWizardWithData(shipment)) {
                      alert("Error: Could not find shipment to load for editing."); return;
                 }
-                currentEditShipmentId = shipmentId; // Set edit mode
+                currentEditShipmentId = shipmentId; 
 
-                // --- Manually navigate to Step 1 ---
                 const pageId = 'page-new-shipment';
                 pages.forEach(p => p.classList.remove('active'));
                 document.getElementById(pageId).classList.add('active');
                 navLinks.forEach(l => l.classList.remove('active'));
                 document.querySelector(`.nav-link[data-page="${pageId}"]`)?.classList.add('active');
 
-                // Set header text for editing
                 pageTitle.textContent = 'Edit Shipment';
                 pageSubtitle.textContent = 'Editing Invoice #' + (shipment.invoiceNumber || 'N/A');
-                headerActionBtn.style.display = 'none'; // Hide header action button
+                headerActionBtn.style.display = 'none'; 
 
-                updateWizard(1); // Set wizard to step 1
+                updateWizard(1); 
             }
 
-            // Function called when VIEW button is clicked
             function loadShipmentForView(shipmentId) {
                  const shipment = local_shipments_cache.find(s => s.id === shipmentId);
                  if (!_populateWizardWithData(shipment)) {
                      alert("Error: Could not find shipment to load for viewing."); return;
                  }
-                 currentEditShipmentId = null; // Ensure we are NOT in edit mode
+                 currentEditShipmentId = null; 
 
-                 // --- Manually navigate to Step 4 ---
                  const pageId = 'page-new-shipment';
                  pages.forEach(p => p.classList.remove('active'));
                  document.getElementById(pageId).classList.add('active');
                  navLinks.forEach(l => l.classList.remove('active'));
                  document.querySelector(`.nav-link[data-page="${pageId}"]`)?.classList.add('active');
 
-                 // Set header text for viewing
                  pageTitle.textContent = 'Review Shipment';
                  pageSubtitle.textContent = 'Viewing Invoice #' + (shipment.invoiceNumber || 'N/A');
-                 headerActionBtn.style.display = 'none'; // Hide header action button
+                 headerActionBtn.style.display = 'none'; 
 
-                 updateWizard(4); // Set wizard to step 4
+                 updateWizard(4); 
             }
 
 
@@ -1152,13 +1102,9 @@
             const shipmentsTableTbody = document.getElementById('shipmentsTableTbody');
             const customersTableTbody = document.getElementById('customersTableTbody');
             const recentActivityTbody = document.getElementById('recent-activity-tbody');
-            const paymentsTableTbody = document.getElementById('paymentsTableTbody'); // Get payments table body
+            const paymentsTableTbody = document.getElementById('paymentsTableTbody'); 
 
-            // =============================================
-            // --- THIS IS THE UPDATED renderShipmentsTable FUNCTION ---
-            // =============================================
             function renderShipmentsTable() {
-                // *** Find the table header and update it ***
                 const tableHeader = document.querySelector('#page-all-shipments .styled-table thead tr');
                 if (tableHeader) {
                     tableHeader.innerHTML = '<th>Invoice #</th><th>Date</th><th>Sender</th><th>Receiver</th><th>Total Amt</th><th>Status</th><th>Payment</th><th>Actions</th>';
@@ -1166,27 +1112,23 @@
 
                  shipmentsTableTbody.innerHTML = '';
                 if (local_shipments_cache.length === 0) {
-                    shipmentsTableTbody.innerHTML = '<tr><td colspan="8" style="text-align: center;">No shipments created yet.</td></tr>'; // Colspan is now 8
+                    shipmentsTableTbody.innerHTML = '<tr><td colspan="8" style="text-align: center;">No shipments created yet.</td></tr>'; 
                     return;
                 }
                 const sortedShipments = [...local_shipments_cache].sort((a, b) => new Date(b.invoiceDate) - new Date(a.invoiceDate));
                 
-                // Helper function to apply color class to select
                 const updateSelectColor = (select) => {
-                    select.className = 'status-select'; // Reset classes
+                    select.className = 'status-select'; 
                     select.classList.add(`status-${select.value.replace(' ','-')}`);
                 };
 
                 sortedShipments.forEach(shipment => {
                     const row = document.createElement('tr');
                     
-                    // *** NEW: Calculate Total Amount ***
                     const serviceFee = parseFloat(shipment.paymentTotal) || 0;
                     const additionalCharges = parseFloat(shipment.additionalChargesAmt) || 0;
                     const totalAmount = serviceFee + additionalCharges;
-                    // *** END NEW ***
 
-                    // --- Create Delivery Status Select ---
                     const deliveryStatusSelect = document.createElement('select');
                     deliveryStatusSelect.className = 'status-select';
                     deliveryStatusSelect.dataset.id = shipment.id;
@@ -1196,10 +1138,9 @@
                         <option value="Shipped" ${shipment.deliveryStatus === 'Shipped' ? 'selected' : ''}>Shipped</option>
                         <option value="Delivered" ${shipment.deliveryStatus === 'Delivered' ? 'selected' : ''}>Delivered</option>
                     `;
-                    updateSelectColor(deliveryStatusSelect); // Set initial color
-                    deliveryStatusSelect.onchange = () => updateSelectColor(deliveryStatusSelect); // Update color on change
+                    updateSelectColor(deliveryStatusSelect); 
+                    deliveryStatusSelect.onchange = () => updateSelectColor(deliveryStatusSelect); 
 
-                    // --- Create Payment Status Select ---
                     const paymentStatusSelect = document.createElement('select');
                     paymentStatusSelect.className = 'status-select';
                     paymentStatusSelect.dataset.id = shipment.id;
@@ -1209,10 +1150,9 @@
                         <option value="Partially-Paid" ${shipment.paymentStatus === 'Partially-Paid' ? 'selected' : ''}>Partially Paid</option>
                         <option value="Paid" ${shipment.paymentStatus === 'Paid' ? 'selected' : ''}>Paid</option>
                     `;
-                    updateSelectColor(paymentStatusSelect); // Set initial color
-                    paymentStatusSelect.onchange = () => updateSelectColor(paymentStatusSelect); // Update color on change
+                    updateSelectColor(paymentStatusSelect); 
+                    paymentStatusSelect.onchange = () => updateSelectColor(paymentStatusSelect); 
 
-                    // --- Build Row ---
                     row.innerHTML = `
                         <td>${shipment.invoiceNumber}</td>
                         <td>${shipment.invoiceDate}</td>
@@ -1221,7 +1161,6 @@
                         <td class="number-cell">$${totalAmount.toFixed(2)}</td> 
                     `;
                     
-                    // Append elements to preserve event listeners
                     const deliveryTd = document.createElement('td');
                     deliveryTd.appendChild(deliveryStatusSelect);
                     row.appendChild(deliveryTd);
@@ -1230,7 +1169,6 @@
                     paymentTd.appendChild(paymentStatusSelect);
                     row.appendChild(paymentTd);
 
-                    // *** NEW: Updated Actions ***
                     row.innerHTML += `
                         <td class="table-actions">
                             <button class="btn btn-secondary btn-small view-invoice-btn" data-id="${shipment.id}">View Invoice</button>
@@ -1243,10 +1181,6 @@
                 });
             }
 
-            // =============================================
-            // --- THIS IS THE UPDATED addEventListener FUNCTION ---
-            // =============================================
-            // This new listener handles the dropdown changes
             shipmentsTableTbody.addEventListener('change', async (e) => {
                 if (e.target.classList.contains('status-select')) {
                     const shipmentId = e.target.dataset.id;
@@ -1261,8 +1195,6 @@
                     try {
                         const shipmentRef = dbRef(db, 'shipments/' + shipmentId);
                         await dbUpdate(shipmentRef, updateData);
-                        // The onValue listener will handle the full re-render,
-                        // and the select's onchange handler already updated its color.
                     } catch (error) {
                         console.error("Error updating status:", error);
                         alert("Error: Could not save status update. See console.");
@@ -1270,24 +1202,20 @@
                 }
             });
 
-            // This listener now just handles the button clicks
             shipmentsTableTbody.addEventListener('click', (e) => {
                 const shipmentId = e.target.dataset.id;
-                if (!shipmentId) return; // Ignore clicks without a data-id
+                if (!shipmentId) return; 
 
                 if (e.target.classList.contains('edit-shipment-btn')) {
-                    loadShipmentForEdit(shipmentId); // Go to Step 1 for editing
+                    loadShipmentForEdit(shipmentId); 
                 }
                 else if (e.target.classList.contains('view-shipment-btn')) {
-                     loadShipmentForView(shipmentId); // Go directly to Step 4 for viewing
+                     loadShipmentForView(shipmentId); 
                 }
-                // *** UPDATED: Handle View Invoice click ***
                 else if (e.target.classList.contains('view-invoice-btn')) {
-                     viewShipmentInvoice(shipmentId); // Silently load data and generate PDF
+                     viewShipmentInvoice(shipmentId); 
                 }
-                // *** END UPDATE ***
                 else if (e.target.classList.contains('delete-shipment-btn')) {
-                    // Find shipment for confirmation message
                     const shipment = local_shipments_cache.find(s => s.id === shipmentId);
                     const invoiceNum = shipment ? shipment.invoiceNumber : 'this shipment';
 
@@ -1296,36 +1224,28 @@
                     }
                 }
             });
-            // =============================================
-            // --- THIS IS THE NEW viewShipmentInvoice FUNCTION ---
-            // =============================================
             function viewShipmentInvoice(shipmentId) {
                 const shipment = local_shipments_cache.find(s => s.id === shipmentId);
                 if (!_populateWizardWithData(shipment)) {
                      alert("Error: Could not find shipment data to generate PDF.");
                     return;
                 }
-                // Data is now silently loaded into the hidden form, so generatePDF will use it.
                 generatePDF('Commercial Invoice', 'open');
             }
 
-            // =============================================
-            // --- THIS IS THE NEW deleteShipment FUNCTION ---
-            // =============================================
             async function deleteShipment(shipmentId) {
                 if (!shipmentId) return;
                 try {
                     const shipmentRef = dbRef(db, 'shipments/' + shipmentId);
-                    await dbRemove(shipmentRef); // Use dbRemove from Firebase
+                    await dbRemove(shipmentRef); 
                     alert('Shipment deleted successfully.');
-                    // The onValue listener will automatically re-render the table
                 } catch (error) {
                     console.error("Error deleting shipment:", error);
                     alert("Error: Could not delete shipment. See console for details.");
                 }
             }
             
-            function renderCustomersTable() { /* ... unchanged ... */ 
+            function renderCustomersTable() { 
                 customersTableTbody.innerHTML = '';
                 const customers = new Map(); 
                 local_shipments_cache.forEach(s => {
@@ -1355,7 +1275,7 @@
                 });
             }
 
-            function updateDashboardStats() { /* ... unchanged ... */ 
+            function updateDashboardStats() { 
                  let pending = 0, transit = 0, delivered = 0, due = 0;
                 local_shipments_cache.forEach(s => {
                     if (s.deliveryStatus === 'Pending') pending++;
@@ -1364,7 +1284,7 @@
                     if (s.paymentStatus === 'Not-Paid' || s.paymentStatus === 'Partially-Paid') {
                          const total = parseFloat(s.paymentTotal) || 0;
                          const paid = parseFloat(s.amountPaid) || 0;
-                         due += (total - paid); // Calculate actual balance due
+                         due += (total - paid); 
                     }
                 });
                 document.getElementById('stat-pending').textContent = pending;
@@ -1392,7 +1312,6 @@
             function renderPaymentsTable() {
                 paymentsTableTbody.innerHTML = '';
                 
-                // Apply Filters
                 const searchTerm = paymentSearchInput.value.toLowerCase();
                 const statusFilter = paymentStatusFilterSelect.value;
                 
@@ -1404,19 +1323,16 @@
 
                 if (filteredShipments.length === 0) {
                     paymentsTableTbody.innerHTML = '<tr><td colspan="8" style="text-align: center;">No shipments match your filters.</td></tr>';
-                    updatePaymentSummary(filteredShipments); // Update summary even if empty
+                    updatePaymentSummary(filteredShipments); 
                     return;
                 }
 
-                // Sort by date, newest first
                 filteredShipments.sort((a, b) => new Date(b.invoiceDate) - new Date(a.invoiceDate));
                 
                 filteredShipments.forEach(shipment => {
-                    // --- TOTAL AMOUNT CALCULATION UPDATED ---
                     const serviceFee = parseFloat(shipment.paymentTotal) || 0;
                     const additionalCharges = parseFloat(shipment.additionalChargesAmt) || 0;
                     const totalAmount = serviceFee + additionalCharges;
-                    // --- END UPDATE ---
                     
                     const amountPaid = parseFloat(shipment.amountPaid) || 0;
                     const balanceDue = totalAmount - amountPaid;
@@ -1460,11 +1376,9 @@
                 let totalPaid = 0;
                 
                 filteredData.forEach(s => {
-                    // --- TOTAL AMOUNT CALCULATION UPDATED ---
                     const serviceFee = parseFloat(s.paymentTotal) || 0;
                     const additionalCharges = parseFloat(s.additionalChargesAmt) || 0;
                     const total = serviceFee + additionalCharges;
-                    // --- END UPDATE ---
 
                     const paid = parseFloat(s.amountPaid) || 0;
                     const balance = total - paid;
@@ -1482,11 +1396,9 @@
                 document.getElementById('payment-summary-count').textContent = filteredData.length;
             }
 
-            // Event listeners for payment filters
             paymentSearchInput.addEventListener('input', renderPaymentsTable);
             paymentStatusFilterSelect.addEventListener('change', renderPaymentsTable);
 
-            // Event listener for updating payment fields in the table
             paymentsTableTbody.addEventListener('change', async (e) => {
                 if (e.target.classList.contains('payment-update')) {
                     const shipmentId = e.target.dataset.id;
@@ -1498,7 +1410,6 @@
                     const updateData = {};
                     updateData[field] = value;
                     
-                    // Optional: Auto-update status based on amount paid
                     if (field === 'amountPaid') {
                         const row = e.target.closest('tr');
                         const totalAmountText = row.cells[3].textContent.replace('$', '');
@@ -1508,7 +1419,7 @@
                         
                         if (newAmountPaid <= 0) {
                              updateData['paymentStatus'] = 'Not-Paid';
-                             if(statusSelect) statusSelect.value = 'Not-Paid'; // Update UI immediately
+                             if(statusSelect) statusSelect.value = 'Not-Paid'; 
                         } else if (newAmountPaid >= totalAmount) {
                              updateData['paymentStatus'] = 'Paid';
                              if(statusSelect) statusSelect.value = 'Paid';
@@ -1521,8 +1432,6 @@
                     try {
                         const shipmentRef = dbRef(db, 'shipments/' + shipmentId);
                         await dbUpdate(shipmentRef, updateData);
-                        // No need to manually re-render, onValue listener handles it.
-                        // However, recalculate balance immediately for visual feedback
                         const row = e.target.closest('tr');
                         const totalAmountText = row.cells[3].textContent.replace('$', '');
                         const totalAmount = parseFloat(totalAmountText) || 0;
@@ -1535,8 +1444,7 @@
                     } catch (error) {
                         console.error("Error updating payment field:", error);
                         alert("Error saving payment update. See console.");
-                        // Optional: Revert UI change on error
-                        e.target.value = e.target.defaultValue; // Revert input/select
+                        e.target.value = e.target.defaultValue; 
                     }
                 }
             });
@@ -1545,7 +1453,7 @@
             // --- 7. PDF & Excel Export Functions (Adapted from original file) ---
             
             let fetchedLogoBase64 = null;
-            async function fetchLogoAsBase64() { /* ... unchanged ... */ 
+            async function fetchLogoAsBase64() { 
                 if (fetchedLogoBase64) return fetchedLogoBase64;
                 const logoUrl = 'https://raw.githubusercontent.com/crickerr26/bee26cargomanager/main/BEE26.png'; 
                 try {
@@ -1565,7 +1473,34 @@
                 }
             }
 
-            function addPdfFooter(doc) { /* ... unchanged ... */ 
+            // --- NEW: Helper to fetch Seal Image ---
+            let fetchedSealBase64 = null;
+            async function fetchSealAsBase64() { 
+                if (fetchedSealBase64) return fetchedSealBase64;
+                // NOTE: User MUST upload this file as a PNG to GitHub for this to work
+                const sealUrl = 'https://raw.githubusercontent.com/crickerr26/bee26cargomanager/main/Bee26%20Compay%20Seal.png'; // UPDATED TO PNG
+                try {
+                    console.log("Fetching seal from:", sealUrl);
+                    const response = await fetch(sealUrl);
+                    if (!response.ok) {
+                        console.warn(`Seal fetch failed: ${response.status} (Ensure file is uploaded as .png)`);
+                        alert("Warning: Could not find 'Bee26 Compay Seal.png' on GitHub. The seal will not appear on the PDF.");
+                        return null;
+                    }
+                    const blob = await response.blob();
+                    return new Promise((resolve, reject) => {
+                        const reader = new FileReader();
+                        reader.onloadend = () => { fetchedSealBase64 = reader.result; resolve(fetchedSealBase64); };
+                        reader.onerror = reject;
+                        reader.readAsDataURL(blob);
+                    });
+                } catch (error) {
+                    console.error('Error fetching or converting seal:', error);
+                    return null;
+                }
+            }
+
+            function addPdfFooter(doc) { 
                 if (!doc || typeof doc.setFontSize !== 'function') return;
                  try {
                      doc.setFontSize(9); doc.setFont("helvetica", "normal");
@@ -1579,9 +1514,6 @@
                  } catch (error) { console.error("Error adding PDF footer:", error); }
             }
 
-            // =============================================
-            // --- THIS IS THE NEW generatePDF FUNCTION ---
-            // =============================================
             async function generatePDF(docType, action = 'save') { 
                  let pdfWindow = null;
                 if (action === 'open') {
@@ -1596,25 +1528,23 @@
                     
                     // --- Get All Data ---
                     const logoBase64Data = await fetchLogoAsBase64();
+                    const sealBase64Data = await fetchSealAsBase64(); // <-- Fetch Seal
+                    
                     const senderName = document.getElementById('senderName').value, receiverName = document.getElementById('receiverName').value;
                     const receiverPhone = document.getElementById('receiverPhone').value, receiverAddress = document.getElementById('receiverAddress').value;
                     const invoiceNumber = document.getElementById('invoiceNumber').value, invoiceDate = document.getElementById('invoiceDate').value;
                     const hsCode = document.getElementById('hsCode').value, totalPackages = document.getElementById('totalPackages').value;
                     const totalWeight = document.getElementById('totalWeight').value;
                     
-                    // --- Payment Data ---
                     const serviceFee = parseFloat(document.getElementById('paymentTotal').value) || 0;
                     const additionalCharges = parseFloat(document.getElementById('additionalChargesAmt').value) || 0;
-                    // *** THIS IS THE FIX ***
-                    const additionalChargesDesc = document.getElementById('additionalChargesDesc').value.trim() || 'Additional Charges'; // Get description or use default
-                    // *** END FIX ***
+                    const additionalChargesDesc = document.getElementById('additionalChargesDesc').value.trim() || 'Additional Charges'; 
                     const totalAmountDue = serviceFee + additionalCharges;
                     
-                    // --- Item & Declared Value Data ---
                     const safeItems = Array.isArray(local_items) ? local_items : [];
                     const calculatedTotalValue = safeItems.reduce((sum, item) => sum + ((parseFloat(item.qty) || 0) * (parseFloat(item.value) || 0)), 0);
                     const totalQty = safeItems.reduce((sum, item) => sum + (parseFloat(item.qty) || 0), 0);
-                    const displayValue = calculatedTotalValue.toFixed(2); // This is the Declared Value
+                    const displayValue = calculatedTotalValue.toFixed(2); 
 
                     // --- PDF Setup ---
                     const pageHeight = doc.internal.pageSize.height, pageWidth = doc.internal.pageSize.width;
@@ -1655,46 +1585,66 @@
                     // --- Section 5: Shipment Summary (Customs) ---
                     const finalY = doc.autoTable.previous.finalY;
                     doc.setFontSize(10); doc.setFont("helvetica", "bold"); let summaryY = finalY + sectionSpacing; const summaryRightX = pageWidth - rightMargin;
-                    if (summaryY > pageHeight - bottomMargin - (lineSpacing * 10)) { doc.addPage(); summaryY = topMargin + 20; } // Check for more space
+                    if (summaryY > pageHeight - bottomMargin - (lineSpacing * 10)) { doc.addPage(); summaryY = topMargin + 20; } 
                     doc.text(`Total Quantity:`, leftMargin, summaryY); doc.text(`${totalQty} pcs`, summaryRightX, summaryY, { align: 'right'}); summaryY += lineSpacing * 1.5;
                     doc.text(`Total Packages:`, leftMargin, summaryY); doc.text(`${totalPackages || 'N/A'}`, summaryRightX, summaryY, { align: 'right'}); summaryY += lineSpacing * 1.5;
                     doc.text(`Total Net Weight:`, leftMargin, summaryY); doc.text(`${totalWeight || 'N/A'} kg`, summaryRightX, summaryY, { align: 'right'}); summaryY += lineSpacing * 1.5;
                     doc.text(`Total Declared Value:`, leftMargin, summaryY); doc.text(`$${displayValue} CAD`, summaryRightX, summaryY, { align: 'right'});
                     
-                    // --- *** NEW Section 6: Payment Summary (Customer) *** ---
-                    summaryY += sectionSpacing * 1.5; // Add extra space
-                    doc.setFont("helvetica", "bold");
-                    doc.text("Payment Summary (Customer)", leftMargin, summaryY);
-                    summaryY += lineSpacing * 1.5;
-                    doc.setFont("helvetica", "normal");
-                    doc.text(`Service Fee:`, leftMargin, summaryY); doc.text(`$${serviceFee.toFixed(2)} CAD`, summaryRightX, summaryY, { align: 'right'}); summaryY += lineSpacing * 1.5;
-                    // *** THIS IS THE FIX ***
-                    doc.text(`${additionalChargesDesc}:`, leftMargin, summaryY); doc.text(`$${additionalCharges.toFixed(2)} CAD`, summaryRightX, summaryY, { align: 'right'}); summaryY += lineSpacing * 1.5;
-                    // *** END FIX ***
-                    doc.setFont("helvetica", "bold");
-                    doc.text(`Total Amount Due:`, leftMargin, summaryY); doc.text(`$${totalAmountDue.toFixed(2)} CAD`, summaryRightX, summaryY, { align: 'right'});
+                    // --- Section 6: Payment Summary (Customer) ---
+                    if (docType !== 'Packing List') {
+                        summaryY += sectionSpacing * 1.5; 
+                        doc.setFont("helvetica", "bold");
+                        doc.text("Payment Summary (Customer)", leftMargin, summaryY);
+                        summaryY += lineSpacing * 1.5;
+                        doc.setFont("helvetica", "normal");
+                        doc.text(`Service Fee:`, leftMargin, summaryY); doc.text(`$${serviceFee.toFixed(2)} CAD`, summaryRightX, summaryY, { align: 'right'}); summaryY += lineSpacing * 1.5;
+                        doc.text(`${additionalChargesDesc}:`, leftMargin, summaryY); doc.text(`$${additionalCharges.toFixed(2)} CAD`, summaryRightX, summaryY, { align: 'right'}); summaryY += lineSpacing * 1.5;
+                        doc.setFont("helvetica", "bold");
+                        doc.text(`Total Amount Due:`, leftMargin, summaryY); doc.text(`$${totalAmountDue.toFixed(2)} CAD`, summaryRightX, summaryY, { align: 'right'});
+                    }
 
                     // --- Section 7: Declaration ---
                     doc.setFontSize(9); doc.setFont("helvetica", "bold"); let declarationY = summaryY + sectionSpacing * 1.5;
                     if (declarationY > pageHeight - bottomMargin - lineSpacing) { doc.addPage(); declarationY = topMargin + 20; }
                     doc.text("Declaration: Personal Use – Not for Resale", leftMargin, declarationY);
                     
+                    // --- NEW: Add Seal (Packing List Only) ---
+                    if (docType === 'Packing List' && sealBase64Data) {
+                        try {
+                            const sealSize = 100;
+                            if (declarationY + sealSize + 10 > pageHeight - bottomMargin) { doc.addPage(); declarationY = topMargin + 20; }
+                            // Add image below declaration - USING 'PNG' here
+                            doc.addImage(sealBase64Data, 'PNG', leftMargin, declarationY + 15, sealSize, sealSize);
+                        } catch (imgErr) {
+                            console.error("Failed to add seal image to PDF:", imgErr);
+                            // Don't alert here, just let PDF generate without seal if it fails strictly at the render step
+                        }
+                    }
+
                     // --- Footer & Output ---
                     addPdfFooter(doc); const fileName = `${docType.replace(/ /g, '_')}_${invoiceNumber || 'Shipment'}.pdf`;
-                    if (action === 'open') { if (pdfWindow && doc) { pdfWindow.location.href = doc.output('datauristring'); } else { if (pdfWindow) pdfWindow.close(); throw new Error("Could not generate PDF for printing."); } } else { if (doc) { doc.save(fileName); } else { throw new Error("Could not generate PDF for saving."); } }
+                    if (action === 'open') { 
+                        if (pdfWindow && doc) { 
+                            const blob = doc.output('blob');
+                            const blobURL = URL.createObjectURL(blob);
+                            pdfWindow.location.href = blobURL; 
+                        } else { 
+                            if (pdfWindow) pdfWindow.close(); 
+                            throw new Error("Could not generate PDF for printing."); 
+                        } 
+                    } else { 
+                        if (doc) { doc.save(fileName); } else { throw new Error("Could not generate PDF for saving."); } 
+                    }
                 } catch (error) { if (action === 'open' && pdfWindow) pdfWindow.close(); console.error("Error generating PDF:", error); alert("Sorry, there was an error generating the PDF."); }
             }
 
-            // =============================================
-            // --- THIS IS THE FIXED generateExcel FUNCTION ---
-            // =============================================
             function generateExcel() { 
                  try {
                     if (typeof XLSX === 'undefined') { alert("Error: XLSX library not found."); return; }
                     const senderName = document.getElementById('senderName').value, receiverName = document.getElementById('receiverName').value, receiverPhone = document.getElementById('receiverPhone').value;
                     const receiverAddress = document.getElementById('receiverAddress').value, invoiceNumber = document.getElementById('invoiceNumber').value, invoiceDate = document.getElementById('invoiceDate').value;
                     const totalPackages = document.getElementById('totalPackages').value, hsCode = document.getElementById('hsCode').value, totalWeight = document.getElementById('totalWeight').value;
-                    // const paymentTotal = parseFloat(document.getElementById('paymentTotal').value) || 0; // <-- REMOVED, not for customs docs
                     const infoData = [ ["Shipment Details", ""], ["Sender Name", senderName], ["Receiver Name", receiverName], ["Receiver Phone", receiverPhone], ["Receiver Address", receiverAddress], ["", ""], ["Invoice #", invoiceNumber], ["Date", invoiceDate], ["Total Packages", totalPackages], ["HS Code", hsCode] ];
                     const wsInfo = XLSX.utils.aoa_to_sheet(infoData);
                     const itemsHeader = ['Description', 'Condition', 'Brand', 'Country', 'Category', 'Quantity', 'Unit Value (CAD)', 'Total Value (CAD)'];
@@ -1703,9 +1653,7 @@
                     const totalQty = safeItems.reduce((sum, item) => sum + (parseFloat(item.qty) || 0), 0);
                     const calculatedTotalValue = safeItems.reduce((sum, item) => sum + ((parseFloat(item.qty) || 0) * (parseFloat(item.value) || 0)), 0);
                     
-                    // --- THIS IS THE FIX ---
-                    const displayValue = calculatedTotalValue; // <-- Always use calculated value
-                    // --- END FIX ---
+                    const displayValue = calculatedTotalValue; 
 
                     const itemsFooter = ['TOTAL', '', '', '', '', totalQty, '', displayValue];
                     const wsItems = XLSX.utils.aoa_to_sheet([itemsHeader, ...itemsBody, [], itemsFooter]);
@@ -1718,7 +1666,6 @@
                  } catch (error) { console.error("Error generating Excel:", error); alert("Sorry, there was an error generating the Excel file."); }
              }
 
-            // Attach listeners to Doc buttons
             document.getElementById('printPackingListBtn').addEventListener('click', () => generatePDF('Packing List', 'open'));
             document.getElementById('exportInvoicePDF').addEventListener('click', () => generatePDF('Commercial Invoice', 'save'));
             document.getElementById('exportPackingListExcel').addEventListener('click', generateExcel);
@@ -1730,33 +1677,30 @@
                 const shipmentsRef = dbRef(db, 'shipments');
                 
                 dbOnValue(shipmentsRef, (snapshot) => {
-                    console.log("Firebase data received"); // Add log
+                    console.log("Firebase data received"); 
                     local_shipments_cache = []; 
                     if (snapshot.exists()) {
                         const data = snapshot.val();
                         for (const key in data) {
-                            // Ensure items is always an array, even if missing in Firebase
                             const shipmentData = data[key];
                             if (!shipmentData.items) {
                                 shipmentData.items = [];
                             }
                             local_shipments_cache.push({ id: key, ...shipmentData });
                         }
-                        console.log("Shipments loaded:", local_shipments_cache.length); // Add log
+                        console.log("Shipments loaded:", local_shipments_cache.length); 
                     } else {
-                         console.log("No shipments found in Firebase."); // Add log
+                         console.log("No shipments found in Firebase."); 
                     }
                     
-                    // Re-render all relevant UI elements
                     renderShipmentsTable();
                     renderCustomersTable();
-                    renderPaymentsTable(); // Render payments table too
+                    renderPaymentsTable(); 
                     updateDashboardStats();
                     
                 }, (error) => {
                     console.error("Firebase data read failed: ", error);
                     alert("Could not load data from Firebase. See console.");
-                     // Optionally clear tables or show error message in tables
                     shipmentsTableTbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: red;">Error loading data.</td></tr>';
                     customersTableTbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: red;">Error loading data.</td></tr>';
                     paymentsTableTbody.innerHTML = '<tr><td colspan="8" style="text-align: center; color: red;">Error loading data.</td></tr>';
@@ -1764,10 +1708,8 @@
                 });
             }
             
-            // Set default invoice date
             document.getElementById('invoiceDate').valueAsDate = new Date();
             
-            // Start listening
             listenForData();
 
         });
