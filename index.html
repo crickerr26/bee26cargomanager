@@ -617,7 +617,8 @@
                         <label for="modalItemBrand">Brand Name</label>
                         <input type="text" id="modalItemBrand" placeholder="e.g., Nike, Apple, etc.">
                     </div>
-                    <div class="input-group" style="grid-column: 1 / -1;"> <label for="modalItemCountry">Manufacture Country</label>
+                    <div class="input-group"> 
+                        <label for="modalItemCountry">Manufacture Country</label>
                         <select id="modalItemCountry">
                             <option value="">Select country...</option>
                             <option value="Canada">🇨🇦 Canada</option>
@@ -635,6 +636,11 @@
                             <option value="Turkey">🇹🇷 Turkey</option>
                             <option value="Other">Other</option>
                         </select>
+                    </div>
+                    
+                    <div class="input-group" style="grid-column: 1 / -1;">
+                        <label for="modalItemNote">Item Note (Optional)</label>
+                        <input type="text" id="modalItemNote" placeholder="e.g., Serial number, specific color, etc.">
                     </div>
                     </div>
                 <div class="modal-footer">
@@ -869,7 +875,8 @@
                     value: parseFloat(document.getElementById('modalItemValue').value),
                     condition: document.getElementById('modalItemCondition').value,
                     brand: document.getElementById('modalItemBrand').value,
-                    country: document.getElementById('modalItemCountry').value
+                    country: document.getElementById('modalItemCountry').value,
+                    note: document.getElementById('modalItemNote').value // <--- NEW: Capture Note
                 };
                 if (currentEditItemId !== null) {
                     local_items[currentEditItemId] = item; 
@@ -889,8 +896,9 @@
                 local_items.forEach((item, index) => {
                     const totalVal = (item.qty * item.value).toFixed(2);
                     const row = document.createElement('tr');
+                    // Optionally added note to display in table tooltip or small text, but kept simple as requested.
                     row.innerHTML = `
-                        <td>${item.desc}</td>
+                        <td>${item.desc} ${item.note ? '<br><small style="color:#666">Note: '+item.note+'</small>' : ''}</td>
                         <td>${item.condition || '--'}</td>
                         <td>${item.brand || '--'}</td>
                         <td>${item.country || '--'}</td>
@@ -926,6 +934,7 @@
                     document.getElementById('modalItemCondition').value = item.condition || 'New';
                     document.getElementById('modalItemBrand').value = item.brand || '';
                     document.getElementById('modalItemCountry').value = item.country || '';
+                    document.getElementById('modalItemNote').value = item.note || ''; // <--- NEW: Populate Note
                     modal.classList.add('active');
                 }
             });
@@ -1514,6 +1523,9 @@
                  } catch (error) { console.error("Error adding PDF footer:", error); }
             }
 
+            // =============================================
+            // --- THIS IS THE NEW generatePDF FUNCTION (Categorized) ---
+            // =============================================
             async function generatePDF(docType, action = 'save') { 
                  let pdfWindow = null;
                 if (action === 'open') {
@@ -1528,7 +1540,7 @@
                     
                     // --- Get All Data ---
                     const logoBase64Data = await fetchLogoAsBase64();
-                    const sealBase64Data = await fetchSealAsBase64(); // <-- Fetch Seal
+                    const sealBase64Data = await fetchSealAsBase64(); 
                     
                     const senderName = document.getElementById('senderName').value, receiverName = document.getElementById('receiverName').value;
                     const receiverPhone = document.getElementById('receiverPhone').value, receiverAddress = document.getElementById('receiverAddress').value;
@@ -1541,7 +1553,10 @@
                     const additionalChargesDesc = document.getElementById('additionalChargesDesc').value.trim() || 'Additional Charges'; 
                     const totalAmountDue = serviceFee + additionalCharges;
                     
-                    const safeItems = Array.isArray(local_items) ? local_items : [];
+                    // --- Prepare Items: Clone and Sort by Category ---
+                    const safeItems = Array.isArray(local_items) ? [...local_items] : [];
+                    safeItems.sort((a, b) => (a.category || '').localeCompare(b.category || ''));
+
                     const calculatedTotalValue = safeItems.reduce((sum, item) => sum + ((parseFloat(item.qty) || 0) * (parseFloat(item.value) || 0)), 0);
                     const totalQty = safeItems.reduce((sum, item) => sum + (parseFloat(item.qty) || 0), 0);
                     const displayValue = calculatedTotalValue.toFixed(2); 
@@ -1573,14 +1588,62 @@
                     const receiverAddressLines = doc.splitTextToSize(receiverAddress, receiverWidth); doc.text(receiverAddressLines, receiverX, receiverBlockY); receiverBlockY += (receiverAddressLines.length * lineSpacing);
                     if (docType === 'Commercial Invoice' && hsCode) { receiverBlockY += lineSpacing * 0.5; doc.setFont("helvetica", "bold"); doc.text("HS Code (Overall): ", receiverX, receiverBlockY); doc.setFont("helvetica", "normal"); doc.text(hsCode, receiverX + 80, receiverBlockY); }
                     
-                    // --- Section 4: Table (Items) ---
+                    // --- Section 4: Table (Items - Categorized) ---
                     let tableStartY = Math.max(senderBlockY, receiverBlockY) + sectionSpacing;
-                    const tableHead = [['#', 'Description', 'Condition', 'Brand', 'Country', 'Category', 'Qty', 'Unit Value', 'Total Value']];
-                    const tableBody = safeItems.map((item, index) => [
-                        index + 1, item.desc || '', item.condition || '--', item.brand || '--', item.country || '--', item.category || '', 
-                        parseFloat(item.qty) || 0, (parseFloat(item.value) || 0).toFixed(2), ((parseFloat(item.qty) || 0) * (parseFloat(item.value) || 0)).toFixed(2)
-                    ]);
-                    doc.autoTable({ head: tableHead, body: tableBody, startY: tableStartY, theme: 'grid', headStyles: { fillColor: [230, 230, 230], textColor: 0, fontStyle: 'bold', fontSize: 8 }, styles: { fontSize: 8, cellPadding: 2, overflow: 'linebreak' }, columnStyles: { 0: { cellWidth: 20, halign: 'center' }, 6: { cellWidth: 30, halign: 'right' }, 7: { cellWidth: 50, halign: 'right' }, 8: { cellWidth: 50, halign: 'right' } }, margin: { left: leftMargin, right: rightMargin } });
+                    
+                    // Define 9 columns now
+                    const tableHead = [['#', 'Description', 'Note', 'Category', 'Brand', 'Country', 'Qty', 'Unit Value', 'Total Value']];
+                    const tableBody = [];
+                    let currentCategory = null;
+
+                    safeItems.forEach((item, index) => {
+                        // Check for Category Change -> Insert Group Header
+                        const itemCat = item.category || 'Uncategorized';
+                        if (itemCat !== currentCategory) {
+                            currentCategory = itemCat;
+                            tableBody.push([
+                                {
+                                    content: currentCategory.toUpperCase(),
+                                    colSpan: 9, // Span across all 9 columns
+                                    styles: { fillColor: [240, 240, 240], fontStyle: 'bold', textColor: 50 }
+                                }
+                            ]);
+                        }
+
+                        tableBody.push([
+                            index + 1, 
+                            item.desc || '', 
+                            item.note || '', 
+                            item.category || '', // Show Category column as requested
+                            item.brand || '--', 
+                            item.country || '--', 
+                            parseFloat(item.qty) || 0, 
+                            (parseFloat(item.value) || 0).toFixed(2), 
+                            ((parseFloat(item.qty) || 0) * (parseFloat(item.value) || 0)).toFixed(2)
+                        ]);
+                    });
+                    
+                    doc.autoTable({ 
+                        head: tableHead, 
+                        body: tableBody, 
+                        startY: tableStartY, 
+                        theme: 'grid', 
+                        headStyles: { fillColor: [230, 230, 230], textColor: 0, fontStyle: 'bold', fontSize: 8 }, 
+                        styles: { fontSize: 8, cellPadding: 2, overflow: 'linebreak' }, 
+                        // Update Column Styles for 9 columns
+                        columnStyles: { 
+                            0: { cellWidth: 20, halign: 'center' }, 
+                            // 1: Description (Auto)
+                            // 2: Note (Auto)
+                            // 3: Category (Auto)
+                            // 4: Brand
+                            // 5: Country
+                            6: { cellWidth: 30, halign: 'right' }, // Qty
+                            7: { cellWidth: 50, halign: 'right' }, // Unit Val
+                            8: { cellWidth: 50, halign: 'right' }  // Total Val
+                        }, 
+                        margin: { left: leftMargin, right: rightMargin } 
+                    });
                     
                     // --- Section 5: Shipment Summary (Customs) ---
                     const finalY = doc.autoTable.previous.finalY;
@@ -1609,17 +1672,13 @@
                     if (declarationY > pageHeight - bottomMargin - lineSpacing) { doc.addPage(); declarationY = topMargin + 20; }
                     doc.text("Declaration: Personal Use – Not for Resale", leftMargin, declarationY);
                     
-                    // --- NEW: Add Seal (Packing List Only) ---
+                    // --- Seal (Packing List Only) ---
                     if (docType === 'Packing List' && sealBase64Data) {
                         try {
                             const sealSize = 100;
                             if (declarationY + sealSize + 10 > pageHeight - bottomMargin) { doc.addPage(); declarationY = topMargin + 20; }
-                            // Add image below declaration - USING 'PNG' here
                             doc.addImage(sealBase64Data, 'PNG', leftMargin, declarationY + 15, sealSize, sealSize);
-                        } catch (imgErr) {
-                            console.error("Failed to add seal image to PDF:", imgErr);
-                            // Don't alert here, just let PDF generate without seal if it fails strictly at the render step
-                        }
+                        } catch (imgErr) { console.error("Failed to add seal image to PDF:", imgErr); }
                     }
 
                     // --- Footer & Output ---
