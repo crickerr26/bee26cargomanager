@@ -217,41 +217,10 @@
         .review-section h3 { font-size: 1.2rem; color: var(--blue); margin-top: 0; }
 
         /* --- 10. Modal --- */
-.modal-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0,0,0,0.5);
-    z-index: 1000;
-    display: none;
-    align-items: center;
-    justify-content: center;
-    padding: 1rem;              /* keeps content away from screen edges */
-    box-sizing: border-box;
-}
-.modal-overlay.active { display: flex; }
-
-.modal-content {
-    background: var(--bg-white);
-    border-radius: var(--border-radius);
-    padding: 2rem;
-    width: 100%;
-    max-width: 700px;
-    max-height: 90vh;           /* << limit height to viewport */
-    overflow-y: auto;           /* << allow scrolling inside modal */
-    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-}
-
-.modal-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 1.5rem;
-    padding-bottom: 1rem;
-    border-bottom: 1px solid var(--grey-mid);
-}
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; display: none; align-items: center; justify-content: center; }
+        .modal-overlay.active { display: flex; }
+        .modal-content { background: var(--bg-white); border-radius: var(--border-radius); padding: 2rem; width: 90%; max-width: 700px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid var(--grey-mid); }
         .modal-header h2 { margin: 0; }
         .modal-header .close-btn { font-size: 2rem; font-weight: 300; cursor: pointer; background: none; border: none; line-height: 1; padding: 0; }
         .modal-footer { display: flex; justify-content: flex-end; gap: 1rem; margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--grey-mid); }
@@ -284,62 +253,27 @@
 
         /* --- 12. Responsive (Mobile) --- */
         @media (max-width: 768px) {
-
-    body {
-        font-size: 14px;
-    }
-
-    .sidebar {
-        width: 100%;
-        height: auto;
-        position: relative;
-    }
-
-    .main-content {
-        margin-left: 0;
-        padding: 1rem;
-    }
-
-    .header {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 1rem;
-    }
-
-    .form-grid-two-col {
-        grid-template-columns: 1fr;
-    }
-
-    .summary-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .table-container {
-        overflow-x: auto;
-    }
-
-    /* ✅ FIX FOR ADD NEW ITEM MODAL (MOBILE) */
-    .modal-overlay {
-        align-items: flex-start;
-        padding-top: 1.5rem;
-    }
-
-    .modal-content {
-        width: 100%;
-        padding: 1.5rem;
-        max-height: calc(100vh - 3rem);
-        overflow-y: auto;
-    }
-
-    .modal-footer {
-        flex-direction: column;
-    }
-
-    .modal-footer .btn {
-        width: 100%;
-    }
-
-}
+            .sidebar { width: 100%; height: 65px; bottom: 0; top: auto; left: 0; flex-direction: row; border-top: 1px solid #2d3748; }
+            .sidebar-logo, .sidebar-bottom { display: none; }
+            .sidebar-nav { display: flex; flex-direction: row; justify-content: space-around; width: 100%; height: 100%; margin: 0; padding: 0 0.5rem; }
+            .sidebar-nav li { flex-grow: 1; }
+            .sidebar-nav li a { flex-direction: column; justify-content: center; height: 100%; padding: 0.5rem 0.25rem; }
+            .nav-icon { font-size: 1.25rem; width: auto; }
+            .nav-text { opacity: 1; visibility: visible; font-size: 0.7rem; margin-left: 0; margin-top: 0.25rem; }
+            .main-content { margin-left: 0; width: 100%; padding: 1rem; padding-bottom: 80px; }
+            header { flex-direction: column; align-items: flex-start; gap: 0.5rem; }
+            header h1 { font-size: 1.8rem; }
+            header p { font-size: 1rem; margin-bottom: 1rem; }
+            .stats-grid, .form-grid-two-col, .form-grid-three-col, .payment-summary-grid { grid-template-columns: 1fr; }
+            .stepper { padding: 1rem 0.5rem; }
+            .step-label { font-size: 0.7rem; text-align: center; }
+            .summary-grid { grid-template-columns: 100px 1fr; }
+            .summary-grid strong { text-align: left; }
+            .modal-content { width: 95%; padding: 1.5rem; }
+            .modal-footer { flex-direction: column; }
+            .modal-footer .btn { width: 100%; }
+            .filters-bar { flex-direction: column; }
+        }
     </style>
 </head>
 <body>
@@ -1762,36 +1696,19 @@ const receiverAddressLines = doc.splitTextToSize(receiverAddress, receiverWidth)
                     }
 
                     // --- Footer & Output ---
-addPdfFooter(doc);
-
-// Set nice file names for each document type
-let baseName = docType;
-if (docType === 'Commercial Invoice') {
-    // We want the saved file to say "Customer Invoice"
-    baseName = 'Customer Invoice';
-} else if (docType === 'Packing List') {
-    // Keep this exactly as "Packing List"
-    baseName = 'Packing List';
-}
-
-const fileName = `${baseName.replace(/ /g, '_')}_${invoiceNumber || 'Shipment'}.pdf`;
-
-if (action === 'open') { 
-    if (pdfWindow && doc) { 
-        const blob = doc.output('blob');
-        const blobURL = URL.createObjectURL(blob);
-        pdfWindow.location.href = blobURL; 
-    } else { 
-        if (pdfWindow) pdfWindow.close(); 
-        throw new Error("Could not generate PDF for printing."); 
-    } 
-} else { 
-    if (doc) { 
-        doc.save(fileName); 
-    } else { 
-        throw new Error("Could not generate PDF for saving."); 
-    } 
-}
+                    addPdfFooter(doc); const fileName = `${docType.replace(/ /g, '_')}_${invoiceNumber || 'Shipment'}.pdf`;
+                    if (action === 'open') { 
+                        if (pdfWindow && doc) { 
+                            const blob = doc.output('blob');
+                            const blobURL = URL.createObjectURL(blob);
+                            pdfWindow.location.href = blobURL; 
+                        } else { 
+                            if (pdfWindow) pdfWindow.close(); 
+                            throw new Error("Could not generate PDF for printing."); 
+                        } 
+                    } else { 
+                        if (doc) { doc.save(fileName); } else { throw new Error("Could not generate PDF for saving."); } 
+                    }
                 } catch (error) { if (action === 'open' && pdfWindow) pdfWindow.close(); console.error("Error generating PDF:", error); alert("Sorry, there was an error generating the PDF."); }
             }
 
