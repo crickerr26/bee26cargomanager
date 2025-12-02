@@ -1636,7 +1636,7 @@
                     
                     // --- Section 2: Sender Address ---
                     let senderBlockY = currentY; doc.setFontSize(9); doc.setFont("helvetica", "bold"); doc.text("BEE26 CARGO SERVICES", leftMargin, senderBlockY); senderBlockY += lineSpacing; doc.setFont("helvetica", "normal");
-                    const addressLines = ["MOHAMED IMSAMAM MOHAED RIZAN", "1001260111 - BIN", "614-2 MILEPOST PLACE, EAST YORK,", "ONTARIO, M4H 1C7", "+1 416 474 4994", "bee26cargoservices@gmail.com"];
+                    const addressLines = ["MOHAMED IMSAMAM MOHAMED RIZAN", "1001260111 - BIN", "614-2 MILEPOST PLACE, EAST YORK,", "ONTARIO, M4H 1C7", "+1 416 474 4994", "bee26cargoservices@gmail.com"];
                     addressLines.forEach(line => { const splitLines = doc.splitTextToSize(line, senderWidth); doc.text(splitLines, leftMargin, senderBlockY); senderBlockY += (splitLines.length * lineSpacing); });
                     if (invoiceNumber) { senderBlockY += lineSpacing * 0.5; doc.setFont("helvetica", "bold"); doc.text(`Invoice #: ${invoiceNumber}`, leftMargin, senderBlockY); senderBlockY += lineSpacing; }
                     if (docType === 'Commercial Invoice' && invoiceDate) { doc.setFont("helvetica", "bold"); doc.text("Date: ", leftMargin, senderBlockY); doc.setFont("helvetica", "normal"); doc.text(invoiceDate, leftMargin + 30, senderBlockY); senderBlockY += lineSpacing; }
