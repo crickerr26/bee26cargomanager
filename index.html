@@ -216,10 +216,39 @@
         .review-section:last-child { border-bottom: none; }
         .review-section h3 { font-size: 1.2rem; color: var(--blue); margin-top: 0; }
 
-        /* --- 10. Modal --- */
-        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; display: none; align-items: center; justify-content: center; }
+        /* --- 10. Modal (UPDATED FOR MOBILE SCROLL) --- */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            display: none;
+            /* Allow vertical scrolling on the overlay itself */
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch; /* Smooth scroll on iOS */
+            padding: 1rem;
+            box-sizing: border-box;
+            /* Align start allows content to scroll if it's taller than screen */
+            align-items: flex-start;
+            justify-content: center;
+        }
         .modal-overlay.active { display: flex; }
-        .modal-content { background: var(--bg-white); border-radius: var(--border-radius); padding: 2rem; width: 90%; max-width: 700px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+        
+        .modal-content {
+            background: var(--bg-white);
+            border-radius: var(--border-radius);
+            padding: 2rem;
+            width: 90%;
+            max-width: 700px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            /* Auto margin centers horizontally and adds space vertically */
+            margin: auto; 
+            position: relative;
+        }
+        
         .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid var(--grey-mid); }
         .modal-header h2 { margin: 0; }
         .modal-header .close-btn { font-size: 2rem; font-weight: 300; cursor: pointer; background: none; border: none; line-height: 1; padding: 0; }
@@ -260,18 +289,42 @@
             .sidebar-nav li a { flex-direction: column; justify-content: center; height: 100%; padding: 0.5rem 0.25rem; }
             .nav-icon { font-size: 1.25rem; width: auto; }
             .nav-text { opacity: 1; visibility: visible; font-size: 0.7rem; margin-left: 0; margin-top: 0.25rem; }
+            
             .main-content { margin-left: 0; width: 100%; padding: 1rem; padding-bottom: 80px; }
+            
             header { flex-direction: column; align-items: flex-start; gap: 0.5rem; }
             header h1 { font-size: 1.8rem; }
             header p { font-size: 1rem; margin-bottom: 1rem; }
+            
             .stats-grid, .form-grid-two-col, .form-grid-three-col, .payment-summary-grid { grid-template-columns: 1fr; }
             .stepper { padding: 1rem 0.5rem; }
             .step-label { font-size: 0.7rem; text-align: center; }
             .summary-grid { grid-template-columns: 100px 1fr; }
             .summary-grid strong { text-align: left; }
-            .modal-content { width: 95%; padding: 1.5rem; }
+            
+            /* Modal Mobile Fixes */
+            .modal-content { 
+                width: 100%; 
+                padding: 1.5rem; 
+                margin: 0 auto; /* Remove extra margin, overlay padding handles it */
+            }
+            .modal-overlay {
+                padding: 10px; /* Small buffer */
+            }
             .modal-footer { flex-direction: column; }
             .modal-footer .btn { width: 100%; }
+            
+            /* Prevent auto-zoom on iOS when inputs are focused (needs 16px min) */
+            .input-group input[type="text"],
+            .input-group input[type="tel"],
+            .input-group input[type="email"],
+            .input-group input[type="number"],
+            .input-group input[type="date"],
+            .input-group select,
+            .input-group textarea {
+                font-size: 16px;
+            }
+
             .filters-bar { flex-direction: column; }
         }
     </style>
@@ -455,9 +508,9 @@
                 <h2>All Shipments</h2>
                 <div class="table-container">
                     <table class="styled-table">
-                        <thead><tr><th>Invoice #</th><th>Date</th><th>Sender</th><th>Receiver</th><th>Status</th><th>Payment</th><th>Actions</th></tr></thead>
+                        <thead><tr><th>Invoice #</th><th>Date</th><th>Sender</th><th>Receiver</th><th>Total Amt</th><th>Status</th><th>Payment</th><th>Actions</th></tr></thead>
                         <tbody id="shipmentsTableTbody">
-                            <tr><td colspan="7" style="text-align: center;">Loading data from Firebase...</td></tr>
+                            <tr><td colspan="8" style="text-align: center;">Loading data from Firebase...</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -551,56 +604,57 @@
                         <input type="text" id="modalItemDesc" placeholder="e.g., Men's T-Shirts" required>
                     </div>
                      <div class="input-group">
+                        <div class="input-group">
                         <label for="modalItemCat">Category</label>
                         <select id="modalItemCat" required>
-    <option value="">Select category...</option>
-    <optgroup label="Apparel & Textiles">
-        <option value="Clothing">Clothing</option>
-        <option value="Footwear & Shoes">Footwear & Shoes</option>
-        <option value="Fabrics & Textiles">Fabrics & Textiles</option>
-        <option value="Kids Clothing">Kids Clothing</option>
-    </optgroup>
-    <optgroup label="Electronics & Media">
-        <option value="Computers & Laptops">Computers & Laptops</option>
-        <option value="Phones & Accessories">Phones & Accessories</option>
-        <option value="Cameras & Equipment">Cameras & Equipment</option>
-        <option value="Electronic Items">Electronic Items</option>
-        <option value="Batteries / Power Banks">Batteries / Power Banks</option>
-        <option value="Books & Media">Books & Media</option>
-    </optgroup>
-    <optgroup label="Food & Perishables">
-        <option value="Packaged Food (Non-Perishable)">Packaged Food (Non-Perishable)</option>
-        <option value="Perishables (Special Handling)">Perishables (Special Handling)</option>
-        <option value="Liquids & Beverages">Liquids & Beverages</option>
-    </optgroup>
-    <optgroup label="Health & Beauty">
-        <option value="Cosmetics & Toiletries">Cosmetics & Toiletries</option>
-        <option value"Medicines & Vitamins">Medicines & Vitamins</option>
-    </optgroup>
-    <optgroup label="Household & Goods">
-        <option value="Kitchenware">Kitchenware</option>
-        <option value="Home Decor">Home Decor</option>
-        <option value="Tools & Hardware">Tools & Hardware</option>
-        <option value="Household Supplies">Household Supplies</option>
-    </optgroup>
-    <optgroup label="Personal Items & Gifts">
-        <option value="Toys & Hobbies">Toys & Hobbies</option>
-        <option value="Kids Toys">Kids Toys</option>
-        <option value="Jewelry & Accessories">Jewelry & Accessories</option>
-        <option value="Gifts & Souvenirs">Gifts & Souvenirs</option>
-        <option value="Sports Equipment">Sports Equipment</option>
-    </optgroup>
-    <optgroup label="Documents & Special">
-        <option value="Documents">Documents</option>
-        <option value="Stationary">Stationary</option>
-        <option value="Fragile Items">Fragile Items</option>
-        <option value="Restricted / Special Handling">Restricted / Special Handling</option>
-    </optgroup>
-    <optgroup label="Other">
-        <option value="General Merchandise">General Merchandise</option>
-        <option value="Other">Other</option>
-    </optgroup>
-</select>
+                            <option value="">Select category...</option>
+                            <optgroup label="Apparel & Textiles">
+                                <option value="Clothing">Clothing</option>
+                                <option value="Footwear & Shoes">Footwear & Shoes</option>
+                                <option value="Fabrics & Textiles">Fabrics & Textiles</option>
+                                <option value="Kids Clothing">Kids Clothing</option>
+                            </optgroup>
+                            <optgroup label="Electronics & Media">
+                                <option value="Computers & Laptops">Computers & Laptops</option>
+                                <option value="Phones & Accessories">Phones & Accessories</option>
+                                <option value="Cameras & Equipment">Cameras & Equipment</option>
+                                <option value="Electronic Items">Electronic Items</option>
+                                <option value="Batteries / Power Banks">Batteries / Power Banks</option>
+                                <option value="Books & Media">Books & Media</option>
+                            </optgroup>
+                            <optgroup label="Food & Perishables">
+                                <option value="Packaged Food (Non-Perishable)">Packaged Food (Non-Perishable)</option>
+                                <option value="Perishables (Special Handling)">Perishables (Special Handling)</option>
+                                <option value="Liquids & Beverages">Liquids & Beverages</option>
+                            </optgroup>
+                            <optgroup label="Health & Beauty">
+                                <option value="Cosmetics & Toiletries">Cosmetics & Toiletries</option>
+                                <option value"Medicines & Vitamins">Medicines & Vitamins</option>
+                            </optgroup>
+                            <optgroup label="Household & Goods">
+                                <option value="Kitchenware">Kitchenware</option>
+                                <option value="Home Decor">Home Decor</option>
+                                <option value="Tools & Hardware">Tools & Hardware</option>
+                                <option value="Household Supplies">Household Supplies</option>
+                            </optgroup>
+                            <optgroup label="Personal Items & Gifts">
+                                <option value="Toys & Hobbies">Toys & Hobbies</option>
+                                <option value="Kids Toys">Kids Toys</option>
+                                <option value="Jewelry & Accessories">Jewelry & Accessories</option>
+                                <option value="Gifts & Souvenirs">Gifts & Souvenirs</option>
+                                <option value="Sports Equipment">Sports Equipment</option>
+                            </optgroup>
+                            <optgroup label="Documents & Special">
+                                <option value="Documents">Documents</option>
+                                <option value="Stationary">Stationary</option>
+                                <option value="Fragile Items">Fragile Items</option>
+                                <option value="Restricted / Special Handling">Restricted / Special Handling</option>
+                            </optgroup>
+                            <optgroup label="Other">
+                                <option value="General Merchandise">General Merchandise</option>
+                                <option value="Other">Other</option>
+                            </optgroup>
+                        </select>
                     </div>
                      <div class="input-group">
                         <label for="modalItemQty">Quantity</label>
@@ -948,14 +1002,13 @@
             // --- 4. Shipment Save, Review, and Load (FIREBASE CONNECTED) ---
             
             function populateReviewStep() { 
-    // Customer
-    document.getElementById('review-senderName').textContent = document.getElementById('senderName').value || '--';
-    document.getElementById('review-senderPhone').textContent = document.getElementById('senderPhone').value || '--';
-    document.getElementById('review-receiverName').textContent = document.getElementById('receiverName').value || '--';
-    document.getElementById('review-receiverPhone').textContent = document.getElementById('receiverPhone').value || '--';
-    document.getElementById('review-receiverEmail').textContent = document.getElementById('receiverEmail').value || '--';
-    document.getElementById('review-receiverAddress').textContent = document.getElementById('receiverAddress').value || '--';
-    // Shipment
+                // Customer
+                document.getElementById('review-senderName').textContent = document.getElementById('senderName').value || '--';
+                document.getElementById('review-senderPhone').textContent = document.getElementById('senderPhone').value || '--';
+                document.getElementById('review-receiverName').textContent = document.getElementById('receiverName').value || '--';
+                document.getElementById('review-receiverPhone').textContent = document.getElementById('receiverPhone').value || '--';
+                document.getElementById('review-receiverAddress').textContent = document.getElementById('receiverAddress').value || '--';
+                // Shipment
                 document.getElementById('review-invoiceNumber').textContent = document.getElementById('invoiceNumber').value || '--';
                 document.getElementById('review-totalPackages').textContent = document.getElementById('totalPackages').value || '--';
                 document.getElementById('review-totalWeight').textContent = document.getElementById('totalWeight').value ? document.getElementById('totalWeight').value + ' kg' : '--';
@@ -1003,14 +1056,13 @@
 
             async function saveShipment() { 
                 const shipment = {
-    senderName: document.getElementById('senderName').value,
-    senderPhone: document.getElementById('senderPhone').value,
-    receiverName: document.getElementById('receiverName').value,
-    receiverPhone: document.getElementById('receiverPhone').value,
-    receiverEmail: document.getElementById('receiverEmail').value,
-    receiverAddress: document.getElementById('receiverAddress').value,
-    customerRemarks: document.getElementById('customerRemarks').value,
-    totalPackages: document.getElementById('totalPackages').value,
+                    senderName: document.getElementById('senderName').value,
+                    senderPhone: document.getElementById('senderPhone').value,
+                    receiverName: document.getElementById('receiverName').value,
+                    receiverPhone: document.getElementById('receiverPhone').value,
+                    receiverAddress: document.getElementById('receiverAddress').value,
+                    customerRemarks: document.getElementById('customerRemarks').value,
+                    totalPackages: document.getElementById('totalPackages').value,
                     totalWeight: document.getElementById('totalWeight').value,
                     invoiceNumber: document.getElementById('invoiceNumber').value,
                     invoiceDate: document.getElementById('invoiceDate').value,
@@ -1049,13 +1101,11 @@
                 clearWizard(); 
 
                 document.getElementById('senderName').value = shipment.senderName || '';
-document.getElementById('senderPhone').value = shipment.senderPhone || '';
-document.getElementById('receiverName').value = shipment.receiverName || '';
-document.getElementById('receiverPhone').value = shipment.receiverPhone || '';
-document.getElementById('receiverEmail').value = shipment.receiverEmail || '';
-document.getElementById('receiverAddress').value = shipment.receiverAddress || '';
-document.getElementById('customerRemarks').value = shipment.customerRemarks || '';
-
+                document.getElementById('senderPhone').value = shipment.senderPhone || '';
+                document.getElementById('receiverName').value = shipment.receiverName || '';
+                document.getElementById('receiverPhone').value = shipment.receiverPhone || '';
+                document.getElementById('receiverAddress').value = shipment.receiverAddress || '';
+                document.getElementById('customerRemarks').value = shipment.customerRemarks || '';
                 document.getElementById('totalPackages').value = shipment.totalPackages || '';
                 document.getElementById('totalWeight').value = shipment.totalWeight || '';
                 document.getElementById('invoiceNumber').value = shipment.invoiceNumber || '';
@@ -1130,7 +1180,7 @@ document.getElementById('customerRemarks').value = shipment.customerRemarks || '
 
                  shipmentsTableTbody.innerHTML = '';
                 if (local_shipments_cache.length === 0) {
-                    shipmentsTableTbody.innerHTML = '<tr><td colspan="8" style="text-align: center;">No shipments created yet.</td></tr>'; 
+                    shipmentsTableTbody.innerHTML = '<tr><td colspan="8" style="text-align: center;">No shipments created yet.</td></tr>'; // Colspan is now 8
                     return;
                 }
                 const sortedShipments = [...local_shipments_cache].sort((a, b) => new Date(b.invoiceDate) - new Date(a.invoiceDate));
@@ -1549,14 +1599,11 @@ document.getElementById('customerRemarks').value = shipment.customerRemarks || '
                     
                     // --- Get All Data ---
                     const logoBase64Data = await fetchLogoAsBase64();
-const sealBase64Data = await fetchSealAsBase64(); 
-
-const senderName = document.getElementById('senderName').value,
-      receiverName = document.getElementById('receiverName').value;
-const receiverPhone = document.getElementById('receiverPhone').value,
-      receiverEmail = document.getElementById('receiverEmail').value,
-      receiverAddress = document.getElementById('receiverAddress').value;
-const invoiceNumber = document.getElementById('invoiceNumber').value, invoiceDate = document.getElementById('invoiceDate').value;
+                    const sealBase64Data = await fetchSealAsBase64(); 
+                    
+                    const senderName = document.getElementById('senderName').value, receiverName = document.getElementById('receiverName').value;
+                    const receiverPhone = document.getElementById('receiverPhone').value, receiverAddress = document.getElementById('receiverAddress').value;
+                    const invoiceNumber = document.getElementById('invoiceNumber').value, invoiceDate = document.getElementById('invoiceDate').value;
                     const hsCode = document.getElementById('hsCode').value, totalPackages = document.getElementById('totalPackages').value;
                     const totalWeight = document.getElementById('totalWeight').value;
                     
@@ -1589,17 +1636,15 @@ const invoiceNumber = document.getElementById('invoiceNumber').value, invoiceDat
                     
                     // --- Section 2: Sender Address ---
                     let senderBlockY = currentY; doc.setFontSize(9); doc.setFont("helvetica", "bold"); doc.text("BEE26 CARGO SERVICES", leftMargin, senderBlockY); senderBlockY += lineSpacing; doc.setFont("helvetica", "normal");
-                    const addressLines = ["MOHAMED IMSAMAM MOHAMED RIZAN", "1001260111 - BIN", "614-2 MILEPOST PLACE, EAST YORK,", "ONTARIO, M4H 1C7", "+1 416 474 4994", "bee26cargoservices@gmail.com"];
+                    const addressLines = ["MOHAMED IMSAMAM MOHAED RIZAN", "1001260111 - BIN", "614-2 MILEPOST PLACE, EAST YORK,", "ONTARIO, M4H 1C7", "+1 416 474 4994", "bee26cargoservices@gmail.com"];
                     addressLines.forEach(line => { const splitLines = doc.splitTextToSize(line, senderWidth); doc.text(splitLines, leftMargin, senderBlockY); senderBlockY += (splitLines.length * lineSpacing); });
                     if (invoiceNumber) { senderBlockY += lineSpacing * 0.5; doc.setFont("helvetica", "bold"); doc.text(`Invoice #: ${invoiceNumber}`, leftMargin, senderBlockY); senderBlockY += lineSpacing; }
                     if (docType === 'Commercial Invoice' && invoiceDate) { doc.setFont("helvetica", "bold"); doc.text("Date: ", leftMargin, senderBlockY); doc.setFont("helvetica", "normal"); doc.text(invoiceDate, leftMargin + 30, senderBlockY); senderBlockY += lineSpacing; }
                     
                     // --- Section 3: Receiver Address ---
-let receiverBlockY = currentY; doc.setFontSize(10); doc.setFont("helvetica", "bold"); doc.text("TO (Receiver):", receiverX, receiverBlockY); receiverBlockY += lineSpacing * 1.5; doc.setFont("helvetica", "normal"); doc.setFontSize(9);
-doc.text(receiverName, receiverX, receiverBlockY); receiverBlockY += lineSpacing;
-doc.text(receiverPhone, receiverX, receiverBlockY); receiverBlockY += lineSpacing;
-if (receiverEmail) { doc.text(receiverEmail, receiverX, receiverBlockY); receiverBlockY += lineSpacing; }
-const receiverAddressLines = doc.splitTextToSize(receiverAddress, receiverWidth); doc.text(receiverAddressLines, receiverX, receiverBlockY); receiverBlockY += (receiverAddressLines.length * lineSpacing);
+                    let receiverBlockY = currentY; doc.setFontSize(10); doc.setFont("helvetica", "bold"); doc.text("TO (Receiver):", receiverX, receiverBlockY); receiverBlockY += lineSpacing * 1.5; doc.setFont("helvetica", "normal"); doc.setFontSize(9);
+                    doc.text(receiverName, receiverX, receiverBlockY); receiverBlockY += lineSpacing; doc.text(receiverPhone, receiverX, receiverBlockY); receiverBlockY += lineSpacing;
+                    const receiverAddressLines = doc.splitTextToSize(receiverAddress, receiverWidth); doc.text(receiverAddressLines, receiverX, receiverBlockY); receiverBlockY += (receiverAddressLines.length * lineSpacing);
                     if (docType === 'Commercial Invoice' && hsCode) { receiverBlockY += lineSpacing * 0.5; doc.setFont("helvetica", "bold"); doc.text("HS Code (Overall): ", receiverX, receiverBlockY); doc.setFont("helvetica", "normal"); doc.text(hsCode, receiverX + 80, receiverBlockY); }
                     
                     // --- Section 4: Table (Items - Categorized) ---
@@ -1716,22 +1761,9 @@ const receiverAddressLines = doc.splitTextToSize(receiverAddress, receiverWidth)
                  try {
                     if (typeof XLSX === 'undefined') { alert("Error: XLSX library not found."); return; }
                     const senderName = document.getElementById('senderName').value, receiverName = document.getElementById('receiverName').value, receiverPhone = document.getElementById('receiverPhone').value;
-const receiverEmail = document.getElementById('receiverEmail').value;
-const receiverAddress = document.getElementById('receiverAddress').value, invoiceNumber = document.getElementById('invoiceNumber').value, invoiceDate = document.getElementById('invoiceDate').value;
-const totalPackages = document.getElementById('totalPackages').value, hsCode = document.getElementById('hsCode').value, totalWeight = document.getElementById('totalWeight').value;
-const infoData = [
-    ["Shipment Details", ""],
-    ["Sender Name", senderName],
-    ["Receiver Name", receiverName],
-    ["Receiver Phone", receiverPhone],
-    ["Receiver Email", receiverEmail],
-    ["Receiver Address", receiverAddress],
-    ["", ""],
-    ["Invoice #", invoiceNumber],
-    ["Date", invoiceDate],
-    ["Total Packages", totalPackages],
-    ["HS Code", hsCode]
-];
+                    const receiverAddress = document.getElementById('receiverAddress').value, invoiceNumber = document.getElementById('invoiceNumber').value, invoiceDate = document.getElementById('invoiceDate').value;
+                    const totalPackages = document.getElementById('totalPackages').value, hsCode = document.getElementById('hsCode').value, totalWeight = document.getElementById('totalWeight').value;
+                    const infoData = [ ["Shipment Details", ""], ["Sender Name", senderName], ["Receiver Name", receiverName], ["Receiver Phone", receiverPhone], ["Receiver Address", receiverAddress], ["", ""], ["Invoice #", invoiceNumber], ["Date", invoiceDate], ["Total Packages", totalPackages], ["HS Code", hsCode] ];
                     const wsInfo = XLSX.utils.aoa_to_sheet(infoData);
                     const itemsHeader = ['Description', 'Condition', 'Brand', 'Country', 'Category', 'Quantity', 'Unit Value (CAD)', 'Total Value (CAD)'];
                     const safeItems = Array.isArray(local_items) ? local_items : [];
