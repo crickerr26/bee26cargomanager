@@ -140,8 +140,8 @@
         
         /* --- 6. Styled Table (Used on multiple pages) --- */
         .table-container { width: 100%; overflow-x: auto; }
-        .styled-table { width: 100%; border-collapse: collapse; font-size: 0.95rem; }
-        .styled-table th, .styled-table td { padding: 1rem; text-align: left; border-bottom: 1px solid var(--grey-mid); vertical-align: middle; } 
+        .styled-table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
+        .styled-table th, .styled-table td { padding: 0.5rem; text-align: left; border-bottom: 1px solid var(--grey-mid); vertical-align: middle; }
         .styled-table th { color: var(--text-secondary); font-weight: 600; background-color: #fcfcfc; }
         .styled-table tbody tr:last-child td { border-bottom: none; }
         .styled-table tbody tr:hover { background-color: var(--grey-light); }
@@ -169,10 +169,7 @@
             width: 100%;
             min-width: 110px; 
         }
-        .status-select:focus {
-            outline: none;
-            box-shadow: 0 0 0 2px var(--blue-light);
-        }
+        .status-select:focus { outline: none; box-shadow: 0 0 0 2px var(--blue-light); }
         
         .status-select.status-Pending { background-color: var(--orange-light); color: var(--orange); }
         .status-select.status-Shipped { background-color: var(--blue-light); color: var(--blue); }
@@ -181,6 +178,18 @@
         .status-select.status-Not-Paid { background-color: var(--red-light); color: var(--red); }
         .status-select.status-Paid { background-color: var(--green-light); color: var(--green); }
         .status-select.status-Partially-Paid { background-color: var(--orange-light); color: var(--orange); }
+        
+        /* BATCH INPUT STYLE */
+        .batch-select {
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid var(--grey-mid);
+            border-radius: 6px;
+            font-size: 0.85rem;
+            color: var(--blue);
+            font-weight: 600;
+            background-color: var(--bg-white);
+        }
 
 
         /* --- 7. New Shipment Wizard --- */
@@ -206,6 +215,16 @@
         .input-group input[type="text"], .input-group input[type="tel"], .input-group input[type="email"], .input-group input[type="number"], .input-group input[type="date"], .input-group select, .input-group textarea { width: 100%; padding: 0.75rem; font-size: 1rem; border: 1px solid var(--grey-mid); border-radius: 8px; box-sizing: border-box; background-color: #fdfdfd; font-family: var(--font-family); transition: border-color 0.2s ease, box-shadow 0.2s ease; }
         .input-group input:focus, .input-group select:focus, .input-group textarea:focus { outline: none; border-color: var(--blue); box-shadow: 0 0 0 2px var(--blue-light); }
         .input-group textarea { resize: vertical; min-height: 80px; }
+        
+        /* BATCH SUMMARY STYLE */
+        .batch-summary-value {
+             font-size: 1.5rem; 
+             font-weight: 700; 
+             color: var(--text-primary);
+             padding: 0.4rem;
+             background: var(--grey-light);
+             border-radius: 8px;
+        }
 
         /* --- 9. Summary/Review Page --- */
         .summary-grid { display: grid; grid-template-columns: 180px 1fr; gap: 0.75rem 1rem; font-size: 1rem; }
@@ -226,17 +245,14 @@
             background: rgba(0,0,0,0.5);
             z-index: 1000;
             display: none;
-            /* Allow vertical scrolling on the overlay itself */
             overflow-y: auto;
-            -webkit-overflow-scrolling: touch; /* Smooth scroll on iOS */
+            -webkit-overflow-scrolling: touch;
             padding: 1rem;
             box-sizing: border-box;
-            /* Align start allows content to scroll if it's taller than screen */
             align-items: flex-start;
             justify-content: center;
         }
         .modal-overlay.active { display: flex; }
-        
         .modal-content {
             background: var(--bg-white);
             border-radius: var(--border-radius);
@@ -244,11 +260,9 @@
             width: 90%;
             max-width: 700px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-            /* Auto margin centers horizontally and adds space vertically */
             margin: auto; 
             position: relative;
         }
-        
         .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid var(--grey-mid); }
         .modal-header h2 { margin: 0; }
         .modal-header .close-btn { font-size: 2rem; font-weight: 300; cursor: pointer; background: none; border: none; line-height: 1; padding: 0; }
@@ -302,29 +316,12 @@
             .summary-grid { grid-template-columns: 100px 1fr; }
             .summary-grid strong { text-align: left; }
             
-            /* Modal Mobile Fixes */
-            .modal-content { 
-                width: 100%; 
-                padding: 1.5rem; 
-                margin: 0 auto; /* Remove extra margin, overlay padding handles it */
-            }
-            .modal-overlay {
-                padding: 10px; /* Small buffer */
-            }
+            .modal-content { width: 100%; padding: 1.5rem; margin: 0 auto; }
+            .modal-overlay { padding: 10px; }
             .modal-footer { flex-direction: column; }
             .modal-footer .btn { width: 100%; }
             
-            /* Prevent auto-zoom on iOS when inputs are focused (needs 16px min) */
-            .input-group input[type="text"],
-            .input-group input[type="tel"],
-            .input-group input[type="email"],
-            .input-group input[type="number"],
-            .input-group input[type="date"],
-            .input-group select,
-            .input-group textarea {
-                font-size: 16px;
-            }
-
+            .input-group input, .input-group select, .input-group textarea { font-size: 16px; }
             .filters-bar { flex-direction: column; }
         }
     </style>
@@ -394,13 +391,13 @@
                 </div>
                 <div class="card">
                     <h2>Receiver Details (Sri Lanka)</h2>
-<div class="form-grid-two-col">
-    <div class="input-group"><label for="receiverName">Full Name</label><input type="text" id="receiverName" placeholder="Jane Smith"></div>
-    <div class="input-group"><label for="receiverPhone">Phone Number</label><input type="tel" id="receiverPhone" placeholder="+94 77-123-4567"></div>
-    <div class="input-group"><label for="receiverEmail">Email Address</label><input type="email" id="receiverEmail" placeholder="jane@example.com"></div>
-    <div class="input-group"><label for="receiverAddress">Address</label><textarea id="receiverAddress" rows="3" placeholder="No. 123, Main Street, Colombo 03"></textarea></div>
-    <div class="input-group"><label for="customerRemarks">Customer Remarks</label><textarea id="customerRemarks" rows="3" placeholder="Notes about this customer."></textarea></div>
-</div>
+                    <div class="form-grid-two-col">
+                        <div class="input-group"><label for="receiverName">Full Name</label><input type="text" id="receiverName" placeholder="Jane Smith"></div>
+                        <div class="input-group"><label for="receiverPhone">Phone Number</label><input type="tel" id="receiverPhone" placeholder="+94 77-123-4567"></div>
+                        <div class="input-group"><label for="receiverEmail">Email Address</label><input type="email" id="receiverEmail" placeholder="jane@example.com"></div>
+                        <div class="input-group"><label for="receiverAddress">Address</label><textarea id="receiverAddress" rows="3" placeholder="No. 123, Main Street, Colombo 03"></textarea></div>
+                        <div class="input-group"><label for="customerRemarks">Customer Remarks</label><textarea id="customerRemarks" rows="3" placeholder="Notes about this customer."></textarea></div>
+                    </div>
                 </div>
             </div>
             <div id="step-2" class="step-content">
@@ -504,13 +501,40 @@
         </div> 
         
         <div id="page-all-shipments" class="page-content">
-             <div class="card">
+             
+             <div class="card" style="border-left: 5px solid var(--purple);">
+                <h2 style="color: var(--purple);">Batch Management</h2>
+                <div class="filters-bar">
+                    <div class="input-group" style="flex: 1; min-width: 200px;">
+                        <label for="batchSelector">1. Select / Create Batch No</label>
+                        <select id="batchSelector" style="font-weight: bold; color: var(--purple);">
+                            <option value="">View All Shipments</option>
+                            </select>
+                    </div>
+                    <div class="input-group" style="flex: 1; min-width: 150px;">
+                        <label for="batchCostInput">2. Batch Cost (You Pay)</label>
+                        <input type="number" id="batchCostInput" placeholder="0.00" step="0.01">
+                    </div>
+                    <div class="input-group" style="flex: 1; min-width: 150px;">
+                        <label>3. Batch Payment (Collections)</label>
+                        <div class="batch-summary-value" id="batchTotalCollections">$0.00</div>
+                    </div>
+                    <div class="input-group" style="flex: 1; min-width: 150px;">
+                        <label>Est. Profit / Loss</label>
+                        <div class="batch-summary-value" id="batchNetProfit" style="color: var(--grey-dark);">$0.00</div>
+                    </div>
+                </div>
+                <p style="font-size: 0.9rem; color: var(--text-secondary); margin-top: 0.5rem;">
+                    * Select a Batch No above to filter the table and see calculations.
+                </p>
+            </div>
+            <div class="card">
                 <h2>All Shipments</h2>
                 <div class="table-container">
                     <table class="styled-table">
-                        <thead><tr><th>Invoice #</th><th>Date</th><th>Sender</th><th>Receiver</th><th>Total Amt</th><th>Status</th><th>Payment</th><th>Actions</th></tr></thead>
+                        <thead><tr><th>Invoice #</th><th style="width:140px;">Batch No</th><th>Date</th><th>Sender</th><th>Receiver</th><th>Weight</th><th>Total Amt</th><th>Status</th><th>Payment</th><th>Actions</th></tr></thead>
                         <tbody id="shipmentsTableTbody">
-                            <tr><td colspan="8" style="text-align: center;">Loading data from Firebase...</td></tr>
+                            <tr><td colspan="10" style="text-align: center;">Loading data from Firebase...</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -532,6 +556,27 @@
         </div>
 
         <div id="page-payments" class="page-content">
+            
+            <div class="card" style="border-left: 5px solid var(--purple);">
+                <h2 style="color: var(--purple);">Overall Batch Financials (Summary)</h2>
+                <div class="payment-summary-grid">
+                    <div class="payment-summary-card">
+                        <h3>Total Batch Collections (Gained)</h3>
+                        <div class="value" id="overall-batch-gained">$0.00</div>
+                    </div>
+                    <div class="payment-summary-card">
+                        <h3>Total Batch Costs (Expenses)</h3>
+                        <div class="value" id="overall-batch-cost">$0.00</div>
+                    </div>
+                    <div class="payment-summary-card">
+                        <h3>Net Profit / Loss</h3>
+                        <div class="value" id="overall-batch-profit" style="color: var(--grey-dark);">$0.00</div>
+                    </div>
+                </div>
+                 <p style="font-size: 0.9rem; color: var(--text-secondary); margin-top: 0rem;">
+                    * Calculated from all batches and shipments with assigned batch numbers.
+                </p>
+            </div>
             <div class="card">
                 <h2>Filter Payments</h2>
                 <div class="filters-bar">
@@ -696,7 +741,6 @@
                             <option value="Other">Other</option>
                         </select>
                     </div>
-                    
                     <div class="input-group" style="grid-column: 1 / -1;">
                         <label for="modalItemNote">Item Note (Optional)</label>
                         <input type="text" id="modalItemNote" placeholder="e.g., Serial number, specific color, etc.">
@@ -721,6 +765,7 @@
             const dbPush = window.dbPush;
             const dbOnValue = window.dbOnValue;
             const dbRemove = window.dbRemove; 
+            const dbSet = window.dbSet;
 
             if (!db || !dbRef || !dbUpdate || !dbPush || !dbOnValue || !dbRemove) { 
                 alert("FATAL ERROR: Firebase Database functions not found. Check initialization.");
@@ -730,9 +775,13 @@
             // --- App State ---
             let local_items = []; 
             let local_shipments_cache = []; 
+            let local_batches_cache = {}; // Cache for batch costs
             let currentEditItemId = null;
             let currentEditShipmentId = null; 
             let wizardCurrentStep = 1;
+            
+            // --- NEW: DRAFT / AUTO-SAVE CONFIG ---
+            const DRAFT_KEY = 'bee26_new_shipment_draft';
 
             // --- 1. Page Navigation (Sidebar) ---
             const navLinks = document.querySelectorAll('.nav-link');
@@ -750,9 +799,7 @@
             };
 
             function navigateToPage(pageId) {
-                 if (pageId === 'page-new-shipment' && currentEditShipmentId === null && (headerActionBtn.textContent.includes('Create') || headerActionBtn.textContent.includes('Add'))) {
-                    clearWizard(); 
-                 } else if (pageId !== 'page-new-shipment') {
+                 if (pageId !== 'page-new-shipment') {
                      prevBtn.disabled = false;
                      nextBtn.disabled = false;
                  }
@@ -770,9 +817,7 @@
                     pageSubtitle.textContent = meta.subtitle;
                 } else if (meta && isViewingOrEditing && pageId === 'page-new-shipment') {
                     pageSubtitle.textContent = pageSubtitle.textContent || meta.subtitle; 
-                } else if (!meta && pageId === 'page-new-shipment') {
                 }
-
 
                 if (meta) { 
                     if (meta.actionText) {
@@ -791,14 +836,28 @@
 
             navLinks.forEach(link => {
                 link.addEventListener('click', (e) => {
-                    if((pageTitle.textContent === 'Edit Shipment' || pageTitle.textContent === 'Review Shipment') && e.currentTarget.dataset.page !== 'page-new-shipment') {
+                    const page = e.currentTarget.dataset.page;
+                    // IF CLICKING "New Shipment" IN SIDEBAR, FORCE CLEAR
+                    if(page === 'page-new-shipment' && currentEditShipmentId === null && pageTitle.textContent !== 'Review Shipment') {
+                        clearWizard();
+                    }
+                    if((pageTitle.textContent === 'Edit Shipment' || pageTitle.textContent === 'Review Shipment') && page !== 'page-new-shipment') {
                          pageTitle.textContent = ''; 
                          currentEditShipmentId = null; 
                     }
-                    navigateToPage(e.currentTarget.dataset.page)
+                    navigateToPage(page)
                 });
             });
-            headerActionBtn.addEventListener('click', (e) => navigateToPage(e.currentTarget.dataset.page));
+            
+            // HEADER BUTTON LOGIC UPDATE
+            headerActionBtn.addEventListener('click', (e) => {
+                const page = e.currentTarget.dataset.page;
+                // IF CLICKING "+ Create New Shipment", FORCE CLEAR
+                if(page === 'page-new-shipment') {
+                    clearWizard(); 
+                }
+                navigateToPage(page);
+            });
 
 
             // --- 2. New Shipment Wizard ---
@@ -845,6 +904,9 @@
                 if (wizardCurrentStep === 4) {
                     populateReviewStep();
                 }
+                
+                // SAVE DRAFT ON STEP CHANGE
+                saveDraft();
             }
 
 
@@ -891,6 +953,7 @@
                 currentEditItemId = null;
                 currentEditShipmentId = null; 
 
+                // Reset page title if we were editing
                 if (pageTitle.textContent === 'Edit Shipment' || pageTitle.textContent === 'Review Shipment') {
                      const meta = pageMeta['page-new-shipment'];
                      pageTitle.textContent = meta.title;
@@ -898,12 +961,110 @@
                      prevBtn.disabled = false;
                      nextBtn.disabled = false;
                 }
-
                 
                 wizardCurrentStep = 1;
                 renderItemTable();
                 updateWizard(); 
+                
+                // IMPORTANT: When explicitly clearing, remove the draft from storage
+                localStorage.removeItem(DRAFT_KEY);
             }
+            
+            // --- NEW DRAFT FUNCTIONS ---
+            
+            function saveDraft() {
+                // Do not save draft if we are editing an existing Firebase record or viewing one
+                if (currentEditShipmentId !== null || pageTitle.textContent === 'Review Shipment') return;
+
+                const draft = {
+                    senderName: document.getElementById('senderName').value,
+                    senderPhone: document.getElementById('senderPhone').value,
+                    receiverName: document.getElementById('receiverName').value,
+                    receiverPhone: document.getElementById('receiverPhone').value,
+                    receiverEmail: document.getElementById('receiverEmail').value,
+                    receiverAddress: document.getElementById('receiverAddress').value,
+                    customerRemarks: document.getElementById('customerRemarks').value,
+                    
+                    // Step 3
+                    totalPackages: document.getElementById('totalPackages').value,
+                    totalWeight: document.getElementById('totalWeight').value,
+                    invoiceNumber: document.getElementById('invoiceNumber').value,
+                    invoiceDate: document.getElementById('invoiceDate').value,
+                    deliveryStatus: document.getElementById('deliveryStatus').value,
+                    hsCode: document.getElementById('hsCode').value,
+                    
+                    // Payment
+                    paymentTotal: document.getElementById('paymentTotal').value,
+                    paymentStatus: document.getElementById('paymentStatus').value,
+                    amountPaid: document.getElementById('amountPaid').value,
+                    paymentMethod: document.getElementById('paymentMethod').value,
+                    additionalChargesDesc: document.getElementById('additionalChargesDesc').value,
+                    additionalChargesAmt: document.getElementById('additionalChargesAmt').value,
+                    
+                    // Items & Step
+                    items: local_items,
+                    wizardStep: wizardCurrentStep
+                };
+                
+                localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
+            }
+            
+            function restoreDraft() {
+                // If we are editing/viewing, do not restore draft
+                if (currentEditShipmentId !== null) return;
+                
+                const draftJson = localStorage.getItem(DRAFT_KEY);
+                if (!draftJson) return; // No draft found
+                
+                try {
+                    const draft = JSON.parse(draftJson);
+                    
+                    document.getElementById('senderName').value = draft.senderName || '';
+                    document.getElementById('senderPhone').value = draft.senderPhone || '';
+                    document.getElementById('receiverName').value = draft.receiverName || '';
+                    document.getElementById('receiverPhone').value = draft.receiverPhone || '';
+                    document.getElementById('receiverEmail').value = draft.receiverEmail || '';
+                    document.getElementById('receiverAddress').value = draft.receiverAddress || '';
+                    document.getElementById('customerRemarks').value = draft.customerRemarks || '';
+                    
+                    document.getElementById('totalPackages').value = draft.totalPackages || '';
+                    document.getElementById('totalWeight').value = draft.totalWeight || '';
+                    document.getElementById('invoiceNumber').value = draft.invoiceNumber || '';
+                    if(draft.invoiceDate) document.getElementById('invoiceDate').value = draft.invoiceDate;
+                    document.getElementById('deliveryStatus').value = draft.deliveryStatus || 'Pending';
+                    document.getElementById('hsCode').value = draft.hsCode || '';
+                    
+                    document.getElementById('paymentTotal').value = draft.paymentTotal || '';
+                    document.getElementById('paymentStatus').value = draft.paymentStatus || 'Not-Paid';
+                    document.getElementById('amountPaid').value = draft.amountPaid || '';
+                    document.getElementById('paymentMethod').value = draft.paymentMethod || '';
+                    document.getElementById('additionalChargesDesc').value = draft.additionalChargesDesc || '';
+                    document.getElementById('additionalChargesAmt').value = draft.additionalChargesAmt || '';
+                    
+                    local_items = draft.items || [];
+                    
+                    // Restore step
+                    if (draft.wizardStep && draft.wizardStep >= 1 && draft.wizardStep <= 4) {
+                        wizardCurrentStep = draft.wizardStep;
+                    } else {
+                        wizardCurrentStep = 1;
+                    }
+                    
+                    renderItemTable(); // Updates table UI
+                    updateWizard();    // Updates Step UI
+                    
+                } catch (e) {
+                    console.error("Error restoring draft:", e);
+                }
+            }
+            
+            // Attach Draft Listeners
+            const wizardInputs = wizard.querySelectorAll('input, textarea, select');
+            wizardInputs.forEach(input => {
+               input.addEventListener('input', saveDraft);
+               input.addEventListener('change', saveDraft);
+            });
+            // We also need to listen for dynamically added items (handled in renderItemTable)
 
             // --- 3. Item CRUD (Manages local_items array) ---
             const modal = document.getElementById('addItemModal');
@@ -935,7 +1096,7 @@
                     condition: document.getElementById('modalItemCondition').value,
                     brand: document.getElementById('modalItemBrand').value,
                     country: document.getElementById('modalItemCountry').value,
-                    note: document.getElementById('modalItemNote').value // <--- NEW: Capture Note
+                    note: document.getElementById('modalItemNote').value 
                 };
                 if (currentEditItemId !== null) {
                     local_items[currentEditItemId] = item; 
@@ -950,38 +1111,46 @@
                 itemTableTbody.innerHTML = '';
                 if (local_items.length === 0) {
                     itemTableTbody.innerHTML = '<tr><td colspan="8" style="text-align: center;">No items added yet.</td></tr>';
-                    return;
+                } else {
+                    local_items.forEach((item, index) => {
+                        const totalVal = (item.qty * item.value).toFixed(2);
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>${item.desc} ${item.note ? '<br><small style="color:#666">Note: '+item.note+'</small>' : ''}</td>
+                            <td>${item.condition || '--'}</td>
+                            <td>${item.brand || '--'}</td>
+                            <td>${item.country || '--'}</td>
+                            <td>${item.qty}</td>
+                            <td>$${item.value.toFixed(2)}</td>
+                            <td>$${totalVal}</td>
+                            <td class="table-actions">
+                                <button class="btn btn-secondary btn-small edit-item-btn" data-index="${index}">Edit</button>
+                                <button class="btn btn-danger btn-small delete-item-btn" data-index="${index}">Del</button>
+                            </td>
+                        `;
+                        itemTableTbody.appendChild(row);
+                    });
                 }
-                local_items.forEach((item, index) => {
-                    const totalVal = (item.qty * item.value).toFixed(2);
-                    const row = document.createElement('tr');
-                    // Optionally added note to display in table tooltip or small text, but kept simple as requested.
-                    row.innerHTML = `
-                        <td>${item.desc} ${item.note ? '<br><small style="color:#666">Note: '+item.note+'</small>' : ''}</td>
-                        <td>${item.condition || '--'}</td>
-                        <td>${item.brand || '--'}</td>
-                        <td>${item.country || '--'}</td>
-                        <td>${item.qty}</td>
-                        <td>$${item.value.toFixed(2)}</td>
-                        <td>$${totalVal}</td>
-                        <td class="table-actions">
-                            <button class="btn btn-secondary btn-small edit-item-btn" data-index="${index}">Edit</button>
-                            <button class="btn btn-danger btn-small delete-item-btn" data-index="${index}">Del</button>
-                        </td>
-                    `;
-                    itemTableTbody.appendChild(row);
-                });
+                
+                // SAVE DRAFT WHENEVER ITEMS CHANGE
+                saveDraft();
             }
 
             itemTableTbody.addEventListener('click', (e) => { 
-                const index = e.target.dataset.index;
-                if (e.target.classList.contains('delete-item-btn')) {
+                // Fix for delete button not working on item clicks
+                const deleteBtn = e.target.closest('.delete-item-btn');
+                if (deleteBtn) {
+                    const index = deleteBtn.dataset.index;
                     if (confirm('Are you sure you want to delete this item?')) {
                         local_items.splice(index, 1);
                         renderItemTable();
                     }
+                    return; // Stop here
                 }
-                if (e.target.classList.contains('edit-item-btn')) {
+
+                const editBtn = e.target.closest('.edit-item-btn');
+                if (editBtn) {
+                    const index = editBtn.dataset.index;
                     const item = local_items[index];
                     currentEditItemId = index;
                     document.getElementById('modal-title').textContent = 'Edit Item';
@@ -993,7 +1162,7 @@
                     document.getElementById('modalItemCondition').value = item.condition || 'New';
                     document.getElementById('modalItemBrand').value = item.brand || '';
                     document.getElementById('modalItemCountry').value = item.country || '';
-                    document.getElementById('modalItemNote').value = item.note || ''; // <--- NEW: Populate Note
+                    document.getElementById('modalItemNote').value = item.note || ''; 
                     modal.classList.add('active');
                 }
             });
@@ -1087,7 +1256,12 @@
                         await dbPush(shipmentListRef, shipment);
                         alert('Shipment ' + shipment.invoiceNumber + ' saved!');
                     }
-                    clearWizard();
+                    
+                    // SUCCESS: Clear wizard and clear local draft
+                    clearWizard(); 
+                    // clearWizard already calls localStorage.removeItem, but let's be safe
+                    localStorage.removeItem(DRAFT_KEY);
+                    
                     navigateToPage('page-all-shipments');
                 } catch (error) {
                     console.error("Error saving shipment to Firebase:", error);
@@ -1166,37 +1340,83 @@
             }
 
 
-            // --- 5. Data Table Rendering (Reads from local_shipments_cache) ---
+            // --- 5. Data Table Rendering & Batch Logic ---
             const shipmentsTableTbody = document.getElementById('shipmentsTableTbody');
             const customersTableTbody = document.getElementById('customersTableTbody');
             const recentActivityTbody = document.getElementById('recent-activity-tbody');
             const paymentsTableTbody = document.getElementById('paymentsTableTbody'); 
 
+            // Batch UI Elements
+            const batchSelector = document.getElementById('batchSelector');
+            const batchCostInput = document.getElementById('batchCostInput');
+            const batchTotalCollections = document.getElementById('batchTotalCollections');
+            const batchNetProfit = document.getElementById('batchNetProfit');
+
+            // POPULATE BATCH DROPDOWN (1 to 50)
+            function populateBatchDropdowns() {
+                const frag = document.createDocumentFragment();
+                for(let i=1; i<=50; i++) {
+                    const num = i.toString().padStart(2, '0');
+                    const option = document.createElement('option');
+                    option.value = `Batch - ${num}`;
+                    option.textContent = `Batch - ${num}`;
+                    frag.appendChild(option);
+                }
+                // Append to Filter Selector
+                batchSelector.appendChild(frag);
+            }
+            populateBatchDropdowns();
+
+            // HELPER: Generate Select HTML for Table Row
+            function generateBatchSelectHTML(currentBatchValue) {
+                let options = `<option value="">--</option>`;
+                for(let i=1; i<=50; i++) {
+                    const num = i.toString().padStart(2, '0');
+                    const val = `Batch - ${num}`;
+                    const isSelected = (currentBatchValue === val) ? 'selected' : '';
+                    options += `<option value="${val}" ${isSelected}>${val}</option>`;
+                }
+                return options;
+            }
+
             function renderShipmentsTable() {
+                // Ensure Header has Batch No
                 const tableHeader = document.querySelector('#page-all-shipments .styled-table thead tr');
                 if (tableHeader) {
-                    tableHeader.innerHTML = '<th>Invoice #</th><th>Date</th><th>Sender</th><th>Receiver</th><th>Total Amt</th><th>Status</th><th>Payment</th><th>Actions</th>';
+                    tableHeader.innerHTML = '<th>Invoice #</th><th style="width:140px;">Batch No</th><th>Date</th><th>Sender</th><th>Receiver</th><th>Weight</th><th>Total Amt</th><th>Status</th><th>Payment</th><th>Actions</th>';
                 }
 
                  shipmentsTableTbody.innerHTML = '';
                 if (local_shipments_cache.length === 0) {
-                    shipmentsTableTbody.innerHTML = '<tr><td colspan="8" style="text-align: center;">No shipments created yet.</td></tr>'; // Colspan is now 8
+                    shipmentsTableTbody.innerHTML = '<tr><td colspan="10" style="text-align: center;">No shipments created yet.</td></tr>'; 
                     return;
                 }
-                const sortedShipments = [...local_shipments_cache].sort((a, b) => new Date(b.invoiceDate) - new Date(a.invoiceDate));
                 
+                // FILTER LOGIC
+                const selectedBatchFilter = batchSelector.value;
+                let filteredShipments = [...local_shipments_cache].sort((a, b) => new Date(b.invoiceDate) - new Date(a.invoiceDate));
+                
+                if (selectedBatchFilter) {
+                    filteredShipments = filteredShipments.filter(s => s.batchNo === selectedBatchFilter);
+                    if (filteredShipments.length === 0) {
+                         shipmentsTableTbody.innerHTML = `<tr><td colspan="10" style="text-align: center;">No shipments found in <strong>${selectedBatchFilter}</strong>.</td></tr>`; 
+                         return;
+                    }
+                }
+
                 const updateSelectColor = (select) => {
                     select.className = 'status-select'; 
                     select.classList.add(`status-${select.value.replace(' ','-')}`);
                 };
 
-                sortedShipments.forEach(shipment => {
+                filteredShipments.forEach(shipment => {
                     const row = document.createElement('tr');
                     
                     const serviceFee = parseFloat(shipment.paymentTotal) || 0;
                     const additionalCharges = parseFloat(shipment.additionalChargesAmt) || 0;
                     const totalAmount = serviceFee + additionalCharges;
 
+                    // Delivery Status
                     const deliveryStatusSelect = document.createElement('select');
                     deliveryStatusSelect.className = 'status-select';
                     deliveryStatusSelect.dataset.id = shipment.id;
@@ -1209,6 +1429,7 @@
                     updateSelectColor(deliveryStatusSelect); 
                     deliveryStatusSelect.onchange = () => updateSelectColor(deliveryStatusSelect); 
 
+                    // Payment Status
                     const paymentStatusSelect = document.createElement('select');
                     paymentStatusSelect.className = 'status-select';
                     paymentStatusSelect.dataset.id = shipment.id;
@@ -1221,14 +1442,32 @@
                     updateSelectColor(paymentStatusSelect); 
                     paymentStatusSelect.onchange = () => updateSelectColor(paymentStatusSelect); 
 
+                    // Batch SELECT (Dropdown)
+                    const batchSelect = document.createElement('select');
+                    batchSelect.className = 'batch-select';
+                    batchSelect.dataset.id = shipment.id;
+                    batchSelect.innerHTML = generateBatchSelectHTML(shipment.batchNo);
+                    
+                    // Format Weight
+                    const weightDisplay = shipment.totalWeight ? `${shipment.totalWeight} kg` : '--';
+
+                    // Format Date (Shorten: Remove first 2 digits of year, e.g., 2025-12-01 -> 25-12-01)
+                    let shortDate = shipment.invoiceDate;
+                    if(shortDate && shortDate.length === 10) {
+                        shortDate = shortDate.substring(2); 
+                    }
+
                     row.innerHTML = `
                         <td>${shipment.invoiceNumber}</td>
-                        <td>${shipment.invoiceDate}</td>
+                        <td></td> <td style="white-space: nowrap;">${shortDate}</td>
                         <td>${shipment.senderName}</td>
                         <td>${shipment.receiverName}</td>
-                        <td class="number-cell">$${totalAmount.toFixed(2)}</td> 
+                        <td>${weightDisplay}</td> <td class="number-cell">$${totalAmount.toFixed(2)}</td> 
                     `;
                     
+                    // Insert Batch Select into 2nd cell
+                    row.cells[1].appendChild(batchSelect);
+
                     const deliveryTd = document.createElement('td');
                     deliveryTd.appendChild(deliveryStatusSelect);
                     row.appendChild(deliveryTd);
@@ -1237,19 +1476,99 @@
                     paymentTd.appendChild(paymentStatusSelect);
                     row.appendChild(paymentTd);
 
-                    row.innerHTML += `
-                        <td class="table-actions">
-                            <button class="btn btn-secondary btn-small view-invoice-btn" data-id="${shipment.id}">View Invoice</button>
-                            <button class="btn btn-secondary btn-small view-shipment-btn" data-id="${shipment.id}">View</button>
-                            <button class="btn btn-primary btn-small edit-shipment-btn" data-id="${shipment.id}">Edit</button>
-                            <button class="btn btn-danger btn-small delete-shipment-btn" data-id="${shipment.id}">Delete</button>
-                        </td>
+                    // FIXED: Create actions cell as an element to preserve functionality
+                    const actionsTd = document.createElement('td');
+                    actionsTd.className = 'table-actions';
+                    actionsTd.innerHTML = `
+                        <button class="btn btn-secondary btn-small view-invoice-btn" data-id="${shipment.id}">View Invoice</button>
+                        <button class="btn btn-secondary btn-small view-shipment-btn" data-id="${shipment.id}">View</button>
+                        <button class="btn btn-primary btn-small edit-shipment-btn" data-id="${shipment.id}">Edit</button>
+                        <button class="btn btn-danger btn-small delete-shipment-btn" data-id="${shipment.id}">Delete</button>
                     `;
+                    row.appendChild(actionsTd);
+
                     shipmentsTableTbody.appendChild(row);
                 });
+                
+                // Recalculate if a batch is selected
+                calculateBatchTotals();
             }
 
+            // --- BATCH CALCULATIONS LOGIC ---
+            function calculateBatchTotals() {
+                const selectedBatch = batchSelector.value.trim();
+                if (!selectedBatch) {
+                    batchCostInput.value = '';
+                    batchTotalCollections.textContent = '$0.00';
+                    batchNetProfit.textContent = '$0.00';
+                    batchNetProfit.style.color = 'var(--grey-dark)';
+                    return;
+                }
+
+                // 1. Calculate Total Collections (Sum of Shipments in this Batch)
+                const shipmentsInBatch = local_shipments_cache.filter(s => s.batchNo === selectedBatch);
+                let totalCollections = 0;
+                shipmentsInBatch.forEach(s => {
+                    const serviceFee = parseFloat(s.paymentTotal) || 0;
+                    const extras = parseFloat(s.additionalChargesAmt) || 0;
+                    totalCollections += (serviceFee + extras);
+                });
+                
+                // 2. Get Batch Cost from Cache
+                const batchData = local_batches_cache[selectedBatch] || {};
+                const cost = parseFloat(batchData.cost) || 0;
+                
+                // Update Inputs (only update input if not focused to avoid cursor jumping)
+                if (document.activeElement !== batchCostInput) {
+                    batchCostInput.value = cost > 0 ? cost.toFixed(2) : '';
+                }
+
+                // 3. Calculate Profit
+                const profit = totalCollections - cost;
+
+                // Update UI
+                batchTotalCollections.textContent = `$${totalCollections.toFixed(2)}`;
+                batchNetProfit.textContent = `$${profit.toFixed(2)}`;
+                
+                if (profit > 0) {
+                    batchNetProfit.style.color = 'var(--green)';
+                } else if (profit < 0) {
+                    batchNetProfit.style.color = 'var(--red)';
+                } else {
+                    batchNetProfit.style.color = 'var(--grey-dark)';
+                }
+            }
+            
+            // Listeners for Batch Actions
+            batchSelector.addEventListener('change', () => {
+                renderShipmentsTable(); // This calls calculateBatchTotals internally
+            });
+            
+            // Save Batch Cost when changed
+            batchCostInput.addEventListener('change', async (e) => {
+                const batchName = batchSelector.value.trim();
+                const costVal = parseFloat(e.target.value);
+                
+                if (!batchName) {
+                    alert("Please select a Batch No first.");
+                    return;
+                }
+                
+                // Save to Firebase path: batches/{batchName}
+                // sanitize batch name for path (no ., #, $, [, ])
+                const safeBatchName = batchName.replace(/[.#$\[\]]/g, "_");
+                
+                try {
+                    const batchRef = dbRef(db, 'batches/' + safeBatchName);
+                    await dbSet(batchRef, { cost: costVal });
+                    // Local cache update will happen via onValue listener
+                } catch (err) {
+                    console.error("Error saving batch cost", err);
+                }
+            });
+
             shipmentsTableTbody.addEventListener('change', async (e) => {
+                // Handling Status Change
                 if (e.target.classList.contains('status-select')) {
                     const shipmentId = e.target.dataset.id;
                     const field = e.target.dataset.field;
@@ -1257,33 +1576,48 @@
 
                     if (!shipmentId || !field) return;
 
-                    const updateData = {};
-                    updateData[field] = value;
-
                     try {
                         const shipmentRef = dbRef(db, 'shipments/' + shipmentId);
+                        const updateData = {};
+                        updateData[field] = value;
                         await dbUpdate(shipmentRef, updateData);
                     } catch (error) {
                         console.error("Error updating status:", error);
-                        alert("Error: Could not save status update. See console.");
+                    }
+                }
+                // Handling Batch No Change inside Table
+                else if (e.target.classList.contains('batch-select')) {
+                    const shipmentId = e.target.dataset.id;
+                    const newBatch = e.target.value;
+                    
+                    try {
+                        const shipmentRef = dbRef(db, 'shipments/' + shipmentId);
+                        await dbUpdate(shipmentRef, { batchNo: newBatch });
+                        // Recalculate totals will happen on data reload
+                    } catch (error) {
+                        console.error("Error updating batch:", error);
                     }
                 }
             });
 
             shipmentsTableTbody.addEventListener('click', (e) => {
-                const shipmentId = e.target.dataset.id;
+                // FIXED: Use closest('button') to ensuring clicking the button works perfectly
+                const btn = e.target.closest('button');
+                if (!btn) return;
+
+                const shipmentId = btn.dataset.id;
                 if (!shipmentId) return; 
 
-                if (e.target.classList.contains('edit-shipment-btn')) {
+                if (btn.classList.contains('edit-shipment-btn')) {
                     loadShipmentForEdit(shipmentId); 
                 }
-                else if (e.target.classList.contains('view-shipment-btn')) {
+                else if (btn.classList.contains('view-shipment-btn')) {
                      loadShipmentForView(shipmentId); 
                 }
-                else if (e.target.classList.contains('view-invoice-btn')) {
+                else if (btn.classList.contains('view-invoice-btn')) {
                      viewShipmentInvoice(shipmentId); 
                 }
-                else if (e.target.classList.contains('delete-shipment-btn')) {
+                else if (btn.classList.contains('delete-shipment-btn')) {
                     const shipment = local_shipments_cache.find(s => s.id === shipmentId);
                     const invoiceNum = shipment ? shipment.invoiceNumber : 'this shipment';
 
@@ -1518,8 +1852,7 @@
             });
 
 
-            // --- 7. PDF & Excel Export Functions (Adapted from original file) ---
-            
+            // --- 7. PDF & Excel Export Functions ---
             let fetchedLogoBase64 = null;
             async function fetchLogoAsBase64() { 
                 if (fetchedLogoBase64) return fetchedLogoBase64;
@@ -1536,25 +1869,17 @@
                     });
                 } catch (error) {
                     console.error('Error fetching or converting logo:', error);
-                    alert('Error: Could not load the company logo for the PDF.');
                     return null;
                 }
             }
 
-            // --- NEW: Helper to fetch Seal Image ---
             let fetchedSealBase64 = null;
             async function fetchSealAsBase64() { 
                 if (fetchedSealBase64) return fetchedSealBase64;
-                // NOTE: User MUST upload this file as a PNG to GitHub for this to work
-                const sealUrl = 'https://raw.githubusercontent.com/crickerr26/bee26cargomanager/main/Bee26%20Compay%20Seal.png'; // UPDATED TO PNG
+                const sealUrl = 'https://raw.githubusercontent.com/crickerr26/bee26cargomanager/main/Bee26%20Compay%20Seal.png'; 
                 try {
-                    console.log("Fetching seal from:", sealUrl);
                     const response = await fetch(sealUrl);
-                    if (!response.ok) {
-                        console.warn(`Seal fetch failed: ${response.status} (Ensure file is uploaded as .png)`);
-                        alert("Warning: Could not find 'Bee26 Compay Seal.png' on GitHub. The seal will not appear on the PDF.");
-                        return null;
-                    }
+                    if (!response.ok) { return null; }
                     const blob = await response.blob();
                     return new Promise((resolve, reject) => {
                         const reader = new FileReader();
@@ -1562,10 +1887,7 @@
                         reader.onerror = reject;
                         reader.readAsDataURL(blob);
                     });
-                } catch (error) {
-                    console.error('Error fetching or converting seal:', error);
-                    return null;
-                }
+                } catch (error) { return null; }
             }
 
             function addPdfFooter(doc) { 
@@ -1582,9 +1904,6 @@
                  } catch (error) { console.error("Error adding PDF footer:", error); }
             }
 
-            // =============================================
-            // --- THIS IS THE NEW generatePDF FUNCTION (Categorized) ---
-            // =============================================
             async function generatePDF(docType, action = 'save') { 
                  let pdfWindow = null;
                 if (action === 'open') {
@@ -1595,9 +1914,7 @@
                     const { jsPDF } = window.jspdf;
                     if (!jsPDF) { throw new Error("jsPDF library not loaded."); }
                     const doc = new jsPDF('p', 'pt', 'a4');
-                    if (typeof doc.autoTable !== 'function') { throw new Error("jsPDF AutoTable plugin not loaded."); }
                     
-                    // --- Get All Data ---
                     const logoBase64Data = await fetchLogoAsBase64();
                     const sealBase64Data = await fetchSealAsBase64(); 
                     
@@ -1612,7 +1929,6 @@
                     const additionalChargesDesc = document.getElementById('additionalChargesDesc').value.trim() || 'Additional Charges'; 
                     const totalAmountDue = serviceFee + additionalCharges;
                     
-                    // --- Prepare Items: Clone and Sort by Category ---
                     const safeItems = Array.isArray(local_items) ? [...local_items] : [];
                     safeItems.sort((a, b) => (a.category || '').localeCompare(b.category || ''));
 
@@ -1620,7 +1936,6 @@
                     const totalQty = safeItems.reduce((sum, item) => sum + (parseFloat(item.qty) || 0), 0);
                     const displayValue = calculatedTotalValue.toFixed(2); 
 
-                    // --- PDF Setup ---
                     const pageHeight = doc.internal.pageSize.height, pageWidth = doc.internal.pageSize.width;
                     const leftMargin = 40, rightMargin = 40, topMargin = 30, bottomMargin = 40;
                     const contentWidth = pageWidth - leftMargin - rightMargin;
@@ -1630,81 +1945,36 @@
                     let currentY = topMargin;
                     const lineSpacing = 10, sectionSpacing = 15;
 
-                    // --- Section 1: Logo and Title ---
                     if (logoBase64Data) { try { const imgHeight = 40, imgWidth = 107; doc.addImage(logoBase64Data, 'PNG', leftMargin, currentY, imgWidth, imgHeight); currentY += imgHeight + 10; } catch (e) { console.error(e); } } else { currentY += 50; }
                     doc.setFontSize(16); doc.setFont("helvetica", "bold"); doc.text(docType, pageWidth / 2, currentY, { align: 'center' }); currentY += 20;
                     
-                    // --- Section 2: Sender Address ---
                     let senderBlockY = currentY; doc.setFontSize(9); doc.setFont("helvetica", "bold"); doc.text("BEE26 CARGO SERVICES", leftMargin, senderBlockY); senderBlockY += lineSpacing; doc.setFont("helvetica", "normal");
                     const addressLines = ["MOHAMED IMSAMAM MOHAMED RIZAN", "1001260111 - BIN", "614-2 MILEPOST PLACE, EAST YORK,", "ONTARIO, M4H 1C7", "+1 416 474 4994", "bee26cargoservices@gmail.com"];
                     addressLines.forEach(line => { const splitLines = doc.splitTextToSize(line, senderWidth); doc.text(splitLines, leftMargin, senderBlockY); senderBlockY += (splitLines.length * lineSpacing); });
                     if (invoiceNumber) { senderBlockY += lineSpacing * 0.5; doc.setFont("helvetica", "bold"); doc.text(`Invoice #: ${invoiceNumber}`, leftMargin, senderBlockY); senderBlockY += lineSpacing; }
                     if (docType === 'Commercial Invoice' && invoiceDate) { doc.setFont("helvetica", "bold"); doc.text("Date: ", leftMargin, senderBlockY); doc.setFont("helvetica", "normal"); doc.text(invoiceDate, leftMargin + 30, senderBlockY); senderBlockY += lineSpacing; }
                     
-                    // --- Section 3: Receiver Address ---
                     let receiverBlockY = currentY; doc.setFontSize(10); doc.setFont("helvetica", "bold"); doc.text("TO (Receiver):", receiverX, receiverBlockY); receiverBlockY += lineSpacing * 1.5; doc.setFont("helvetica", "normal"); doc.setFontSize(9);
                     doc.text(receiverName, receiverX, receiverBlockY); receiverBlockY += lineSpacing; doc.text(receiverPhone, receiverX, receiverBlockY); receiverBlockY += lineSpacing;
                     const receiverAddressLines = doc.splitTextToSize(receiverAddress, receiverWidth); doc.text(receiverAddressLines, receiverX, receiverBlockY); receiverBlockY += (receiverAddressLines.length * lineSpacing);
                     if (docType === 'Commercial Invoice' && hsCode) { receiverBlockY += lineSpacing * 0.5; doc.setFont("helvetica", "bold"); doc.text("HS Code (Overall): ", receiverX, receiverBlockY); doc.setFont("helvetica", "normal"); doc.text(hsCode, receiverX + 80, receiverBlockY); }
                     
-                    // --- Section 4: Table (Items - Categorized) ---
                     let tableStartY = Math.max(senderBlockY, receiverBlockY) + sectionSpacing;
-                    
-                    // Define 9 columns now
                     const tableHead = [['#', 'Description', 'Note', 'Category', 'Brand', 'Country', 'Qty', 'Unit Value', 'Total Value']];
                     const tableBody = [];
                     let currentCategory = null;
 
                     safeItems.forEach((item, index) => {
-                        // Check for Category Change -> Insert Group Header
                         const itemCat = item.category || 'Uncategorized';
                         if (itemCat !== currentCategory) {
                             currentCategory = itemCat;
-                            tableBody.push([
-                                {
-                                    content: currentCategory.toUpperCase(),
-                                    colSpan: 9, // Span across all 9 columns
-                                    styles: { fillColor: [240, 240, 240], fontStyle: 'bold', textColor: 50 }
-                                }
-                            ]);
+                            tableBody.push([{ content: currentCategory.toUpperCase(), colSpan: 9, styles: { fillColor: [240, 240, 240], fontStyle: 'bold', textColor: 50 } }]);
                         }
-
-                        tableBody.push([
-                            index + 1, 
-                            item.desc || '', 
-                            item.note || '', 
-                            item.category || '', // Show Category column as requested
-                            item.brand || '--', 
-                            item.country || '--', 
-                            parseFloat(item.qty) || 0, 
-                            (parseFloat(item.value) || 0).toFixed(2), 
-                            ((parseFloat(item.qty) || 0) * (parseFloat(item.value) || 0)).toFixed(2)
-                        ]);
+                        tableBody.push([index + 1, item.desc || '', item.note || '', item.category || '', item.brand || '--', item.country || '--', parseFloat(item.qty) || 0, (parseFloat(item.value) || 0).toFixed(2), ((parseFloat(item.qty) || 0) * (parseFloat(item.value) || 0)).toFixed(2)]);
                     });
                     
-                    doc.autoTable({ 
-                        head: tableHead, 
-                        body: tableBody, 
-                        startY: tableStartY, 
-                        theme: 'grid', 
-                        headStyles: { fillColor: [230, 230, 230], textColor: 0, fontStyle: 'bold', fontSize: 8 }, 
-                        styles: { fontSize: 8, cellPadding: 2, overflow: 'linebreak' }, 
-                        // Update Column Styles for 9 columns
-                        columnStyles: { 
-                            0: { cellWidth: 20, halign: 'center' }, 
-                            // 1: Description (Auto)
-                            // 2: Note (Auto)
-                            // 3: Category (Auto)
-                            // 4: Brand
-                            // 5: Country
-                            6: { cellWidth: 30, halign: 'right' }, // Qty
-                            7: { cellWidth: 50, halign: 'right' }, // Unit Val
-                            8: { cellWidth: 50, halign: 'right' }  // Total Val
-                        }, 
-                        margin: { left: leftMargin, right: rightMargin } 
-                    });
+                    doc.autoTable({ head: tableHead, body: tableBody, startY: tableStartY, theme: 'grid', headStyles: { fillColor: [230, 230, 230], textColor: 0, fontStyle: 'bold', fontSize: 8 }, styles: { fontSize: 8, cellPadding: 2, overflow: 'linebreak' }, columnStyles: { 0: { cellWidth: 20, halign: 'center' }, 6: { cellWidth: 30, halign: 'right' }, 7: { cellWidth: 50, halign: 'right' }, 8: { cellWidth: 50, halign: 'right' } }, margin: { left: leftMargin, right: rightMargin } });
                     
-                    // --- Section 5: Shipment Summary (Customs) ---
                     const finalY = doc.autoTable.previous.finalY;
                     doc.setFontSize(10); doc.setFont("helvetica", "bold"); let summaryY = finalY + sectionSpacing; const summaryRightX = pageWidth - rightMargin;
                     if (summaryY > pageHeight - bottomMargin - (lineSpacing * 10)) { doc.addPage(); summaryY = topMargin + 20; } 
@@ -1713,25 +1983,17 @@
                     doc.text(`Total Net Weight:`, leftMargin, summaryY); doc.text(`${totalWeight || 'N/A'} kg`, summaryRightX, summaryY, { align: 'right'}); summaryY += lineSpacing * 1.5;
                     doc.text(`Total Declared Value:`, leftMargin, summaryY); doc.text(`$${displayValue} CAD`, summaryRightX, summaryY, { align: 'right'});
                     
-                    // --- Section 6: Payment Summary (Customer) ---
                     if (docType !== 'Packing List') {
-                        summaryY += sectionSpacing * 1.5; 
-                        doc.setFont("helvetica", "bold");
-                        doc.text("Payment Summary (Customer)", leftMargin, summaryY);
-                        summaryY += lineSpacing * 1.5;
-                        doc.setFont("helvetica", "normal");
+                        summaryY += sectionSpacing * 1.5; doc.setFont("helvetica", "bold"); doc.text("Payment Summary (Customer)", leftMargin, summaryY); summaryY += lineSpacing * 1.5; doc.setFont("helvetica", "normal");
                         doc.text(`Service Fee:`, leftMargin, summaryY); doc.text(`$${serviceFee.toFixed(2)} CAD`, summaryRightX, summaryY, { align: 'right'}); summaryY += lineSpacing * 1.5;
                         doc.text(`${additionalChargesDesc}:`, leftMargin, summaryY); doc.text(`$${additionalCharges.toFixed(2)} CAD`, summaryRightX, summaryY, { align: 'right'}); summaryY += lineSpacing * 1.5;
-                        doc.setFont("helvetica", "bold");
-                        doc.text(`Total Amount Due:`, leftMargin, summaryY); doc.text(`$${totalAmountDue.toFixed(2)} CAD`, summaryRightX, summaryY, { align: 'right'});
+                        doc.setFont("helvetica", "bold"); doc.text(`Total Amount Due:`, leftMargin, summaryY); doc.text(`$${totalAmountDue.toFixed(2)} CAD`, summaryRightX, summaryY, { align: 'right'});
                     }
 
-                    // --- Section 7: Declaration ---
                     doc.setFontSize(9); doc.setFont("helvetica", "bold"); let declarationY = summaryY + sectionSpacing * 1.5;
                     if (declarationY > pageHeight - bottomMargin - lineSpacing) { doc.addPage(); declarationY = topMargin + 20; }
                     doc.text("Declaration: Personal Use – Not for Resale", leftMargin, declarationY);
                     
-                    // --- Seal (Packing List Only) ---
                     if (docType === 'Packing List' && sealBase64Data) {
                         try {
                             const sealSize = 100;
@@ -1740,20 +2002,10 @@
                         } catch (imgErr) { console.error("Failed to add seal image to PDF:", imgErr); }
                     }
 
-                    // --- Footer & Output ---
                     addPdfFooter(doc); const fileName = `${docType.replace(/ /g, '_')}_${invoiceNumber || 'Shipment'}.pdf`;
                     if (action === 'open') { 
-                        if (pdfWindow && doc) { 
-                            const blob = doc.output('blob');
-                            const blobURL = URL.createObjectURL(blob);
-                            pdfWindow.location.href = blobURL; 
-                        } else { 
-                            if (pdfWindow) pdfWindow.close(); 
-                            throw new Error("Could not generate PDF for printing."); 
-                        } 
-                    } else { 
-                        if (doc) { doc.save(fileName); } else { throw new Error("Could not generate PDF for saving."); } 
-                    }
+                        if (pdfWindow && doc) { const blob = doc.output('blob'); const blobURL = URL.createObjectURL(blob); pdfWindow.location.href = blobURL; } else { if (pdfWindow) pdfWindow.close(); throw new Error("Could not generate PDF for printing."); } 
+                    } else { if (doc) { doc.save(fileName); } else { throw new Error("Could not generate PDF for saving."); } }
                 } catch (error) { if (action === 'open' && pdfWindow) pdfWindow.close(); console.error("Error generating PDF:", error); alert("Sorry, there was an error generating the PDF."); }
             }
 
@@ -1791,11 +2043,52 @@
 
             // --- 8. Initial Load & Firebase Data Listener ---
             
+            function calculateOverallBatchStats() {
+                let totalGained = 0;
+                let totalCost = 0;
+
+                // 1. Calculate Costs (Sum of all batches in local_batches_cache)
+                for(const batchKey in local_batches_cache) {
+                    const batchData = local_batches_cache[batchKey];
+                    if(batchData && batchData.cost) {
+                        totalCost += parseFloat(batchData.cost) || 0;
+                    }
+                }
+
+                // 2. Calculate Gained (Sum of all shipments that HAVE a batchNo)
+                local_shipments_cache.forEach(shipment => {
+                    if(shipment.batchNo && shipment.batchNo.trim() !== '') {
+                        const serviceFee = parseFloat(shipment.paymentTotal) || 0;
+                        const extras = parseFloat(shipment.additionalChargesAmt) || 0;
+                        totalGained += (serviceFee + extras);
+                    }
+                });
+
+                const profit = totalGained - totalCost;
+
+                // 3. Update UI
+                const gainedEl = document.getElementById('overall-batch-gained');
+                const costEl = document.getElementById('overall-batch-cost');
+                const profitEl = document.getElementById('overall-batch-profit');
+
+                if(gainedEl) gainedEl.textContent = `$${totalGained.toFixed(2)}`;
+                if(costEl) costEl.textContent = `$${totalCost.toFixed(2)}`;
+                
+                if(profitEl) {
+                    profitEl.textContent = `$${profit.toFixed(2)}`;
+                    if(profit > 0) profitEl.style.color = 'var(--green)';
+                    else if(profit < 0) profitEl.style.color = 'var(--red)';
+                    else profitEl.style.color = 'var(--grey-dark)';
+                }
+            }
+
+
             function listenForData() {
                 const shipmentsRef = dbRef(db, 'shipments');
+                const batchesRef = dbRef(db, 'batches');
                 
+                // Shipments Listener
                 dbOnValue(shipmentsRef, (snapshot) => {
-                    console.log("Firebase data received"); 
                     local_shipments_cache = []; 
                     if (snapshot.exists()) {
                         const data = snapshot.val();
@@ -1806,29 +2099,39 @@
                             }
                             local_shipments_cache.push({ id: key, ...shipmentData });
                         }
-                        console.log("Shipments loaded:", local_shipments_cache.length); 
-                    } else {
-                         console.log("No shipments found in Firebase."); 
                     }
-                    
+                    // Refresh UI
                     renderShipmentsTable();
                     renderCustomersTable();
                     renderPaymentsTable(); 
                     updateDashboardStats();
                     
+                    // Trigger Batch Stats Calc
+                    calculateOverallBatchStats();
+
                 }, (error) => {
                     console.error("Firebase data read failed: ", error);
-                    alert("Could not load data from Firebase. See console.");
-                    shipmentsTableTbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: red;">Error loading data.</td></tr>';
-                    customersTableTbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: red;">Error loading data.</td></tr>';
-                    paymentsTableTbody.innerHTML = '<tr><td colspan="8" style="text-align: center; color: red;">Error loading data.</td></tr>';
-                    recentActivityTbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: red;">Error loading data.</td></tr>';
+                });
+                
+                // Batches Listener
+                dbOnValue(batchesRef, (snapshot) => {
+                    local_batches_cache = {};
+                    if(snapshot.exists()) {
+                        local_batches_cache = snapshot.val();
+                    }
+                    // If a batch is currently selected, recalculate with new data
+                    calculateBatchTotals();
+                    
+                    // Trigger Batch Stats Calc
+                    calculateOverallBatchStats();
                 });
             }
             
             document.getElementById('invoiceDate').valueAsDate = new Date();
             
+            // --- RESTORE DRAFT ON LOAD ---
             listenForData();
+            restoreDraft(); // Try restoring local draft immediately on load
 
         });
     </script>
