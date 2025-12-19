@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<div class="input-group"><!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -650,57 +650,65 @@
                     </div>
                      <div class="input-group">
                         <div class="input-group">
-                        <label for="modalItemCat">Category</label>
-                        <select id="modalItemCat" required>
-                            <option value="">Select category...</option>
-                            <optgroup label="Apparel & Textiles">
-                                <option value="Clothing">Clothing</option>
-                                <option value="Footwear & Shoes">Footwear & Shoes</option>
-                                <option value="Fabrics & Textiles">Fabrics & Textiles</option>
-                                <option value="Kids Clothing">Kids Clothing</option>
-                            </optgroup>
-                            <optgroup label="Electronics & Media">
-                                <option value="Computers & Laptops">Computers & Laptops</option>
-                                <option value="Phones & Accessories">Phones & Accessories</option>
-                                <option value="Cameras & Equipment">Cameras & Equipment</option>
-                                <option value="Electronic Items">Electronic Items</option>
-                                <option value="Batteries / Power Banks">Batteries / Power Banks</option>
-                                <option value="Books & Media">Books & Media</option>
-                            </optgroup>
-                            <optgroup label="Food & Perishables">
-                                <option value="Packaged Food (Non-Perishable)">Packaged Food (Non-Perishable)</option>
-                                <option value="Perishables (Special Handling)">Perishables (Special Handling)</option>
-                                <option value="Liquids & Beverages">Liquids & Beverages</option>
-                            </optgroup>
-                            <optgroup label="Health & Beauty">
-                                <option value="Cosmetics & Toiletries">Cosmetics & Toiletries</option>
-                                <option value"Medicines & Vitamins">Medicines & Vitamins</option>
-                            </optgroup>
-                            <optgroup label="Household & Goods">
-                                <option value="Kitchenware">Kitchenware</option>
-                                <option value="Home Decor">Home Decor</option>
-                                <option value="Tools & Hardware">Tools & Hardware</option>
-                                <option value="Household Supplies">Household Supplies</option>
-                            </optgroup>
-                            <optgroup label="Personal Items & Gifts">
-                                <option value="Toys & Hobbies">Toys & Hobbies</option>
-                                <option value="Kids Toys">Kids Toys</option>
-                                <option value="Jewelry & Accessories">Jewelry & Accessories</option>
-                                <option value="Gifts & Souvenirs">Gifts & Souvenirs</option>
-                                <option value="Sports Equipment">Sports Equipment</option>
-                            </optgroup>
-                            <optgroup label="Documents & Special">
-                                <option value="Documents">Documents</option>
-                                <option value="Stationary">Stationary</option>
-                                <option value="Fragile Items">Fragile Items</option>
-                                <option value="Restricted / Special Handling">Restricted / Special Handling</option>
-                            </optgroup>
-                            <optgroup label="Other">
-                                <option value="General Merchandise">General Merchandise</option>
-                                <option value="Other">Other</option>
-                            </optgroup>
-                        </select>
-                    </div>
+    <label for="modalItemCat">Category</label>
+    <select id="modalItemCat" required>
+        <option value="">Select category...</option>
+        <optgroup label="Apparel & Textiles">
+            <option value="Clothing">Clothing</option>
+            <option value="Footwear & Shoes">Footwear & Shoes</option>
+            <option value="Fabrics & Textiles">Fabrics & Textiles</option>
+            <option value="Kids Clothing">Kids Clothing</option>
+        </optgroup>
+        <optgroup label="Electronics & Media">
+            <option value="Computers & Laptops">Computers & Laptops</option>
+            <option value="Phones & Accessories">Phones & Accessories</option>
+            <option value="Cameras & Equipment">Cameras & Equipment</option>
+            <option value="Electronic Items">Electronic Items</option>
+            <option value="Batteries / Power Banks">Batteries / Power Banks</option>
+            <option value="Books & Media">Books & Media</option>
+        </optgroup>
+        <optgroup label="Food & Perishables">
+            <option value="Packaged Food (Non-Perishable)">Packaged Food (Non-Perishable)</option>
+            <option value="Perishables (Special Handling)">Perishables (Special Handling)</option>
+            <option value="Liquids & Beverages">Liquids & Beverages</option>
+        </optgroup>
+        <optgroup label="Health & Beauty">
+            <option value="Cosmetics & Toiletries">Cosmetics & Toiletries</option>
+            <option value="Medicines & Vitamins">Medicines & Vitamins</option>
+        </optgroup>
+        <optgroup label="Household & Goods">
+            <option value="Kitchenware">Kitchenware</option>
+            <option value="Home Decor">Home Decor</option>
+            <option value="Tools & Hardware">Tools & Hardware</option>
+            <option value="Household Supplies">Household Supplies</option>
+        </optgroup>
+        <optgroup label="Personal Items & Gifts">
+            <option value="Toys & Hobbies">Toys & Hobbies</option>
+            <option value="Kids Toys">Kids Toys</option>
+            <option value="Jewelry & Accessories">Jewelry & Accessories</option>
+            <option value="Gifts & Souvenirs">Gifts & Souvenirs</option>
+            <option value="Sports Equipment">Sports Equipment</option>
+        </optgroup>
+        <optgroup label="Documents & Special">
+            <option value="Documents">Documents</option>
+            <option value="Stationary">Stationary</option>
+            <option value="Fragile Items">Fragile Items</option>
+            <option value="Restricted / Special Handling">Restricted / Special Handling</option>
+        </optgroup>
+        <optgroup label="Other">
+            <option value="General Merchandise">General Merchandise</option>
+            <option value="Other">Other</option>
+        </optgroup>
+    </select>
+</div>
+
+<div class="input-group">
+    <label for="modalItemHSCode">HS Code</label>
+    <div style="display: flex; gap: 0.5rem;">
+        <input type="text" id="modalItemHSCode" placeholder="e.g., 6109.10" style="flex-grow: 1;">
+        <button type="button" class="btn btn-primary btn-small" id="generateHsBtn" style="white-space: nowrap;">⚡ Generate</button>
+    </div>
+</div>
                      <div class="input-group">
                         <label for="modalItemQty">Quantity</label>
                         <input type="number" id="modalItemQty" placeholder="1" min="1" required>
@@ -1087,25 +1095,30 @@
             cancelModalBtn.addEventListener('click', closeModal);
             
             addItemForm.addEventListener('submit', (e) => { 
-                e.preventDefault();
-                const item = {
-                    desc: document.getElementById('modalItemDesc').value,
-                    category: document.getElementById('modalItemCat').value,
-                    qty: parseFloat(document.getElementById('modalItemQty').value),
-                    value: parseFloat(document.getElementById('modalItemValue').value),
-                    condition: document.getElementById('modalItemCondition').value,
-                    brand: document.getElementById('modalItemBrand').value,
-                    country: document.getElementById('modalItemCountry').value,
-                    note: document.getElementById('modalItemNote').value 
-                };
-                if (currentEditItemId !== null) {
-                    local_items[currentEditItemId] = item; 
-                } else {
-                    local_items.push(item); 
-                }
-                renderItemTable();
-                closeModal();
-            });
+    e.preventDefault();
+    const item = {
+        desc: document.getElementById('modalItemDesc').value,
+        category: document.getElementById('modalItemCat').value,
+        // NEW LINE ADDED HERE:
+        hsCode: document.getElementById('modalItemHSCode').value,
+        // -------------------
+        qty: parseFloat(document.getElementById('modalItemQty').value),
+        value: parseFloat(document.getElementById('modalItemValue').value),
+        condition: document.getElementById('modalItemCondition').value,
+        brand: document.getElementById('modalItemBrand').value,
+        country: document.getElementById('modalItemCountry').value,
+        note: document.getElementById('modalItemNote').value 
+    };
+    
+    // ... rest of the saving logic stays the same ...
+    if (currentEditItemId !== null) {
+        local_items[currentEditItemId] = item; 
+    } else {
+        local_items.push(item); 
+    }
+    renderItemTable();
+    closeModal();
+});
 
             function renderItemTable() { 
                 itemTableTbody.innerHTML = '';
@@ -1116,18 +1129,22 @@
                         const totalVal = (item.qty * item.value).toFixed(2);
                         const row = document.createElement('tr');
                         row.innerHTML = `
-                            <td>${item.desc} ${item.note ? '<br><small style="color:#666">Note: '+item.note+'</small>' : ''}</td>
-                            <td>${item.condition || '--'}</td>
-                            <td>${item.brand || '--'}</td>
-                            <td>${item.country || '--'}</td>
-                            <td>${item.qty}</td>
-                            <td>$${item.value.toFixed(2)}</td>
-                            <td>$${totalVal}</td>
-                            <td class="table-actions">
-                                <button class="btn btn-secondary btn-small edit-item-btn" data-index="${index}">Edit</button>
-                                <button class="btn btn-danger btn-small delete-item-btn" data-index="${index}">Del</button>
-                            </td>
-                        `;
+    <td>
+        ${item.desc} 
+        ${item.hsCode ? '<br><span class="status-badge status-Shipped" style="font-size:0.7rem; padding: 2px 6px;">HS: ' + item.hsCode + '</span>' : ''}
+        ${item.note ? '<br><small style="color:#666">Note: '+item.note+'</small>' : ''}
+    </td>
+    <td>${item.condition || '--'}</td>
+    <td>${item.brand || '--'}</td>
+    <td>${item.country || '--'}</td>
+    <td>${item.qty}</td>
+    <td>$${item.value.toFixed(2)}</td>
+    <td>$${totalVal}</td>
+    <td class="table-actions">
+        <button class="btn btn-secondary btn-small edit-item-btn" data-index="${index}">Edit</button>
+        <button class="btn btn-danger btn-small delete-item-btn" data-index="${index}">Del</button>
+    </td>
+`;
                         itemTableTbody.appendChild(row);
                     });
                 }
@@ -1162,8 +1179,12 @@
                     document.getElementById('modalItemCondition').value = item.condition || 'New';
                     document.getElementById('modalItemBrand').value = item.brand || '';
                     document.getElementById('modalItemCountry').value = item.country || '';
-                    document.getElementById('modalItemNote').value = item.note || ''; 
-                    modal.classList.add('active');
+                    // ...
+document.getElementById('modalItemNote').value = item.note || ''; 
+// NEW LINE ADDED HERE:
+document.getElementById('modalItemHSCode').value = item.hsCode || ''; 
+// -------------------
+modal.classList.add('active');
                 }
             });
 
@@ -1960,7 +1981,9 @@
                     if (docType === 'Commercial Invoice' && hsCode) { receiverBlockY += lineSpacing * 0.5; doc.setFont("helvetica", "bold"); doc.text("HS Code (Overall): ", receiverX, receiverBlockY); doc.setFont("helvetica", "normal"); doc.text(hsCode, receiverX + 80, receiverBlockY); }
                     
                     let tableStartY = Math.max(senderBlockY, receiverBlockY) + sectionSpacing;
-                    const tableHead = [['#', 'Description', 'Note', 'Category', 'Brand', 'Country', 'Qty', 'Unit Value', 'Total Value']];
+                    
+                    // --- UPDATED TABLE HEADERS TO INCLUDE HS CODE ---
+                    const tableHead = [['#', 'HS Code', 'Description', 'Category', 'Brand', 'Cntry', 'Qty', 'Unit Val', 'Total']];
                     const tableBody = [];
                     let currentCategory = null;
 
@@ -1968,12 +1991,40 @@
                         const itemCat = item.category || 'Uncategorized';
                         if (itemCat !== currentCategory) {
                             currentCategory = itemCat;
+                            // Update colspan to 9 to match new column count
                             tableBody.push([{ content: currentCategory.toUpperCase(), colSpan: 9, styles: { fillColor: [240, 240, 240], fontStyle: 'bold', textColor: 50 } }]);
                         }
-                        tableBody.push([index + 1, item.desc || '', item.note || '', item.category || '', item.brand || '--', item.country || '--', parseFloat(item.qty) || 0, (parseFloat(item.value) || 0).toFixed(2), ((parseFloat(item.qty) || 0) * (parseFloat(item.value) || 0)).toFixed(2)]);
+                        // --- ADDED item.hsCode HERE ---
+                        tableBody.push([
+                            index + 1, 
+                            item.hsCode || '--', 
+                            item.desc || '', 
+                            item.category || '', 
+                            item.brand || '--', 
+                            item.country || '--', 
+                            parseFloat(item.qty) || 0, 
+                            (parseFloat(item.value) || 0).toFixed(2), 
+                            ((parseFloat(item.qty) || 0) * (parseFloat(item.value) || 0)).toFixed(2)
+                        ]);
                     });
                     
-                    doc.autoTable({ head: tableHead, body: tableBody, startY: tableStartY, theme: 'grid', headStyles: { fillColor: [230, 230, 230], textColor: 0, fontStyle: 'bold', fontSize: 8 }, styles: { fontSize: 8, cellPadding: 2, overflow: 'linebreak' }, columnStyles: { 0: { cellWidth: 20, halign: 'center' }, 6: { cellWidth: 30, halign: 'right' }, 7: { cellWidth: 50, halign: 'right' }, 8: { cellWidth: 50, halign: 'right' } }, margin: { left: leftMargin, right: rightMargin } });
+                    doc.autoTable({ 
+                        head: tableHead, 
+                        body: tableBody, 
+                        startY: tableStartY, 
+                        theme: 'grid', 
+                        headStyles: { fillColor: [230, 230, 230], textColor: 0, fontStyle: 'bold', fontSize: 8 }, 
+                        styles: { fontSize: 8, cellPadding: 2, overflow: 'linebreak' }, 
+                        // --- ADJUSTED COLUMN WIDTHS ---
+                        columnStyles: { 
+                            0: { cellWidth: 20, halign: 'center' }, // #
+                            1: { cellWidth: 50, halign: 'center' }, // HS Code
+                            6: { cellWidth: 30, halign: 'center' }, // Qty
+                            7: { cellWidth: 40, halign: 'right' },  // Unit
+                            8: { cellWidth: 40, halign: 'right' }   // Total
+                        }, 
+                        margin: { left: leftMargin, right: rightMargin } 
+                    });
                     
                     const finalY = doc.autoTable.previous.finalY;
                     doc.setFontSize(10); doc.setFont("helvetica", "bold"); let summaryY = finalY + sectionSpacing; const summaryRightX = pageWidth - rightMargin;
@@ -2017,15 +2068,24 @@
                     const totalPackages = document.getElementById('totalPackages').value, hsCode = document.getElementById('hsCode').value, totalWeight = document.getElementById('totalWeight').value;
                     const infoData = [ ["Shipment Details", ""], ["Sender Name", senderName], ["Receiver Name", receiverName], ["Receiver Phone", receiverPhone], ["Receiver Address", receiverAddress], ["", ""], ["Invoice #", invoiceNumber], ["Date", invoiceDate], ["Total Packages", totalPackages], ["HS Code", hsCode] ];
                     const wsInfo = XLSX.utils.aoa_to_sheet(infoData);
-                    const itemsHeader = ['Description', 'Condition', 'Brand', 'Country', 'Category', 'Quantity', 'Unit Value (CAD)', 'Total Value (CAD)'];
+                    
+                    // --- UPDATED HEADERS TO INCLUDE HS CODE ---
+                    const itemsHeader = ['HS Code', 'Description', 'Condition', 'Brand', 'Country', 'Category', 'Quantity', 'Unit Value (CAD)', 'Total Value (CAD)'];
+                    
                     const safeItems = Array.isArray(local_items) ? local_items : [];
-                    const itemsBody = safeItems.map(item => { const qty = parseFloat(item.qty) || 0, value = parseFloat(item.value) || 0; return [item.desc || '', item.condition || '', item.brand || '', item.country || '', item.category || '', qty, value, qty * value]; });
+                    const itemsBody = safeItems.map(item => { 
+                        const qty = parseFloat(item.qty) || 0, value = parseFloat(item.value) || 0; 
+                        // --- ADDED item.hsCode to the row data ---
+                        return [item.hsCode || '', item.desc || '', item.condition || '', item.brand || '', item.country || '', item.category || '', qty, value, qty * value]; 
+                    });
+                    
                     const totalQty = safeItems.reduce((sum, item) => sum + (parseFloat(item.qty) || 0), 0);
                     const calculatedTotalValue = safeItems.reduce((sum, item) => sum + ((parseFloat(item.qty) || 0) * (parseFloat(item.value) || 0)), 0);
                     
                     const displayValue = calculatedTotalValue; 
 
-                    const itemsFooter = ['TOTAL', '', '', '', '', totalQty, '', displayValue];
+                    // Adjusted footer for new column count (shifted by 1)
+                    const itemsFooter = ['TOTAL', '', '', '', '', '', totalQty, '', displayValue];
                     const wsItems = XLSX.utils.aoa_to_sheet([itemsHeader, ...itemsBody, [], itemsFooter]);
                     XLSX.utils.sheet_add_aoa(wsInfo, [["Total Weight (kg)", totalWeight]], { origin: -1 });
                     const wb = XLSX.utils.book_new();
@@ -2132,7 +2192,61 @@
             // --- RESTORE DRAFT ON LOAD ---
             listenForData();
             restoreDraft(); // Try restoring local draft immediately on load
+// --- NEW: HS CODE GENERATOR LOGIC ---
+    document.getElementById('generateHsBtn').addEventListener('click', () => {
+        const cat = document.getElementById('modalItemCat').value;
+        const desc = document.getElementById('modalItemDesc').value.toLowerCase();
+        const hsInput = document.getElementById('modalItemHSCode');
+        
+        // A simple "Smart Lookup" dictionary for common Air Cargo items
+        let code = "";
 
+        // 1. Check Specific Keywords in Description first
+        if(desc.includes("shirt") || desc.includes("t-shirt") || desc.includes("top")) code = "6109.10";
+        else if(desc.includes("jean") || desc.includes("denim") || desc.includes("pant") || desc.includes("trouser")) code = "6203.42";
+        else if(desc.includes("dress") || desc.includes("frock")) code = "6204.42";
+        else if(desc.includes("baby") || desc.includes("infant")) code = "6111.20";
+        else if(desc.includes("shoe") || desc.includes("sneaker") || desc.includes("sandal")) code = "6403.99";
+        else if(desc.includes("laptop") || desc.includes("computer") || desc.includes("macbook")) code = "8471.30";
+        else if(desc.includes("phone") || desc.includes("mobile") || desc.includes("iphone")) code = "8517.12";
+        else if(desc.includes("camera")) code = "8525.80";
+        else if(desc.includes("headphone") || desc.includes("earphone") || desc.includes("airpod")) code = "8518.30";
+        else if(desc.includes("vitamin") || desc.includes("supplement")) code = "2106.90";
+        else if(desc.includes("perfume") || desc.includes("cologne")) code = "3303.00";
+        else if(desc.includes("shampoo") || desc.includes("soap") || desc.includes("lotion")) code = "3305.10";
+        else if(desc.includes("book") || desc.includes("magazine")) code = "4901.99";
+        else if(desc.includes("toy") || desc.includes("game") || desc.includes("doll")) code = "9503.00";
+        else if(desc.includes("chocolate") || desc.includes("candy")) code = "1806.90";
+        else if(desc.includes("tea")) code = "0902.10";
+        
+        // 2. If no keyword match, guess based on Category
+        if (code === "") {
+            switch(cat) {
+                case "Clothing": code = "6109.10"; break; // General Apparel
+                case "Footwear & Shoes": code = "6403.99"; break;
+                case "Fabrics & Textiles": code = "6307.90"; break;
+                case "Kids Clothing": code = "6111.20"; break;
+                case "Computers & Laptops": code = "8471.30"; break;
+                case "Phones & Accessories": code = "8517.12"; break;
+                case "Cameras & Equipment": code = "8525.80"; break;
+                case "Electronic Items": code = "8543.70"; break;
+                case "Books & Media": code = "4901.99"; break;
+                case "Packaged Food (Non-Perishable)": code = "2106.90"; break;
+                case "Cosmetics & Toiletries": code = "3304.99"; break;
+                case "Medicines & Vitamins": code = "3004.90"; break;
+                case "Kitchenware": code = "3924.10"; break; // Plastic kitchenware
+                case "Toys & Hobbies": code = "9503.00"; break;
+                case "Documents": code = "4901.00"; break;
+                default: code = "9804.00"; // General Personal Effects Code
+            }
+        }
+
+        hsInput.value = code;
+        
+        // Visual feedback
+        hsInput.style.borderColor = "var(--green)";
+        setTimeout(() => hsInput.style.borderColor = "var(--grey-mid)", 1000);
+    });
         });
     </script>
 
