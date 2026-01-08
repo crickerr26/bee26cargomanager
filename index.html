@@ -1,4 +1,4 @@
-<div class="input-group"><!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -268,30 +268,80 @@
         .modal-header .close-btn { font-size: 2rem; font-weight: 300; cursor: pointer; background: none; border: none; line-height: 1; padding: 0; }
         .modal-footer { display: flex; justify-content: flex-end; gap: 1rem; margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--grey-mid); }
         
-        /* --- 11. Payments Page Specific --- */
+        /* --- 11. Payments & Batch Cards (Redesigned) --- */
         .filters-bar { display: flex; gap: 1rem; margin-bottom: 1.5rem; flex-wrap: wrap; }
-        .payment-summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
-        .payment-summary-card { background-color: var(--bg-white); border-radius: var(--border-radius); padding: 1rem; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
-        .payment-summary-card h3 { margin: 0 0 0.5rem 0; font-size: 0.9rem; color: var(--text-secondary); font-weight: 500; }
-        .payment-summary-card .value { font-size: 1.5rem; font-weight: 600; color: var(--text-primary); }
-        .payments-table input, .payments-table select {
-            width: 100%;
-            padding: 0.5rem;
-            font-size: 0.9rem;
-            border: 1px solid var(--grey-mid);
-            border-radius: 6px;
-            box-sizing: border-box;
-            background-color: #fdfdfd;
+        
+        /* New Batch Card Container */
+        .batch-card-container { display: flex; flex-direction: column; gap: 30px; }
+
+        .batch-card {
+            background: #fff; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            overflow: hidden; border: 1px solid #e2e8f0;
         }
-        .payments-table input:focus, .payments-table select:focus {
-            outline: none;
-            border-color: var(--blue);
-            box-shadow: 0 0 0 1px var(--blue-light);
+
+        /* 1. Purple Header */
+        .batch-card-header {
+            background-color: #5856d6; color: white; padding: 12px 20px;
+            font-weight: 700; font-size: 1rem; display: flex; align-items: center; gap: 10px;
         }
-        .payments-table td.number-cell, .styled-table td.number-cell { text-align: right; } 
-        .payments-table td.balance-due { font-weight: 600; }
-        .payments-table td.balance-due.zero { color: var(--green); }
-        .payments-table td.balance-due.negative { color: var(--red); }
+
+        /* 2. Shipment Rows */
+        .batch-shipment-row {
+            display: grid; grid-template-columns: 2fr 1fr 1fr 1fr 1.5fr 1.5fr;
+            align-items: center; padding: 15px 20px; border-bottom: 1px solid #f0f0f5; font-size: 0.9rem;
+        }
+        .batch-shipment-row:hover { background-color: #fcfcfc; }
+
+        .bs-invoice { display: flex; flex-direction: column; }
+        .bs-invoice strong { color: var(--blue); font-size: 0.95rem; }
+        .bs-invoice span { color: #666; font-size: 0.8rem; margin-top: 2px; }
+        .bs-weight { color: #888; font-weight: 500; }
+        .bs-money { font-weight: 700; font-size: 1rem; color: #333; }
+
+        /* 3. Financial Footer */
+        .batch-financial-footer { padding: 20px; background-color: #f8f9fa; border-top: 1px solid #e2e8f0; }
+
+        .financial-dashboard-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; }
+
+        .fin-card {
+            background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 15px;
+            display: flex; flex-direction: column; justify-content: space-between; min-height: 160px;
+        }
+
+        .fin-head { font-size: 0.75rem; font-weight: 800; text-transform: uppercase; margin-bottom: 15px; padding-bottom: 8px; border-bottom: 2px solid #f0f0f5; }
+        .head-blue { color: var(--blue); }
+        .head-green { color: #006644; }
+        .head-red { color: var(--red); }
+        .head-purple { color: var(--purple); }
+
+        .fin-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-size: 0.85rem; color: #555; }
+        
+        .fin-input {
+            width: 80px; text-align: right; padding: 4px; border: 1px solid #ccc;
+            border-radius: 4px; font-weight: 700;
+        }
+        
+        .fin-result { margin-top: auto; padding-top: 10px; border-top: 1px solid #eee; text-align: right; font-size: 1.1rem; font-weight: 800; }
+
+        .batch-actions-bar { display: flex; justify-content: flex-end; margin-top: 15px; gap: 10px; }
+        
+        /* Note: Reusing these classes for compatibility */
+        .btn-add-extra { background-color: var(--purple); color: white; border: none; padding: 10px 20px; border-radius: 6px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px; }
+        .notes-area { width: 100%; margin-top: 15px; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-family: inherit; font-size: 0.9rem; }
+        
+        /* Status Badges Reuse */
+        .status-badge-btn { display: inline-flex; align-items: center; justify-content: center; padding: 4px 12px; border-radius: 6px; font-size: 0.75rem; font-weight: 700; cursor: pointer; width: 80px; text-align: center; text-transform: uppercase; user-select: none; transition: transform 0.1s ease; }
+        .status-badge-btn:active { transform: scale(0.95); }
+        .badge-pending { background-color: var(--grey-mid); color: var(--text-secondary); }
+        .badge-paid-cad { background-color: var(--green-light); color: var(--green); border: 1px solid var(--green-light); }
+        .badge-paid-expense { background-color: var(--red-light); color: var(--red); border: 1px solid var(--red-light); }
+        .badge-paid-income { background-color: var(--green-light); color: #006644; border: 1px solid var(--green-light); }
+
+        @media (max-width: 900px) { .financial-dashboard-grid { grid-template-columns: 1fr 1fr; } }
+        @media (max-width: 600px) { 
+            .financial-dashboard-grid { grid-template-columns: 1fr; } 
+            .batch-shipment-row { grid-template-columns: 1fr 1fr; gap: 10px; }
+        }
 
 
         /* --- 12. Responsive (Mobile) --- */
@@ -611,26 +661,9 @@
                 </div>
             </div>
 
-            <div class="card">
-                <h2>Payment Tracker</h2>
-                <div class="table-container">
-                    <table class="styled-table payments-table">
-                        <thead>
-                            <tr>
-                                <th>Invoice #</th>
-                                <th>Date</th>
-                                <th>Sender</th>
-                                <th>Total Amt</th>
-                                <th style="width: 120px;">Amt Paid</th> 
-                                <th>Balance Due</th>
-                                <th style="width: 150px;">Pay Status</th> 
-                                <th style="width: 150px;">Pay Method</th> 
-                            </tr>
-                        </thead>
-                        <tbody id="paymentsTableTbody">
-                            <tr><td colspan="8" style="text-align: center;">Loading data from Firebase...</td></tr>
-                        </tbody>
-                    </table>
+            <div class="batch-card-container" id="paymentsContainer">
+                <div style="text-align: center; padding: 40px; color: #888;">
+                    Loading Batch Financials...
                 </div>
             </div>
         </div>
@@ -1365,7 +1398,7 @@ modal.classList.add('active');
             const shipmentsTableTbody = document.getElementById('shipmentsTableTbody');
             const customersTableTbody = document.getElementById('customersTableTbody');
             const recentActivityTbody = document.getElementById('recent-activity-tbody');
-            const paymentsTableTbody = document.getElementById('paymentsTableTbody'); 
+            const paymentsContainer = document.getElementById('paymentsContainer');
 
             // Batch UI Elements
             const batchSelector = document.getElementById('batchSelector');
@@ -1728,147 +1761,373 @@ modal.classList.add('active');
             }
 
 
-            // --- 6. Payments Page Logic ---
+        // --- 6. Payments Page Logic & Batch Calculator (Editable Extras) ---
             const paymentSearchInput = document.getElementById('paymentSearch');
             const paymentStatusFilterSelect = document.getElementById('paymentStatusFilter');
 
-            function renderPaymentsTable() {
-                paymentsTableTbody.innerHTML = '';
+            // --- A. CUSTOM ADD EXTRA MODAL LOGIC ---
+            if (!document.getElementById('customExtraModal')) {
+                const modalHTML = `
+                <div id="customExtraModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:2000; align-items:center; justify-content:center;">
+                    <div style="background:white; padding:20px; border-radius:12px; width:90%; max-width:350px; box-shadow:0 10px 25px rgba(0,0,0,0.2);">
+                        <h3 style="margin-top:0; color:var(--purple);">Add Extra Item</h3>
+                        <div style="display:flex; gap:10px; margin-bottom:15px;">
+                            <button type="button" class="btn-type-select active" data-type="Income" onclick="selectExtraType(this)" style="flex:1; padding:8px; border:1px solid #ddd; border-radius:6px; cursor:pointer; background:#e6f2ff; color:var(--blue); font-weight:bold;">Income</button>
+                            <button type="button" class="btn-type-select" data-type="Expense" onclick="selectExtraType(this)" style="flex:1; padding:8px; border:1px solid #ddd; border-radius:6px; cursor:pointer; background:white; color:#666;">Expense</button>
+                        </div>
+                        <input type="text" id="extraDetailInput" placeholder="Detail (e.g. Taxi, Bonus)" style="width:100%; padding:10px; border:1px solid #ddd; border-radius:8px; margin-bottom:10px; box-sizing:border-box;">
+                        <input type="number" id="extraAmountInput" placeholder="Amount (LKR)" style="width:100%; padding:10px; border:1px solid #ddd; border-radius:8px; margin-bottom:20px; box-sizing:border-box;">
+                        <div style="display:flex; justify-content:flex-end; gap:10px;">
+                            <button onclick="closeExtraModal()" style="padding:8px 16px; border:none; background:#eee; border-radius:6px; cursor:pointer;">Cancel</button>
+                            <button onclick="saveExtraItem()" style="padding:8px 16px; border:none; background:var(--purple); color:white; border-radius:6px; cursor:pointer; font-weight:bold;">Add</button>
+                        </div>
+                    </div>
+                </div>`;
+                document.body.insertAdjacentHTML('beforeend', modalHTML);
+            }
+
+            let currentBatchForExtra = null;
+            let currentExtraType = 'Income';
+
+            window.selectExtraType = (btn) => {
+                document.querySelectorAll('.btn-type-select').forEach(b => {
+                    b.style.background = 'white'; b.style.color = '#666'; b.classList.remove('active');
+                });
+                btn.style.background = btn.dataset.type === 'Income' ? '#e6f2ff' : '#fff1f0';
+                btn.style.color = btn.dataset.type === 'Income' ? 'var(--blue)' : 'var(--red)';
+                btn.classList.add('active');
+                currentExtraType = btn.dataset.type;
+            };
+
+            window.addBatchExtra = (batchKey) => {
+                currentBatchForExtra = batchKey;
+                document.getElementById('extraDetailInput').value = '';
+                document.getElementById('extraAmountInput').value = '';
+                selectExtraType(document.querySelector('.btn-type-select[data-type="Income"]'));
+                document.getElementById('customExtraModal').style.display = 'flex';
+                document.getElementById('extraDetailInput').focus();
+            };
+
+            window.closeExtraModal = () => {
+                document.getElementById('customExtraModal').style.display = 'none';
+                currentBatchForExtra = null;
+            };
+
+            window.saveExtraItem = async () => {
+                const desc = document.getElementById('extraDetailInput').value;
+                const amtVal = parseFloat(document.getElementById('extraAmountInput').value);
+                if(!desc || isNaN(amtVal) || !currentBatchForExtra) { alert("Invalid details."); return; }
+                const finalAmount = currentExtraType === 'Expense' ? -Math.abs(amtVal) : Math.abs(amtVal);
+                const safeKey = currentBatchForExtra.replace(/[.#$\[\]]/g, "_");
+                try { await dbPush(dbRef(db, `batches/${safeKey}/extras`), { desc, amount: finalAmount }); closeExtraModal(); } 
+                catch(e) { console.error(e); alert("Failed to save extra."); }
+            };
+
+            // --- B. EDIT MODE HANDLER (Supports Text & Number) ---
+            window.enableBatchEdit = (element) => {
+                if (element.querySelector('input')) return;
                 
+                const currentValue = element.dataset.value;
+                const field = element.dataset.field;
+                const batchKey = element.dataset.batch;
+                const type = element.dataset.type || 'number'; // Default number
+
+                const input = document.createElement('input');
+                input.type = type; 
+                input.value = currentValue;
+                
+                // Styling based on type
+                if (type === 'text') {
+                    input.style.width = '120px';
+                    input.style.textAlign = 'left';
+                } else {
+                    input.style.width = '80px';
+                    input.style.textAlign = 'right';
+                }
+                
+                input.style.padding = '2px 4px';
+                input.style.borderRadius = '4px';
+                input.style.border = '1px solid var(--blue)';
+                input.style.fontSize = 'inherit';
+                input.style.fontWeight = 'bold';
+                
+                const save = async () => {
+                    let newVal = input.value;
+                    if (newVal === currentValue) { renderPaymentsTable(); return; }
+                    
+                    // Parse number if needed
+                    if (type === 'number') {
+                        newVal = parseFloat(newVal);
+                        if (isNaN(newVal)) newVal = 0;
+                    }
+
+                    const safeKey = batchKey.replace(/[.#$\[\]]/g, "_");
+                    try { 
+                        const u={}; 
+                        u[field] = newVal; 
+                        await dbUpdate(dbRef(db, 'batches/' + safeKey), u); 
+                    } 
+                    catch(err) { console.error(err); renderPaymentsTable(); }
+                };
+
+                input.addEventListener('blur', save);
+                input.addEventListener('keydown', (e) => { if(e.key === 'Enter') input.blur(); });
+
+                element.innerHTML = '';
+                element.appendChild(input);
+                input.focus();
+            };
+
+            // --- C. TOGGLE STATUS ---
+            window.togglePaymentStatus = async (id, currentStatus) => {
+                try { await dbUpdate(dbRef(db, 'shipments/' + id), { paymentStatus: currentStatus === 'Paid' ? 'Not-Paid' : 'Paid' }); } catch (e) {}
+            };
+            window.toggleSLStatus = async (id, field, currentBool) => {
+                try { const u={}; u[field] = !currentBool; await dbUpdate(dbRef(db, 'shipments/' + id), u); } catch (e) {}
+            };
+            window.deleteBatchExtra = async (batchKey, extraId) => {
+                const safeKey = batchKey.replace(/[.#$\[\]]/g, "_");
+                if(confirm("Delete this extra?")) await dbRemove(dbRef(db, `batches/${safeKey}/extras/${extraId}`));
+            };
+
+            // --- D. RENDER LOGIC ---
+            function renderPaymentsTable() {
+                const container = document.getElementById('paymentsContainer');
+                if (!container) return;
+                container.innerHTML = ''; 
+
                 const searchTerm = paymentSearchInput.value.toLowerCase();
                 const statusFilter = paymentStatusFilterSelect.value;
-                
-                const filteredShipments = local_shipments_cache.filter(s => {
+
+                let filteredShipments = local_shipments_cache.filter(s => {
                     const nameMatch = (s.senderName?.toLowerCase().includes(searchTerm) || s.receiverName?.toLowerCase().includes(searchTerm) || s.invoiceNumber?.toLowerCase().includes(searchTerm));
                     const statusMatch = (statusFilter === 'All' || s.paymentStatus === statusFilter);
                     return nameMatch && statusMatch;
                 });
 
                 if (filteredShipments.length === 0) {
-                    paymentsTableTbody.innerHTML = '<tr><td colspan="8" style="text-align: center;">No shipments match your filters.</td></tr>';
-                    updatePaymentSummary(filteredShipments); 
+                    container.innerHTML = '<div style="text-align:center; padding:20px; color:#888;">No shipments match search.</div>';
                     return;
                 }
 
-                filteredShipments.sort((a, b) => new Date(b.invoiceDate) - new Date(a.invoiceDate));
-                
-                filteredShipments.forEach(shipment => {
-                    const serviceFee = parseFloat(shipment.paymentTotal) || 0;
-                    const additionalCharges = parseFloat(shipment.additionalChargesAmt) || 0;
-                    const totalAmount = serviceFee + additionalCharges;
-                    
-                    const amountPaid = parseFloat(shipment.amountPaid) || 0;
-                    const balanceDue = totalAmount - amountPaid;
-                    
-                    const row = document.createElement('tr');
-                    row.innerHTML = `
-                        <td>${shipment.invoiceNumber}</td>
-                        <td>${shipment.invoiceDate}</td>
-                        <td>${shipment.senderName}</td>
-                        <td class="number-cell">$${totalAmount.toFixed(2)}</td>
-                        <td>
-                            <input type="number" class="payment-update" data-id="${shipment.id}" data-field="amountPaid" value="${amountPaid.toFixed(2)}" min="0" step="0.01">
-                        </td>
-                        <td class="number-cell balance-due ${balanceDue <= 0 ? 'zero' : (balanceDue < 0 ? 'negative' : '')}">
-                            $${balanceDue.toFixed(2)}
-                        </td>
-                        <td>
-                            <select class="payment-update" data-id="${shipment.id}" data-field="paymentStatus">
-                                <option value="Not-Paid" ${shipment.paymentStatus === 'Not-Paid' ? 'selected' : ''}>Not Paid</option>
-                                <option value="Partially-Paid" ${shipment.paymentStatus === 'Partially-Paid' ? 'selected' : ''}>Partially Paid</option>
-                                <option value="Paid" ${shipment.paymentStatus === 'Paid' ? 'selected' : ''}>Paid</option>
-                            </select>
-                        </td>
-                        <td>
-                             <select class="payment-update" data-id="${shipment.id}" data-field="paymentMethod">
-                                <option value="" ${!shipment.paymentMethod ? 'selected' : ''}>N/A</option>
-                                <option value="Cash" ${shipment.paymentMethod === 'Cash' ? 'selected' : ''}>Cash</option>
-                                <option value="E-Transfer" ${shipment.paymentMethod === 'E-Transfer' ? 'selected' : ''}>E-Transfer</option>
-                                <option value="Card" ${shipment.paymentMethod === 'Card' ? 'selected' : ''}>Card</option>
-                            </select>
-                        </td>
-                    `;
-                    paymentsTableTbody.appendChild(row);
+                // Group by Batch
+                const batches = {};
+                filteredShipments.forEach(s => {
+                    const batchKey = s.batchNo ? s.batchNo : 'Unassigned';
+                    if (!batches[batchKey]) batches[batchKey] = [];
+                    batches[batchKey].push(s);
                 });
 
-                updatePaymentSummary(filteredShipments);
-            }
+                const sortedKeys = Object.keys(batches).sort().reverse();
 
-            function updatePaymentSummary(filteredData) {
-                let totalDue = 0;
-                let totalPaid = 0;
-                
-                filteredData.forEach(s => {
-                    const serviceFee = parseFloat(s.paymentTotal) || 0;
-                    const additionalCharges = parseFloat(s.additionalChargesAmt) || 0;
-                    const total = serviceFee + additionalCharges;
+                sortedKeys.forEach(batchKey => {
+                    const shipments = batches[batchKey];
+                    shipments.sort((a, b) => new Date(b.invoiceDate) - new Date(a.invoiceDate));
+                    const safeBatchKey = batchKey.replace(/[.#$\[\]]/g, "_");
+                    const batchData = local_batches_cache[safeBatchKey] || local_batches_cache[batchKey] || {};
 
-                    const paid = parseFloat(s.amountPaid) || 0;
-                    const balance = total - paid;
-                    
-                    if (balance > 0) {
-                        totalDue += balance;
+                    // 1. CAD
+                    let totalCADCollected = 0;
+                    shipments.forEach(s => totalCADCollected += (parseFloat(s.paymentTotal)||0) + (parseFloat(s.additionalChargesAmt)||0));
+                    const batchCostCAD = parseFloat(batchData.batchCostCAD) || 0;
+                    const profitCAD = totalCADCollected - batchCostCAD;
+
+                    // 2. Delivery (LKR)
+                    let totalDelCollected = 0;
+                    let pendingDelivery = 0;
+                    shipments.forEach(s => {
+                        const chg = parseFloat(s.slDeliveryCharge) || 0;
+                        if(s.slDeliveryPaid === true) totalDelCollected += chg; else pendingDelivery += chg;
+                    });
+                    const manualDelCost = parseFloat(batchData.manualDeliveryTotal) || 0;
+                    const profitDel = totalDelCollected - manualDelCost;
+
+                    // 3. Clearance (LKR)
+                    let totalClrCollected = 0;
+                    let pendingClearance = 0;
+                    shipments.forEach(s => {
+                        const cost = parseFloat(s.slClearanceCost) || 0;
+                        if(s.slClearancePaid === true) totalClrCollected += cost; else pendingClearance += cost;
+                    });
+                    const manualClrCost = parseFloat(batchData.manualClearanceTotal) || 0;
+                    const profitClr = totalClrCollected - manualClrCost;
+
+                    // 4. Extras (Editable)
+                    let extrasTotal = 0;
+                    const extrasObj = batchData.extras || {};
+                    let extrasHtml = '';
+                    for(const [eId, eData] of Object.entries(extrasObj)) {
+                        const amt = parseFloat(eData.amount || 0);
+                        extrasTotal += amt;
+                        // EDITABLE ROWS
+                        extrasHtml += `
+                            <div style="display:flex; justify-content:space-between; font-size:0.8rem; padding:3px 0; border-bottom:1px dashed #eee; align-items:center;">
+                                <span style="cursor:pointer; border-bottom:1px dotted #ccc;" 
+                                      data-batch="${batchKey}" 
+                                      data-field="extras/${eId}/desc" 
+                                      data-value="${eData.desc}" 
+                                      data-type="text"
+                                      onclick="window.enableBatchEdit(this)">
+                                    ${eData.desc}
+                                </span>
+                                <div>
+                                    <span style="font-weight:bold; cursor:pointer; color:${amt>=0?'green':'red'}; border-bottom:1px dotted #ccc;"
+                                          data-batch="${batchKey}" 
+                                          data-field="extras/${eId}/amount" 
+                                          data-value="${amt}" 
+                                          data-type="number"
+                                          onclick="window.enableBatchEdit(this)">
+                                        ${amt}
+                                    </span>
+                                    <span style="cursor:pointer; margin-left:8px; color:#999;" onclick="window.deleteBatchExtra('${batchKey}','${eId}')">×</span>
+                                </div>
+                            </div>`;
                     }
-                    if (paid > 0) {
-                         totalPaid += paid;
-                    }
-                });
 
-                document.getElementById('payment-summary-due').textContent = `$${totalDue.toFixed(2)}`;
-                document.getElementById('payment-summary-paid').textContent = `$${totalPaid.toFixed(2)}`;
-                document.getElementById('payment-summary-count').textContent = filteredData.length;
-            }
+                    // 5. NET LKR
+                    const netLKR = profitDel + profitClr + extrasTotal;
 
-            paymentSearchInput.addEventListener('input', renderPaymentsTable);
-            paymentStatusFilterSelect.addEventListener('change', renderPaymentsTable);
+                    // --- UI BUILD ---
+                    const card = document.createElement('div');
+                    card.className = 'batch-card';
+                    card.style.marginBottom = "30px";
+                    card.style.border = "1px solid #e0e0e0";
+                    card.style.boxShadow = "0 4px 12px rgba(0,0,0,0.05)";
+                    card.style.borderRadius = "10px";
+                    card.style.overflow = "hidden";
+                    card.style.background = "#fff";
 
-            paymentsTableTbody.addEventListener('change', async (e) => {
-                if (e.target.classList.contains('payment-update')) {
-                    const shipmentId = e.target.dataset.id;
-                    const field = e.target.dataset.field;
-                    const value = e.target.value;
-
-                    if (!shipmentId || !field) return;
-
-                    const updateData = {};
-                    updateData[field] = value;
-                    
-                    if (field === 'amountPaid') {
-                        const row = e.target.closest('tr');
-                        const totalAmountText = row.cells[3].textContent.replace('$', '');
-                        const totalAmount = parseFloat(totalAmountText) || 0;
-                        const newAmountPaid = parseFloat(value) || 0;
-                        const statusSelect = row.querySelector('select[data-field="paymentStatus"]');
+                    card.innerHTML = `
+                        <div style="background:linear-gradient(90deg, #5856d6, #4c4aba); color:white; padding:12px 20px; display:flex; justify-content:space-between; align-items:center;">
+                            <span style="font-weight:700; font-size:1.05rem;">📦 ${batchKey}</span>
+                            <span style="font-size:0.85rem; opacity:0.9;">${shipments.length} Shipments</span>
+                        </div>
                         
-                        if (newAmountPaid <= 0) {
-                             updateData['paymentStatus'] = 'Not-Paid';
-                             if(statusSelect) statusSelect.value = 'Not-Paid'; 
-                        } else if (newAmountPaid >= totalAmount) {
-                             updateData['paymentStatus'] = 'Paid';
-                             if(statusSelect) statusSelect.value = 'Paid';
-                        } else {
-                             updateData['paymentStatus'] = 'Partially-Paid';
-                             if(statusSelect) statusSelect.value = 'Partially-Paid';
-                        }
-                    }
+                        <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap:15px; padding:20px; background:#f8f9fa; border-bottom:1px solid #eee;">
+                            
+                            <div style="background:white; border:1px solid #e0e0e0; border-radius:8px; padding:15px; box-shadow:0 2px 4px rgba(0,0,0,0.02);">
+                                <div style="font-size:0.7rem; font-weight:800; color:#5856d6; text-transform:uppercase; margin-bottom:10px; border-bottom:2px solid #5856d6; padding-bottom:5px;">Batch Payment (CAD)</div>
+                                <div style="display:flex; justify-content:space-between; font-size:0.85rem; margin-bottom:5px;"><span>Collected:</span> <strong>$${totalCADCollected.toFixed(2)}</strong></div>
+                                <div style="display:flex; justify-content:space-between; font-size:0.85rem; margin-bottom:10px;">
+                                    <span>Batch Cost:</span> <span style="cursor:pointer; border-bottom:1px dashed #999;" data-batch="${batchKey}" data-field="batchCostCAD" data-value="${batchCostCAD}" data-type="number" onclick="window.enableBatchEdit(this)">$${batchCostCAD.toFixed(2)}</span>
+                                </div>
+                                <div style="text-align:right; font-size:1.2rem; font-weight:800; color:${profitCAD>=0?'var(--blue)':'var(--red)'}; padding-top:8px; border-top:1px solid #f0f0f0;">Profit: $${profitCAD.toFixed(2)}</div>
+                            </div>
 
-                    try {
-                        const shipmentRef = dbRef(db, 'shipments/' + shipmentId);
-                        await dbUpdate(shipmentRef, updateData);
-                        const row = e.target.closest('tr');
-                        const totalAmountText = row.cells[3].textContent.replace('$', '');
-                        const totalAmount = parseFloat(totalAmountText) || 0;
-                        const currentAmountPaid = parseFloat(row.querySelector('input[data-field="amountPaid"]').value) || 0;
-                        const balanceCell = row.cells[5];
-                        const newBalance = totalAmount - currentAmountPaid;
-                        balanceCell.textContent = `$${newBalance.toFixed(2)}`;
-                        balanceCell.className = `number-cell balance-due ${newBalance <= 0 ? 'zero' : (newBalance < 0 ? 'negative' : '')}`;
+                            <div style="background:white; border:1px solid #e0e0e0; border-radius:8px; padding:15px; box-shadow:0 2px 4px rgba(0,0,0,0.02);">
+                                <div style="font-size:0.7rem; font-weight:800; color:#006644; text-transform:uppercase; margin-bottom:10px; border-bottom:2px solid #006644; padding-bottom:5px;">Delivery (Income)</div>
+                                <div style="display:flex; justify-content:space-between; font-size:0.85rem; margin-bottom:5px;"><span>Collected:</span> <strong style="color:#006644;">${totalDelCollected.toLocaleString()}</strong></div>
+                                <div style="display:flex; justify-content:space-between; font-size:0.85rem; margin-bottom:5px;">
+                                    <span>Cost:</span> <span style="cursor:pointer; border-bottom:1px dashed #999;" data-batch="${batchKey}" data-field="manualDeliveryTotal" data-value="${manualDelCost}" data-type="number" onclick="window.enableBatchEdit(this)">${manualDelCost.toLocaleString()}</span>
+                                </div>
+                                <div style="font-size:0.75rem; color:#e67e22; margin-bottom:10px;">Pending: ${pendingDelivery.toLocaleString()}</div>
+                                <div style="text-align:right; font-size:1.2rem; font-weight:800; color:${profitDel>=0?'#006644':'var(--red)'}; padding-top:8px; border-top:1px solid #f0f0f0;">Net: ${profitDel.toLocaleString()}</div>
+                            </div>
 
-                    } catch (error) {
-                        console.error("Error updating payment field:", error);
-                        alert("Error saving payment update. See console.");
-                        e.target.value = e.target.defaultValue; 
-                    }
+                            <div style="background:white; border:1px solid #e0e0e0; border-radius:8px; padding:15px; box-shadow:0 2px 4px rgba(0,0,0,0.02);">
+                                <div style="font-size:0.7rem; font-weight:800; color:var(--red); text-transform:uppercase; margin-bottom:10px; border-bottom:2px solid var(--red); padding-bottom:5px;">Custom Clearance</div>
+                                <div style="display:flex; justify-content:space-between; font-size:0.85rem; margin-bottom:5px;"><span>Collected:</span> <strong style="color:#006644;">${totalClrCollected.toLocaleString()}</strong></div>
+                                <div style="display:flex; justify-content:space-between; font-size:0.85rem; margin-bottom:5px;">
+                                    <span>Charge:</span> <span style="cursor:pointer; border-bottom:1px dashed #999;" data-batch="${batchKey}" data-field="manualClearanceTotal" data-value="${manualClrCost}" data-type="number" onclick="window.enableBatchEdit(this)">${manualClrCost.toLocaleString()}</span>
+                                </div>
+                                <div style="font-size:0.75rem; color:#e67e22; margin-bottom:10px;">Pending: ${pendingClearance.toLocaleString()}</div>
+                                <div style="text-align:right; font-size:1.2rem; font-weight:800; color:${profitClr>=0?'#006644':'var(--red)'}; padding-top:8px; border-top:1px solid #f0f0f0;">Net: ${profitClr.toLocaleString()}</div>
+                            </div>
+
+                            <div style="background:white; border:1px solid #e0e0e0; border-radius:8px; padding:15px; box-shadow:0 2px 4px rgba(0,0,0,0.02); display:flex; flex-direction:column;">
+                                <div style="font-size:0.7rem; font-weight:800; color:var(--purple); text-transform:uppercase; margin-bottom:10px; border-bottom:2px solid var(--purple); padding-bottom:5px;">Total Net (LKR)</div>
+                                <div style="display:flex; justify-content:space-between; font-size:0.8rem; padding:2px 0; border-bottom:1px solid #f9f9f9; margin-bottom:4px;">
+                                    <span style="color:#666;">Delivery Profit</span>
+                                    <span style="font-weight:600; color:${profitDel>=0?'#006644':'var(--red)'}">${profitDel.toLocaleString()}</span>
+                                </div>
+                                <div style="display:flex; justify-content:space-between; font-size:0.8rem; padding:2px 0; border-bottom:1px solid #f9f9f9; margin-bottom:8px;">
+                                    <span style="color:#666;">Clearance Profit</span>
+                                    <span style="font-weight:600; color:${profitClr>=0?'#006644':'var(--red)'}">${profitClr.toLocaleString()}</span>
+                                </div>
+                                <div style="flex-grow:1; max-height:60px; overflow-y:auto; margin-bottom:5px;">
+                                    ${extrasHtml || '<div style="font-size:0.75rem; color:#ccc; font-style:italic;">No extras added</div>'}
+                                </div>
+                                <div style="text-align:right; font-size:1.3rem; font-weight:800; color:${netLKR>=0?'var(--purple)':'var(--red)'}; padding-top:8px; border-top:1px solid #f0f0f0;">LKR ${netLKR.toLocaleString()}</div>
+                                <div style="text-align:right; margin-top:5px;">
+                                    <button onclick="window.addBatchExtra('${batchKey}')" style="background:none; border:none; color:var(--blue); font-size:0.8rem; font-weight:bold; cursor:pointer;">+ Add Extra</button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+
+                    // TABLE
+                    const tableWrapper = document.createElement('div');
+                    tableWrapper.style.overflowX = 'auto';
+                    const table = document.createElement('table');
+                    table.style.width = '100%';
+                    table.style.borderCollapse = 'collapse';
+                    table.style.fontSize = '0.85rem';
+
+                    table.innerHTML = `
+                        <thead>
+                            <tr style="background:#fff; border-bottom:2px solid #eee;">
+                                <th style="padding:12px 15px; text-align:left; color:#5856d6;">Invoice / Name</th>
+                                <th style="padding:12px 15px; text-align:left; color:#666;">Weight</th>
+                                <th style="padding:12px 15px; text-align:left; color:#666;">Shipping (CAD)</th>
+                                <th style="padding:12px 15px; text-align:left; color:#666;">Payment Status</th>
+                                <th style="padding:12px 15px; text-align:left; color:#666;">Clearance (LKR)</th>
+                                <th style="padding:12px 15px; text-align:left; color:#666;">Delivery (LKR)</th>
+                            </tr>
+                        </thead>
+                    `;
+                    
+                    const tbody = document.createElement('tbody');
+                    shipments.forEach(s => {
+                        const tr = document.createElement('tr');
+                        tr.style.borderBottom = '1px solid #f5f5f5';
+
+                        const totalAmt = (parseFloat(s.paymentTotal)||0) + (parseFloat(s.additionalChargesAmt)||0);
+                        const isPaid = s.paymentStatus === 'Paid';
+                        const isDelPaid = s.slDeliveryPaid === true;
+                        const isClrPaid = s.slClearancePaid === true;
+
+                        const td1 = document.createElement('td'); td1.style.padding='12px 15px'; td1.innerHTML=`<div style="font-weight:700; color:#333; font-size:0.95rem;">${s.invoiceNumber}</div><div style="font-size:0.8rem; color:#888;">${s.senderName}</div>`; tr.appendChild(td1);
+                        const td2 = document.createElement('td'); td2.style.padding='12px 15px'; td2.textContent=`${s.totalWeight||0} kg`; tr.appendChild(td2);
+                        const td3 = document.createElement('td'); td3.style.padding='12px 15px'; td3.innerHTML=`<strong>$${totalAmt.toFixed(2)}</strong>`; tr.appendChild(td3);
+                        const td4 = document.createElement('td'); td4.style.padding='12px 15px'; td4.innerHTML=`<span style="padding:4px 10px; border-radius:4px; font-weight:bold; font-size:0.75rem; cursor:pointer; background:${isPaid?'#d4edda':'#f8d7da'}; color:${isPaid?'#155724':'#721c24'};" onclick="window.togglePaymentStatus('${s.id}','${s.paymentStatus}')">${isPaid?'PAID':'UNPAID'}</span>`; tr.appendChild(td4);
+                        
+                        const td5 = document.createElement('td'); td5.style.padding='12px 15px'; 
+                        td5.innerHTML=`<div style="display:flex; align-items:center; gap:8px;"><div style="position:relative;"><span style="font-size:0.7rem; color:#999; position:absolute; left:4px; top:50%; transform:translateY(-50%);">LKR</span><input type="number" class="payment-update" data-id="${s.id}" data-field="slClearanceCost" value="${s.slClearanceCost||''}" placeholder="0" style="padding:4px 4px 4px 28px; width:70px; border:1px solid #ddd; border-radius:4px;"></div><span style="padding:4px 8px; border-radius:4px; font-weight:bold; font-size:0.7rem; cursor:pointer; background:${isClrPaid?'#ffebee':'#f0f0f5'}; color:${isClrPaid?'#c62828':'#666'};" onclick="window.toggleSLStatus('${s.id}','slClearancePaid', ${isClrPaid})">${isClrPaid?'PAID':'PENDING'}</span></div>`; tr.appendChild(td5);
+
+                        const td6 = document.createElement('td'); td6.style.padding='12px 15px';
+                        td6.innerHTML=`<div style="display:flex; align-items:center; gap:8px;"><div style="position:relative;"><span style="font-size:0.7rem; color:#999; position:absolute; left:4px; top:50%; transform:translateY(-50%);">LKR</span><input type="number" class="payment-update" data-id="${s.id}" data-field="slDeliveryCharge" value="${s.slDeliveryCharge||''}" placeholder="0" style="padding:4px 4px 4px 28px; width:70px; border:1px solid #ddd; border-radius:4px;"></div><span style="padding:4px 8px; border-radius:4px; font-weight:bold; font-size:0.7rem; cursor:pointer; background:${isDelPaid?'#e8f5e9':'#f0f0f5'}; color:${isDelPaid?'#2e7d32':'#666'};" onclick="window.toggleSLStatus('${s.id}','slDeliveryPaid', ${isDelPaid})">${isDelPaid?'REC\'D':'PENDING'}</span></div>`; tr.appendChild(td6);
+
+                        tbody.appendChild(tr);
+                    });
+
+                    table.appendChild(tbody);
+                    tableWrapper.appendChild(table);
+                    card.appendChild(tableWrapper);
+
+                    const noteDiv = document.createElement('div');
+                    noteDiv.style.padding = '15px';
+                    noteDiv.style.borderTop = '1px solid #eee';
+                    noteDiv.style.background = '#fcfcfc';
+                    noteDiv.innerHTML = `<textarea class="batch-field-update" data-batch="${batchKey}" data-field="notes" placeholder="Batch Notes..." style="width:100%; border:1px solid #e0e0e0; border-radius:6px; padding:10px; font-size:0.9rem; height:50px; resize:none;">${batchData.notes || ''}</textarea>`;
+                    card.appendChild(noteDiv);
+
+                    container.appendChild(card);
+                });
+            }
+
+            // --- EVENT LISTENERS ---
+            paymentsContainer.addEventListener('change', async (e) => {
+                if (e.target.classList.contains('payment-update')) {
+                    const id = e.target.dataset.id;
+                    const field = e.target.dataset.field;
+                    const val = parseFloat(e.target.value);
+                    if(!id || !field) return;
+                    try { const u={}; u[field]=isNaN(val)?0:val; await dbUpdate(dbRef(db,'shipments/'+id), u); } catch(e){}
+                }
+                if (e.target.classList.contains('batch-field-update') && e.target.tagName === 'TEXTAREA') {
+                    const batchKey = e.target.dataset.batch;
+                    const safeKey = batchKey.replace(/[.#$\[\]]/g, "_");
+                    try { await dbUpdate(dbRef(db, 'batches/' + safeKey), { notes: e.target.value }); } catch(e){}
                 }
             });
 
