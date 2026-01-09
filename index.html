@@ -2459,61 +2459,113 @@ modal.classList.add('active');
             // --- RESTORE DRAFT ON LOAD ---
             listenForData();
             restoreDraft(); // Try restoring local draft immediately on load
-// --- NEW: HS CODE GENERATOR LOGIC ---
-    document.getElementById('generateHsBtn').addEventListener('click', () => {
-        const cat = document.getElementById('modalItemCat').value;
-        const desc = document.getElementById('modalItemDesc').value.toLowerCase();
-        const hsInput = document.getElementById('modalItemHSCode');
+// --- UPDATED: AUTOMATIC HS CODE GENERATOR (SMART FIX) ---
+    const autoHsDescInput = document.getElementById('modalItemDesc');
+    const autoHsCatInput = document.getElementById('modalItemCat');
+    const autoHsOutput = document.getElementById('modalItemHSCode');
+
+    function calculateHSCode() {
+        // If the user is manually editing the code, we might not want to overwrite it aggressively
+        // But the requirement is to "act accordingly", so we will overwrite on meaningful changes.
         
-        // A simple "Smart Lookup" dictionary for common Air Cargo items
+        const cat = autoHsCatInput.value;
+        const desc = autoHsDescInput.value.toLowerCase().trim();
         let code = "";
 
-        // 1. Check Specific Keywords in Description first
-        if(desc.includes("shirt") || desc.includes("t-shirt") || desc.includes("top")) code = "6109.10";
-        else if(desc.includes("jean") || desc.includes("denim") || desc.includes("pant") || desc.includes("trouser")) code = "6203.42";
-        else if(desc.includes("dress") || desc.includes("frock")) code = "6204.42";
-        else if(desc.includes("baby") || desc.includes("infant")) code = "6111.20";
-        else if(desc.includes("shoe") || desc.includes("sneaker") || desc.includes("sandal")) code = "6403.99";
-        else if(desc.includes("laptop") || desc.includes("computer") || desc.includes("macbook")) code = "8471.30";
-        else if(desc.includes("phone") || desc.includes("mobile") || desc.includes("iphone")) code = "8517.12";
-        else if(desc.includes("camera")) code = "8525.80";
-        else if(desc.includes("headphone") || desc.includes("earphone") || desc.includes("airpod")) code = "8518.30";
-        else if(desc.includes("vitamin") || desc.includes("supplement")) code = "2106.90";
-        else if(desc.includes("perfume") || desc.includes("cologne")) code = "3303.00";
-        else if(desc.includes("shampoo") || desc.includes("soap") || desc.includes("lotion")) code = "3305.10";
-        else if(desc.includes("book") || desc.includes("magazine")) code = "4901.99";
-        else if(desc.includes("toy") || desc.includes("game") || desc.includes("doll")) code = "9503.00";
-        else if(desc.includes("chocolate") || desc.includes("candy")) code = "1806.90";
-        else if(desc.includes("tea")) code = "0902.10";
-        
-        // 2. If no keyword match, guess based on Category
+        // --- 1. KEYWORD LOGIC (Description is King) ---
+        // We check these FIRST to override general categories.
+
+        // --- GROUP A: BEAUTY & SKINCARE (Lotion, Oil, Wash, Powder) ---
+        // Fixes: Baby Oil was showing as clothes. Now explicitly checks "oil" first.
+        if (desc.includes('shampoo')) {
+            code = "3305.10"; // Hair Shampoo
+        }
+        else if (desc.includes('powder') || desc.includes('talc')) {
+            code = "3304.91"; // Skin Powders (Baby powder)
+        }
+        // "Oil" must be checked before "Baby" to catch Baby Oil correctly as skincare (3304) not clothes (6111)
+        else if (desc.includes('oil') && !desc.includes('cooking') && !desc.includes('engine')) {
+            code = "3304.99"; // Baby oil, Body oil
+        }
+        else if (desc.includes('lotion') || desc.includes('cream') || desc.includes('moisturizer') || desc.includes('vaseline') || desc.includes('sudo') || desc.includes('face wash') || desc.includes('scrub') || desc.includes('body wash') || desc.includes('shower gel') || desc.includes('soap')) {
+            code = "3304.99"; // General Skin Care
+        }
+        else if (desc.includes('perfume') || desc.includes('cologne') || desc.includes('fragrance') || desc.includes('spray')) {
+            code = "3303.00";
+        }
+        else if (desc.includes('toothpaste')) {
+            code = "3306.10";
+        }
+        else if (desc.includes('deodorant')) {
+            code = "3307.20";
+        }
+
+        // --- GROUP B: CLOTHING (Only if not caught above) ---
+        else if (desc.includes('t-shirt') || desc.includes('tee') || desc.includes('polo') || desc.includes('shirt')) {
+            code = "6109.10"; 
+        }
+        else if (desc.includes('jean') || desc.includes('denim') || desc.includes('pant') || desc.includes('trouser')) {
+            code = "6203.42";
+        }
+        else if (desc.includes('shoe') || desc.includes('sneaker') || desc.includes('sandal') || desc.includes('boot') || desc.includes('slipper')) {
+            code = "6403.99";
+        }
+        // Catch-all for baby CLOTHES (frocks, rompers, etc) but NOT oil/lotion
+        else if (desc.includes('baby') && (desc.includes('cloth') || desc.includes('wear') || desc.includes('suit') || desc.includes('onesie') || desc.includes('romper') || desc.includes('frock') || desc.includes('bib'))) {
+            code = "6111.20"; // Baby Garments
+        }
+
+        // --- GROUP C: TECH ---
+        else if (desc.includes('laptop') || desc.includes('computer') || desc.includes('macbook') || desc.includes('ipad') || desc.includes('tablet')) {
+            code = "8471.30";
+        }
+        else if (desc.includes('phone') || desc.includes('mobile') || desc.includes('iphone') || desc.includes('samsung')) {
+            code = "8517.12";
+        }
+        else if (desc.includes('headphone') || desc.includes('earphone') || desc.includes('airpod') || desc.includes('headset')) {
+            code = "8518.30";
+        }
+
+        // --- GROUP D: FOOD & SUPPLEMENTS ---
+        else if (desc.includes('vitamin') || desc.includes('supplement') || desc.includes('protein') || desc.includes('capsule')) {
+            code = "2106.90";
+        }
+        else if (desc.includes('chocolate') || desc.includes('candy')) {
+            code = "1806.90";
+        }
+
+        // --- 2. FALLBACK: CATEGORY DEFAULTS ---
+        // If no specific keyword matched, use the Category
         if (code === "") {
             switch(cat) {
-                case "Clothing": code = "6109.10"; break; // General Apparel
-                case "Footwear & Shoes": code = "6403.99"; break;
-                case "Fabrics & Textiles": code = "6307.90"; break;
-                case "Kids Clothing": code = "6111.20"; break;
-                case "Computers & Laptops": code = "8471.30"; break;
-                case "Phones & Accessories": code = "8517.12"; break;
-                case "Cameras & Equipment": code = "8525.80"; break;
-                case "Electronic Items": code = "8543.70"; break;
-                case "Books & Media": code = "4901.99"; break;
-                case "Packaged Food (Non-Perishable)": code = "2106.90"; break;
                 case "Cosmetics & Toiletries": code = "3304.99"; break;
                 case "Medicines & Vitamins": code = "3004.90"; break;
-                case "Kitchenware": code = "3924.10"; break; // Plastic kitchenware
+                case "Clothing": code = "6109.10"; break; 
+                case "Kids Clothing": code = "6111.20"; break;
+                case "Footwear & Shoes": code = "6403.99"; break;
+                case "Fabrics & Textiles": code = "6307.90"; break;
+                case "Computers & Laptops": code = "8471.30"; break;
+                case "Phones & Accessories": code = "8517.12"; break;
+                case "Electronic Items": code = "8543.70"; break;
+                case "Packaged Food (Non-Perishable)": code = "2106.90"; break;
                 case "Toys & Hobbies": code = "9503.00"; break;
-                case "Documents": code = "4901.00"; break;
-                default: code = "9804.00"; // General Personal Effects Code
+                case "Kids Toys": code = "9503.00"; break;
+                case "Kitchenware": code = "3924.10"; break; 
+                default: code = ""; 
             }
         }
 
-        hsInput.value = code;
-        
-        // Visual feedback
-        hsInput.style.borderColor = "var(--green)";
-        setTimeout(() => hsInput.style.borderColor = "var(--grey-mid)", 1000);
-    });
+        // Update the field if we found a code
+        if (code !== "") {
+            autoHsOutput.value = code;
+        }
+    }
+
+    // Listener 1: Update when User Types Description
+    autoHsDescInput.addEventListener('input', calculateHSCode);
+    
+    // Listener 2: Update when User Changes Category
+    autoHsCatInput.addEventListener('change', calculateHSCode);
         });
     </script>
 
