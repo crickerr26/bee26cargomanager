@@ -2354,8 +2354,8 @@
                     
                     let tableStartY = Math.max(senderBlockY, receiverBlockY) + sectionSpacing;
                     
-                    // --- UPDATED TABLE HEADERS TO INCLUDE HS CODE ---
-                    const tableHead = [['#', 'HS Code', 'Description', 'Category', 'Brand', 'Cntry', 'Qty', 'Unit Val', 'Total']];
+                    // --- UPDATED TABLE HEADERS TO INCLUDE IMAGE ---
+                    const tableHead = [['#', 'Image', 'HS Code', 'Description', 'Category', 'Brand', 'Cntry', 'Qty', 'Unit Val', 'Total']];
                     const tableBody = [];
                     let currentCategory = null;
 
@@ -2363,12 +2363,14 @@
                         const itemCat = item.category || 'Uncategorized';
                         if (itemCat !== currentCategory) {
                             currentCategory = itemCat;
-                            // Update colspan to 9 to match new column count
-                            tableBody.push([{ content: currentCategory.toUpperCase(), colSpan: 9, styles: { fillColor: [240, 240, 240], fontStyle: 'bold', textColor: 50 } }]);
+                            // Update colspan to 10 to match new column count (Added Image col)
+                            tableBody.push([{ content: currentCategory.toUpperCase(), colSpan: 10, styles: { fillColor: [240, 240, 240], fontStyle: 'bold', textColor: 50 } }]);
                         }
-                        // --- ADDED item.hsCode HERE ---
+                        
+                        // Push Row with Image Object
                         tableBody.push([
                             index + 1, 
+                            { content: '', image: item.image }, // Image Column (Object with image data)
                             item.hsCode || '--', 
                             item.desc || '', 
                             item.category || '', 
@@ -2386,16 +2388,31 @@
                         startY: tableStartY, 
                         theme: 'grid', 
                         headStyles: { fillColor: [230, 230, 230], textColor: 0, fontStyle: 'bold', fontSize: 8 }, 
-                        styles: { fontSize: 8, cellPadding: 2, overflow: 'linebreak' }, 
-                        // --- ADJUSTED COLUMN WIDTHS ---
+                        styles: { fontSize: 8, cellPadding: 2, overflow: 'linebreak', minCellHeight: 25 }, // Increased height for images
                         columnStyles: { 
                             0: { cellWidth: 20, halign: 'center' }, // #
-                            1: { cellWidth: 50, halign: 'center' }, // HS Code
-                            6: { cellWidth: 30, halign: 'center' }, // Qty
-                            7: { cellWidth: 40, halign: 'right' },  // Unit
-                            8: { cellWidth: 40, halign: 'right' }   // Total
+                            1: { cellWidth: 30, halign: 'center' }, // Image Column
+                            2: { cellWidth: 50, halign: 'center' }, // HS Code
+                            7: { cellWidth: 30, halign: 'center' }, // Qty
+                            8: { cellWidth: 40, halign: 'right' },  // Unit
+                            9: { cellWidth: 40, halign: 'right' }   // Total
                         }, 
-                        margin: { left: leftMargin, right: rightMargin } 
+                        margin: { left: leftMargin, right: rightMargin },
+                        
+                        // --- HOOK TO DRAW IMAGE ---
+                        didDrawCell: function(data) {
+                            if (data.column.index === 1 && data.cell.section === 'body' && data.cell.raw && data.cell.raw.image) {
+                                try {
+                                    const imgData = data.cell.raw.image;
+                                    const dim = 20; // 20pt image
+                                    const x = data.cell.x + (data.cell.width - dim) / 2;
+                                    const y = data.cell.y + (data.cell.height - dim) / 2;
+                                    doc.addImage(imgData, 'JPEG', x, y, dim, dim);
+                                } catch(err) {
+                                    console.error("Error drawing image row", data.row.index, err);
+                                }
+                            }
+                        }
                     });
                     
                     const finalY = doc.autoTable.previous.finalY;
