@@ -460,9 +460,9 @@
                     <h2>Itemized List</h2>
                     <div class="table-container">
                         <table class="styled-table">
-                            <thead><tr><th>Description</th><th>Condition</th><th>Brand</th><th>Country</th><th>Qty</th><th>Unit Value</th><th>Total Value</th><th>Actions</th></tr></thead>
+                            <thead><tr><th>Image</th><th>Description</th><th>Condition</th><th>Brand</th><th>Country</th><th>Qty</th><th>Unit Value</th><th>Total Value</th><th>Actions</th></tr></thead>
                             <tbody id="itemTableTbody">
-                                <tr><td colspan="8" style="text-align: center;">No items added yet.</td></tr>
+                                <tr><td colspan="9" style="text-align: center;">No items added yet.</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -532,9 +532,9 @@
                         <h3>Itemized List (<span id="review-itemCount">0</span> items) - Total Declared Value: <strong id="review-declaredTotal" style="color:var(--blue);">$0.00</strong></h3>
                         <div class="table-container">
                             <table class="styled-table">
-                                <thead><tr><th>Description</th><th>Condition</th><th>Brand</th><th>Country</th><th>Category</th><th>Qty</th><th>Total Value</th></tr></thead>
+                                <thead><tr><th>Image</th><th>Description</th><th>Condition</th><th>Brand</th><th>Country</th><th>Category</th><th>Qty</th><th>Total Value</th></tr></thead>
                                 <tbody id="review-itemTableTbody">
-                                    <tr><td colspan="7" style="text-align: center;">--</td></tr>
+                                    <tr><td colspan="8" style="text-align: center;">--</td></tr>
                                 </tbody>
                             </table>
                         </div>
@@ -584,7 +584,11 @@
                 </p>
             </div>
             <div class="card">
-                <h2>All Shipments</h2>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 10px;">
+                    <h2 style="margin: 0;">All Shipments</h2>
+                    <input type="text" id="allShipmentsSearch" placeholder="🔍 Search Invoice, Name, or Phone..." 
+                           style="padding: 10px; border: 1px solid var(--grey-mid); border-radius: 8px; width: 100%; max-width: 300px; font-size: 0.9rem;">
+                </div>
                 <div class="table-container">
                     <table class="styled-table">
                         <thead><tr><th>Invoice #</th><th style="width:140px;">Batch No</th><th>Date</th><th>Sender</th><th>Receiver</th><th>Weight</th><th>Total Amt</th><th>Status</th><th>Payment</th><th>Actions</th></tr></thead>
@@ -682,6 +686,14 @@
             </div>
             <form id="addItemForm">
                 <div class="form-grid-two-col">
+                    <div class="input-group" style="grid-column: 1 / -1;">
+                        <label for="modalItemImage" style="display: block; margin-bottom: 5px; font-weight: 600;">Item Photo (Optional)</label>
+                        <input type="file" id="modalItemImage" accept="image/jpeg, image/png" style="padding: 10px; border: 1px solid #ddd; border-radius: 4px; width: 100%; box-sizing: border-box;">
+                        <small style="color: #666;">Photo will be automatically compressed to save space.</small>
+                        <div id="modalImagePreviewContainer" style="margin-top:10px; display:none;">
+                            <img id="modalImagePreview" src="" alt="Preview" style="max-height: 100px; border: 1px solid #ddd; border-radius: 4px;">
+                        </div>
+                    </div>
                     <div class="input-group">
                         <label for="modalItemDesc">Description</label>
                         <input type="text" id="modalItemDesc" placeholder="e.g., Men's T-Shirts" required>
@@ -818,6 +830,61 @@
                 return;
             }
 
+            // --- NEW: Image Handling Variables & Function ---
+            const modalItemImageInput = document.getElementById('modalItemImage');
+            const modalImagePreviewContainer = document.getElementById('modalImagePreviewContainer');
+            const modalImagePreview = document.getElementById('modalImagePreview');
+            let tempItemCompressedImage = null; // Stores the data URL ready for saving
+
+            // Helper: Compress Image
+            function compressImage(file, callback) {
+                const maxWidth = 800; // Max dimension
+                const quality = 0.6;  // 60% quality
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = event => {
+                    const img = new Image();
+                    img.src = event.target.result;
+                    img.onload = () => {
+                        const canvas = document.createElement('canvas');
+                        let width = img.width;
+                        let height = img.height;
+                        // Calculate new dimensions
+                        if (width > height) {
+                            if (width > maxWidth) { height *= maxWidth / width; width = maxWidth; }
+                        } else {
+                            if (height > maxWidth) { width *= maxWidth / height; height = maxWidth; }
+                        }
+                        canvas.width = width;
+                        canvas.height = height;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, width, height);
+                        // Compress
+                        const dataUrl = canvas.toDataURL('image/jpeg', quality);
+                        callback(dataUrl);
+                    };
+                };
+                reader.onerror = error => console.log(error);
+            }
+
+            // Listener for File Selection
+            if(modalItemImageInput) {
+                modalItemImageInput.addEventListener('change', function(e) {
+                    const file = e.target.files[0];
+                    if (file) {
+                        compressImage(file, (compressedDataUrl) => {
+                            tempItemCompressedImage = compressedDataUrl;
+                            modalImagePreview.src = compressedDataUrl;
+                            modalImagePreviewContainer.style.display = 'block';
+                        });
+                    } else {
+                        tempItemCompressedImage = null;
+                        modalImagePreview.src = '';
+                        modalImagePreviewContainer.style.display = 'none';
+                    }
+                });
+            }
+
             // --- App State ---
             let local_items = []; 
             let local_shipments_cache = []; 
@@ -883,15 +950,20 @@
             navLinks.forEach(link => {
                 link.addEventListener('click', (e) => {
                     const page = e.currentTarget.dataset.page;
-                    // IF CLICKING "New Shipment" IN SIDEBAR, FORCE CLEAR
-                    if(page === 'page-new-shipment' && currentEditShipmentId === null && pageTitle.textContent !== 'Review Shipment') {
-                        clearWizard();
-                    }
+                    
+                    // --- FIX: REMOVED THE FORCED "clearWizard()" HERE ---
+                    // Now, switching tabs will simply hide/show the page 
+                    // and keep your typed data intact.
+
+                    // If we were editing/viewing a shipment and leave the page, reset the "Edit Mode" 
+                    // so we don't get stuck, but DO NOT clear the form data if it's just a draft.
                     if((pageTitle.textContent === 'Edit Shipment' || pageTitle.textContent === 'Review Shipment') && page !== 'page-new-shipment') {
                          pageTitle.textContent = ''; 
                          currentEditShipmentId = null; 
+                         // Note: We deliberately do NOT call clearWizard() here so draft data persists
                     }
-                    navigateToPage(page)
+                    
+                    navigateToPage(page);
                 });
             });
             
@@ -1123,12 +1195,25 @@
             addNewItemBtn.addEventListener('click', () => { 
                 currentEditItemId = null;
                 addItemForm.reset();
+                // Clear image inputs on new item
+                modalItemImageInput.value = '';
+                tempItemCompressedImage = null;
+                modalImagePreview.src = '';
+                modalImagePreviewContainer.style.display = 'none';
+
                 document.getElementById('modal-title').textContent = 'Add New Item';
                 document.getElementById('saveItemBtn').textContent = 'Save Item';
                 modal.classList.add('active');
             });
             
-            function closeModal() { modal.classList.remove('active'); }
+            function closeModal() { 
+                modal.classList.remove('active');
+                // Clear image inputs on close
+                if(modalItemImageInput) modalItemImageInput.value = '';
+                tempItemCompressedImage = null;
+                if(modalImagePreview) modalImagePreview.src = '';
+                if(modalImagePreviewContainer) modalImagePreviewContainer.style.display = 'none';
+            }
             closeModalBtn.addEventListener('click', closeModal);
             cancelModalBtn.addEventListener('click', closeModal);
             
@@ -1139,6 +1224,9 @@
         category: document.getElementById('modalItemCat').value,
         // NEW LINE ADDED HERE:
         hsCode: document.getElementById('modalItemHSCode').value,
+        // -------------------
+        // ADDED Image Data:
+        image: tempItemCompressedImage || null,
         // -------------------
         qty: parseFloat(document.getElementById('modalItemQty').value),
         value: parseFloat(document.getElementById('modalItemValue').value),
@@ -1161,12 +1249,16 @@
             function renderItemTable() { 
                 itemTableTbody.innerHTML = '';
                 if (local_items.length === 0) {
-                    itemTableTbody.innerHTML = '<tr><td colspan="8" style="text-align: center;">No items added yet.</td></tr>';
+                    itemTableTbody.innerHTML = '<tr><td colspan="9" style="text-align: center;">No items added yet.</td></tr>';
                 } else {
                     local_items.forEach((item, index) => {
                         const totalVal = (item.qty * item.value).toFixed(2);
+                        // Image Thumbnail Logic
+                        const imgHtml = item.image ? `<img src="${item.image}" alt="item" style="width: 40px; height: 40px; object-fit: cover; border-radius: 4px; border: 1px solid #eee;">` : '<span style="color:#ccc;">No img</span>';
+
                         const row = document.createElement('tr');
                         row.innerHTML = `
+    <td style="text-align: center;">${imgHtml}</td>
     <td>
         ${item.desc} 
         ${item.hsCode ? '<br><span class="status-badge status-Shipped" style="font-size:0.7rem; padding: 2px 6px;">HS: ' + item.hsCode + '</span>' : ''}
@@ -1218,11 +1310,23 @@
                     document.getElementById('modalItemBrand').value = item.brand || '';
                     document.getElementById('modalItemCountry').value = item.country || '';
                     // ...
-document.getElementById('modalItemNote').value = item.note || ''; 
-// NEW LINE ADDED HERE:
-document.getElementById('modalItemHSCode').value = item.hsCode || ''; 
-// -------------------
-modal.classList.add('active');
+                    document.getElementById('modalItemNote').value = item.note || ''; 
+                    // NEW LINE ADDED HERE:
+                    document.getElementById('modalItemHSCode').value = item.hsCode || ''; 
+                    // -------------------
+                    
+                    // LOAD IMAGE FOR EDIT
+                    if (item.image) {
+                        tempItemCompressedImage = item.image;
+                        modalImagePreview.src = item.image;
+                        modalImagePreviewContainer.style.display = 'block';
+                    } else {
+                        tempItemCompressedImage = null;
+                        modalImagePreview.src = '';
+                        modalImagePreviewContainer.style.display = 'none';
+                    }
+
+                    modal.classList.add('active');
                 }
             });
 
@@ -1261,13 +1365,17 @@ modal.classList.add('active');
                 let declaredTotal = 0;
                 
                 if (local_items.length === 0) {
-                    reviewTbody.innerHTML = '<tr><td colspan="7" style="text-align: center;">--</td></tr>';
+                    reviewTbody.innerHTML = '<tr><td colspan="8" style="text-align: center;">--</td></tr>';
                 } else {
                     local_items.forEach(item => {
                         const itemTotal = (parseFloat(item.qty) || 0) * (parseFloat(item.value) || 0);
                         declaredTotal += itemTotal;
+                        // Image Thumbnail Logic
+                        const imgHtml = item.image ? `<img src="${item.image}" alt="item" style="width: 40px; height: 40px; object-fit: cover; border-radius: 4px; border: 1px solid #eee;">` : '<span style="color:#ccc;">No img</span>';
+
                         reviewTbody.innerHTML += `
                             <tr>
+                                <td style="text-align: center;">${imgHtml}</td>
                                 <td>${item.desc}</td>
                                 <td>${item.condition || '--'}</td>
                                 <td>${item.brand || '--'}</td>
@@ -2566,6 +2674,14 @@ modal.classList.add('active');
     
     // Listener 2: Update when User Changes Category
     autoHsCatInput.addEventListener('change', calculateHSCode);
+    // --- NEW: SEARCH LISTENER (The Trigger!) ---
+            const allShipmentsSearchInput = document.getElementById('allShipmentsSearch');
+            // Check if element exists before adding listener to avoid errors
+            if (allShipmentsSearchInput) {
+                allShipmentsSearchInput.addEventListener('input', () => {
+                    renderShipmentsTable();
+                });
+            }
         });
     </script>
 
