@@ -8,11 +8,12 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>Pro Dashboard - Bee26 Cargo</title>
+    <title>Bee26 Cargo App</title>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
 
     <script type="module">
       import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
@@ -379,6 +380,14 @@
             .input-group input, .input-group select, .input-group textarea { font-size: 16px; }
             .filters-bar { flex-direction: column; }
         }
+        /* --- TOAST NOTIFICATIONS --- */
+        .toast-container { position: fixed; top: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; }
+        .toast { min-width: 250px; background-color: #333; color: #fff; padding: 12px 20px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); display: flex; align-items: center; justify-content: space-between; animation: slideIn 0.3s ease-out forwards; font-size: 0.9rem; }
+        .toast.success { background-color: var(--green); border-left: 5px solid #155724; }
+        .toast.error { background-color: var(--red); border-left: 5px solid #721c24; }
+        .toast.info { background-color: var(--blue); border-left: 5px solid #004085; }
+        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        @keyframes fadeOut { from { opacity: 1; } to { opacity: 0; } }
     </style>
 </head>
 <body>
@@ -546,6 +555,8 @@
                         <button class="btn btn-secondary" id="printPackingListBtn">Print Packing List</button>
                         <button class="btn btn-primary" id="exportInvoicePDF">Download Invoice (PDF)</button>
                         <button class="btn btn-secondary" id="exportPackingListExcel">Download Excel</button>
+                        <button class="btn btn-secondary" id="printThermalLabelBtn">Print 4x6 Label</button>
+                        <button class="btn btn-primary" style="background-color:#25D366;" id="shareWhatsAppBtn">Share on WhatsApp 💬</button>
                     </div>
                 </div>
             </div>
@@ -815,7 +826,23 @@
 
     <script type="text/javascript"> 
         document.addEventListener('DOMContentLoaded', () => {
-
+// --- TOAST NOTIFICATION FUNCTION ---
+            window.showToast = function(message, type = 'success') {
+                let container = document.querySelector('.toast-container');
+                if (!container) {
+                    container = document.createElement('div');
+                    container.className = 'toast-container';
+                    document.body.appendChild(container);
+                }
+                const toast = document.createElement('div');
+                toast.className = `toast ${type}`;
+                toast.innerHTML = `<span>${message}</span><span style="margin-left:10px;cursor:pointer;opacity:0.7;" onclick="this.parentElement.remove()">✕</span>`;
+                container.appendChild(toast);
+                setTimeout(() => {
+                    toast.style.animation = 'fadeOut 0.5s ease forwards';
+                    setTimeout(() => toast.remove(), 500);
+                }, 3500);
+            };
             // --- 0. Get Firebase Functions ---
             const db = window.db;
             const dbRef = window.dbRef;
@@ -1417,11 +1444,11 @@
                     if (currentEditShipmentId !== null) {
                         const shipmentRef = dbRef(db, 'shipments/' + currentEditShipmentId);
                         await dbUpdate(shipmentRef, shipment);
-                        alert('Shipment ' + shipment.invoiceNumber + ' updated!');
+                        window.showToast('Shipment ' + shipment.invoiceNumber + ' updated successfully!', 'success');
                     } else {
                         const shipmentListRef = dbRef(db, 'shipments');
                         await dbPush(shipmentListRef, shipment);
-                        alert('Shipment ' + shipment.invoiceNumber + ' saved!');
+                        window.showToast('Shipment ' + shipment.invoiceNumber + ' saved successfully!', 'success');
                     }
                     
                     // SUCCESS: Clear wizard and clear local draft
@@ -2448,7 +2475,75 @@
                     } else { if (doc) { doc.save(fileName); } else { throw new Error("Could not generate PDF for saving."); } }
                 } catch (error) { if (action === 'open' && pdfWindow) pdfWindow.close(); console.error("Error generating PDF:", error); alert("Sorry, there was an error generating the PDF."); }
             }
+async function generateThermalLabel() {
+                try {
+                    const { jsPDF } = window.jspdf;
+                    // Create PDF: 4x6 inches (unit: pt, format: [288, 432])
+                    const doc = new jsPDF({ orientation: 'p', unit: 'pt', format: [288, 432] });
+                    
+                    const senderName = document.getElementById('senderName').value || 'Sender';
+                    const receiverName = document.getElementById('receiverName').value || 'Receiver';
+                    const receiverAddress = document.getElementById('receiverAddress').value || '';
+                    const receiverPhone = document.getElementById('receiverPhone').value || '';
+                    const inv = document.getElementById('invoiceNumber').value || '0000';
+                    const weight = document.getElementById('totalWeight').value || '0';
+                    const pkgs = document.getElementById('totalPackages').value || '1';
 
+                    // --- DRAW LABEL ---
+                    doc.setLineWidth(2);
+                    doc.rect(5, 5, 278, 422); // Border
+
+                    // Header
+                    doc.setFontSize(14); doc.setFont("helvetica", "bold");
+                    doc.text("BEE26 CARGO SERVICES", 144, 25, { align: "center" });
+                    doc.setFontSize(10);
+                    doc.text("Toronto, Canada", 144, 38, { align: "center" });
+                    doc.line(5, 45, 283, 45);
+
+                    // Destination (BIG)
+                    doc.setFontSize(10); doc.text("SHIP TO:", 15, 65);
+                    doc.setFontSize(16); doc.text(receiverName.toUpperCase(), 15, 85);
+                    doc.setFontSize(12); 
+                    const splitAddr = doc.splitTextToSize(receiverAddress, 260);
+                    doc.text(splitAddr, 15, 105);
+                    doc.text(`Tel: ${receiverPhone}`, 15, 105 + (splitAddr.length * 14) + 10);
+                    
+                    // Line separator
+                    const midY = 180;
+                    doc.line(5, midY, 283, midY);
+
+                    // Details
+                    doc.setFontSize(10);
+                    doc.text(`Invoice #: ${inv}`, 15, midY + 20);
+                    doc.text(`Date: ${new Date().toLocaleDateString()}`, 150, midY + 20);
+                    
+                    doc.setFontSize(14);
+                    doc.text(`Weight: ${weight} KG`, 15, midY + 45);
+                    doc.text(`Pkgs: ${pkgs}`, 150, midY + 45);
+
+                    // Barcode Generation
+                    const canvas = document.createElement("canvas");
+                    JsBarcode(canvas, inv, { format: "CODE128", displayValue: true, width: 2, height: 50, fontSize: 14 });
+                    const barcodeImg = canvas.toDataURL("image/jpeg");
+                    
+                    // Add Barcode to PDF
+                    doc.addImage(barcodeImg, 'JPEG', 44, midY + 65, 200, 60);
+
+                    // Footer
+                    doc.setFontSize(8);
+                    doc.text("H A N D L E   W I T H   C A R E", 144, 415, { align: "center" });
+
+                    // Open/Print
+                    window.open(doc.output('bloburl'), '_blank');
+                } catch(e) {
+                    console.error(e);
+                    window.showToast("Error generating label", "error");
+                }
+            }
+
+            // Attach Listener
+            const btnLabel = document.getElementById('printThermalLabelBtn');
+            if(btnLabel) btnLabel.addEventListener('click', generateThermalLabel);
             function generateExcel() { 
                  try {
                     if (typeof XLSX === 'undefined') { alert("Error: XLSX library not found."); return; }
@@ -2488,6 +2583,21 @@
             document.getElementById('printPackingListBtn').addEventListener('click', () => generatePDF('Packing List', 'open'));
             document.getElementById('exportInvoicePDF').addEventListener('click', () => generatePDF('Commercial Invoice', 'save'));
             document.getElementById('exportPackingListExcel').addEventListener('click', generateExcel);
+            // --- WHATSAPP SHARE ---
+            const shareWhatsAppBtn = document.getElementById('shareWhatsAppBtn');
+            if(shareWhatsAppBtn) {
+                shareWhatsAppBtn.addEventListener('click', () => {
+                   const phone = document.getElementById('receiverPhone').value.replace(/[^0-9]/g, ''); // Remove non-numbers
+                   const name = document.getElementById('receiverName').value;
+                   const inv = document.getElementById('invoiceNumber').value;
+                   
+                   if(!phone) { window.showToast('Receiver phone number is missing!', 'error'); return; }
+                   
+                   const msg = `Hi ${name}, here is your shipment invoice #${inv} from Bee26 Cargo. You will receive tracking updates shortly. Thank you!`;
+                   const url = `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`;
+                   window.open(url, '_blank');
+                });
+            }
 
 
             // --- 8. Initial Load & Firebase Data Listener ---
