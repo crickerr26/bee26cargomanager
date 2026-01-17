@@ -451,6 +451,8 @@
                     <div class="form-grid-two-col">
                         <div class="input-group"><label for="senderName">Full Name</label><input type="text" id="senderName" placeholder="John Doe"></div>
                         <div class="input-group"><label for="senderPhone">Phone Number</label><input type="tel" id="senderPhone" placeholder="+1 416-123-4567"></div>
+                        <div class="input-group"><label for="senderAddress">Address</label><input type="text" id="senderAddress" placeholder="123 Maple Ave, Toronto"></div>
+                        <div class="input-group"><label for="senderNic">NIC / Drivers License No</label><input type="text" id="senderNic" placeholder="A1234-56789"></div>
                     </div>
                 </div>
                 <div class="card">
@@ -1125,6 +1127,10 @@
                 const draft = {
                     senderName: document.getElementById('senderName').value,
                     senderPhone: document.getElementById('senderPhone').value,
+                    // NEW FIELDS
+                    senderAddress: document.getElementById('senderAddress').value,
+                    senderNic: document.getElementById('senderNic').value,
+                    
                     receiverName: document.getElementById('receiverName').value,
                     receiverPhone: document.getElementById('receiverPhone').value,
                     receiverEmail: document.getElementById('receiverEmail').value,
@@ -1167,6 +1173,10 @@
                     
                     document.getElementById('senderName').value = draft.senderName || '';
                     document.getElementById('senderPhone').value = draft.senderPhone || '';
+                    // NEW FIELDS
+                    document.getElementById('senderAddress').value = draft.senderAddress || '';
+                    document.getElementById('senderNic').value = draft.senderNic || '';
+
                     document.getElementById('receiverName').value = draft.receiverName || '';
                     document.getElementById('receiverPhone').value = draft.receiverPhone || '';
                     document.getElementById('receiverEmail').value = draft.receiverEmail || '';
@@ -1422,6 +1432,10 @@
                 const shipment = {
                     senderName: document.getElementById('senderName').value,
                     senderPhone: document.getElementById('senderPhone').value,
+                    // NEW FIELDS
+                    senderAddress: document.getElementById('senderAddress').value,
+                    senderNic: document.getElementById('senderNic').value,
+
                     receiverName: document.getElementById('receiverName').value,
                     receiverPhone: document.getElementById('receiverPhone').value,
                     receiverAddress: document.getElementById('receiverAddress').value,
@@ -1471,6 +1485,10 @@
 
                 document.getElementById('senderName').value = shipment.senderName || '';
                 document.getElementById('senderPhone').value = shipment.senderPhone || '';
+                // NEW FIELDS
+                document.getElementById('senderAddress').value = shipment.senderAddress || '';
+                document.getElementById('senderNic').value = shipment.senderNic || '';
+
                 document.getElementById('receiverName').value = shipment.receiverName || '';
                 document.getElementById('receiverPhone').value = shipment.receiverPhone || '';
                 document.getElementById('receiverAddress').value = shipment.receiverAddress || '';
@@ -2603,10 +2621,10 @@ async function generateThermalLabel() {
                         doc.addImage(logoBase64Data, 'PNG', margin, currentY, 100, 40); // Adjust size as needed
                     }
                     doc.setFontSize(18); doc.setFont("helvetica", "bold");
-                    doc.text("CUSTOMER CONCERN FORM", pageWidth / 2, currentY + 25, { align: 'center' });
+                    doc.text("CONCERN FORM", pageWidth / 2, currentY + 25, { align: 'center' });
                     
                     doc.setFontSize(10); doc.setFont("helvetica", "normal");
-                    doc.text("Bee26 Cargo Services | Bee-Yond Fast | Bee-Yond Trust", pageWidth - margin, currentY + 15, { align: 'right' });
+                    doc.text("Bee26 Cargo Services", pageWidth - margin, currentY + 15, { align: 'right' });
                     doc.text("614-2 Milepost Place, East York, Ontario M4H 1C7", pageWidth - margin, currentY + 28, { align: 'right' });
                     doc.text("+1 416-474-4994 | admin@bee26.com", pageWidth - margin, currentY + 41, { align: 'right' });
 
@@ -2750,6 +2768,10 @@ async function generateThermalLabel() {
                     // 1. Gather Data
                     const senderName = document.getElementById('senderName').value || '';
                     const senderPhone = document.getElementById('senderPhone').value || '';
+                    // NEW FIELDS
+                    const senderAddress = document.getElementById('senderAddress').value || '';
+                    const senderNic = document.getElementById('senderNic').value || '';
+
                     const receiverName = document.getElementById('receiverName').value || '';
                     const receiverAddress = document.getElementById('receiverAddress').value || '';
                     const receiverPhone = document.getElementById('receiverPhone').value || '';
@@ -2763,12 +2785,12 @@ async function generateThermalLabel() {
                     let currentY = 40;
 
                     // 2. HEADER
-                    // Draw Logo Left
+                    // Draw Logo
                     if (logoBase64Data) {
                         doc.addImage(logoBase64Data, 'PNG', margin, currentY, 100, 40);
                     }
                     
-                    // Draw Address Right
+                    // Draw Company Info
                     doc.setFontSize(9); doc.setFont("helvetica", "normal");
                     doc.text("Bee26 Cargo Services | Bee-Yond Fast | Bee-Yond Trust", pageWidth - margin, currentY + 15, { align: 'right' });
                     doc.text("614-2 Milepost Place, East York, Ontario M4H 1C7", pageWidth - margin, currentY + 28, { align: 'right' });
@@ -2793,9 +2815,14 @@ async function generateThermalLabel() {
                     doc.text("Sender's Details", margin + 10, currentY + 15);
                     doc.setFontSize(9); doc.setFont("helvetica", "normal");
                     doc.text(`Name: ${senderName}`, margin + 10, currentY + 30);
-                    doc.text(`Address: --`, margin + 10, currentY + 42); // Placeholder if address missing
-                    doc.text(`Contact No: ${senderPhone}`, margin + 10, currentY + 54);
-                    doc.text(`NIC/Drivers License No: __________________`, margin + 10, currentY + 66);
+                    // FIXED: Now uses actual sender address
+                    const splitSenderAddr = doc.splitTextToSize(`Address: ${senderAddress}`, boxWidth - 20);
+                    doc.text(splitSenderAddr, margin + 10, currentY + 42); 
+                    
+                    // Adjust Y if address is long
+                    let senderYOffset = 42 + (splitSenderAddr.length * 10);
+                    doc.text(`Contact No: ${senderPhone}`, margin + 10, currentY + senderYOffset);
+                    doc.text(`NIC/Drivers License No: ${senderNic}`, margin + 10, currentY + senderYOffset + 12);
 
                     // Receiver
                     doc.rect(margin + boxWidth + 10, currentY, boxWidth, boxHeight);
@@ -2992,11 +3019,11 @@ async function generateThermalLabel() {
                     if (logoBase64Data) {
                         doc.addImage(logoBase64Data, 'PNG', margin, currentY, 100, 40);
                     }
-                    doc.setFontSize(16); doc.setFont("helvetica", "bold");
-                    doc.text("CUSTOMER CONCERN FORM", pageWidth / 2, currentY + 25, { align: 'center' });
+                    doc.setFontSize(8); doc.setFont("helvetica", "bold");
+                    doc.text("CONCERN FORM", pageWidth / 2, currentY + 25, { align: 'center' });
                     
                     doc.setFontSize(9); doc.setFont("helvetica", "normal");
-                    doc.text("Bee26 Cargo Services | Bee-Yond Fast | Bee-Yond Trust", pageWidth - margin, currentY + 15, { align: 'right' });
+                    doc.text("Bee26 Cargo Services", pageWidth - margin, currentY + 15, { align: 'right' });
                     doc.text("614-2 Milepost Place, East York, Ontario M4H 1C7", pageWidth - margin, currentY + 28, { align: 'right' });
                     doc.text("+1 416-474-4994 | admin@bee26.com", pageWidth - margin, currentY + 41, { align: 'right' });
 
@@ -3015,7 +3042,7 @@ async function generateThermalLabel() {
                     doc.text(`Name: ${senderName}`, margin + 10, currentY + 30);
                     doc.text(`Address: --`, margin + 10, currentY + 42); // Placeholder if address missing
                     doc.text(`Contact No: ${senderPhone}`, margin + 10, currentY + 54);
-                    doc.text(`NIC/Drivers License No: __________________`, margin + 10, currentY + 66);
+                    doc.text(`NIC/Drivers License No:`, margin + 10, currentY + 66);
 
                     // Receiver
                     doc.rect(margin + boxWidth + 10, currentY, boxWidth, boxHeight);
