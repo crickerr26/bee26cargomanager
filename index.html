@@ -554,6 +554,7 @@
                     <div class="doc-buttons">
                         <button class="btn btn-secondary" id="printPackingListBtn">Print Packing List</button>
                         <button class="btn btn-primary" id="exportInvoicePDF">Download Invoice (PDF)</button>
+                        <button class="btn btn-secondary" style="background-color: #5856d6; color: white;" id="printConcernFormBtn">Concern Form (PDF)</button>
                         <button class="btn btn-secondary" id="exportPackingListExcel">Download Excel</button>
                         <button class="btn btn-secondary" id="printThermalLabelBtn">Print 4x6 Label</button>
                         <button class="btn btn-primary" style="background-color:#25D366;" id="shareWhatsAppBtn">Share on WhatsApp 💬</button>
@@ -2580,14 +2581,622 @@ async function generateThermalLabel() {
                  } catch (error) { console.error("Error generating Excel:", error); alert("Sorry, there was an error generating the Excel file."); }
              }
 
+            // --- NEW: GENERATE CONCERN FORM PDF ---
+            async function generateConcernForm() {
+                try {
+                    const { jsPDF } = window.jspdf;
+                    const doc = new jsPDF('p', 'pt', 'a4'); // Portrait, points, A4
+                    
+                    const logoBase64Data = await fetchLogoAsBase64();
+                    const senderName = document.getElementById('senderName').value || '';
+                    const senderPhone = document.getElementById('senderPhone').value || '';
+                    const receiverName = document.getElementById('receiverName').value || '';
+                    const receiverAddress = document.getElementById('receiverAddress').value || '';
+                    const receiverPhone = document.getElementById('receiverPhone').value || '';
+                    
+                    const margin = 40;
+                    const pageWidth = doc.internal.pageSize.width;
+                    let currentY = 40;
+
+                    // 1. HEADER (Logo & Company Info)
+                    if (logoBase64Data) {
+                        doc.addImage(logoBase64Data, 'PNG', margin, currentY, 100, 40); // Adjust size as needed
+                    }
+                    doc.setFontSize(18); doc.setFont("helvetica", "bold");
+                    doc.text("CUSTOMER CONCERN FORM", pageWidth / 2, currentY + 25, { align: 'center' });
+                    
+                    doc.setFontSize(10); doc.setFont("helvetica", "normal");
+                    doc.text("Bee26 Cargo Services | Bee-Yond Fast | Bee-Yond Trust", pageWidth - margin, currentY + 15, { align: 'right' });
+                    doc.text("614-2 Milepost Place, East York, Ontario M4H 1C7", pageWidth - margin, currentY + 28, { align: 'right' });
+                    doc.text("+1 416-474-4994 | admin@bee26.com", pageWidth - margin, currentY + 41, { align: 'right' });
+
+                    currentY += 60;
+
+                    // 2. SENDER & RECEIVER DETAILS
+                    doc.setLineWidth(0.5);
+                    doc.setDrawColor(200);
+                    
+                    // Box Setup
+                    const boxWidth = (pageWidth - (margin * 2) - 20) / 2;
+                    const boxHeight = 70;
+                    
+                    // Sender Box
+                    doc.rect(margin, currentY, boxWidth, boxHeight);
+                    doc.setFontSize(11); doc.setFont("helvetica", "bold");
+                    doc.text("Sender's Details", margin + 10, currentY + 20);
+                    doc.setFontSize(9); doc.setFont("helvetica", "normal");
+                    doc.text(`Name: ${senderName}`, margin + 10, currentY + 35);
+                    doc.text(`Contact: ${senderPhone}`, margin + 10, currentY + 50);
+                    doc.text(`NIC/DL: __________________`, margin + 10, currentY + 65);
+
+                    // Receiver Box
+                    doc.rect(margin + boxWidth + 20, currentY, boxWidth, boxHeight);
+                    doc.setFontSize(11); doc.setFont("helvetica", "bold");
+                    doc.text("Receiver's Details", margin + boxWidth + 30, currentY + 20);
+                    doc.setFontSize(9); doc.setFont("helvetica", "normal");
+                    doc.text(`Name: ${receiverName}`, margin + boxWidth + 30, currentY + 35);
+                    doc.text(`Contact: ${receiverPhone}`, margin + boxWidth + 30, currentY + 50);
+                    const splitRecAddr = doc.splitTextToSize(`Addr: ${receiverAddress}`, boxWidth - 20);
+                    doc.text(splitRecAddr, margin + boxWidth + 30, currentY + 65);
+
+                    currentY += boxHeight + 20;
+
+                    // 3. ITEM TABLE (From Invoice)
+                    doc.setFontSize(10); doc.setFont("helvetica", "bold");
+                    doc.text("Shipment Content Declaration", margin, currentY);
+                    currentY += 5;
+
+                    const tableHead = [['Item Description', 'Qty', 'Unit Value']];
+                    const tableBody = local_items.map(item => [
+                        item.desc || '', 
+                        item.qty || '0', 
+                        `$${parseFloat(item.value || 0).toFixed(2)}`
+                    ]);
+
+                    doc.autoTable({
+                        head: tableHead,
+                        body: tableBody,
+                        startY: currentY,
+                        theme: 'grid',
+                        headStyles: { fillColor: [88, 86, 214], textColor: 255, fontStyle: 'bold', halign: 'center' },
+                        columnStyles: {
+                            0: { cellWidth: 'auto' },
+                            1: { cellWidth: 50, halign: 'center' },
+                            2: { cellWidth: 80, halign: 'right' }
+                        },
+                        styles: { fontSize: 9, cellPadding: 4 },
+                        margin: { left: margin, right: margin }
+                    });
+
+                    currentY = doc.lastAutoTable.finalY + 20;
+
+                    // 4. TERMS AND CONDITIONS (Text from PDF)
+                    // Check if we need a new page for terms
+                    if (currentY > doc.internal.pageSize.height - 300) {
+                        doc.addPage();
+                        currentY = 40;
+                    }
+
+                    doc.setFontSize(10); doc.setFont("helvetica", "bold");
+                    doc.text("Terms & Agreements", margin, currentY);
+                    currentY += 15;
+
+                    doc.setFontSize(8); doc.setFont("helvetica", "normal");
+                    const lineHeight = 10;
+                    const maxWidth = pageWidth - (margin * 2);
+
+                    const terms = [
+                        { title: "1. Compliance with Regulations:", text: "The customer agrees that all shipments comply with applicable laws and regulations, including International Air Transport Association (IATA) standards and any relevant customs, import/export regulations." },
+                        { title: "2. Accuracy of Shipment Information:", text: "The customer confirms that all information provided regarding the shipment, including contents, value, and destination, is accurate and truthful. Any discrepancies found may lead to the cancellation of the shipment and potential legal action." },
+                        { title: "3. Consignee Liability:", text: "The customer understands that in the event of the shipment containing any illegal or restricted items, the consignee shall bear full responsibility and must face legal consequences as per local and international laws." },
+                        { title: "4. Right to Inspect:", text: "Bee26 cargo services reserves the right to inspect any shipment to ensure compliance with all regulations. Any shipment found to contain prohibited items will be reported to the relevant authorities." },
+                        { title: "5. Prohibited Items:", text: "The customer acknowledges that illegal substances, hazardous materials, and any other prohibited or restricted items are not permitted for shipping. The customer is responsible for ensuring that the contents of their shipment comply with these restrictions and Bee26 cargo services will not take any responsibilities." },
+                        { title: "6. Liability for Delays or Seizure:", text: "Bee26 cargo services is not liable for any delays, losses, or seizures of shipments resulting from violations of the stated conditions or due to the involvement of law enforcement or customs authorities." },
+                        { title: "7. Insurance Policy:", text: "Bee26 cargo services is not liable to pay any damage or loss of shipment unless the customer has accepted the insurance Policy. Victim will get 5$ compensation per each kilo and must be only the damaged items. I understand and agree that by declining insurance coverage for this shipment, I assume full responsibility for any loss or damage that may occur during transit." }
+                    ];
+
+                    terms.forEach(term => {
+                        doc.setFont("helvetica", "bold");
+                        doc.text(term.title, margin, currentY);
+                        currentY += lineHeight;
+                        
+                        doc.setFont("helvetica", "normal");
+                        const splitText = doc.splitTextToSize(term.text, maxWidth);
+                        doc.text(splitText, margin, currentY);
+                        currentY += (splitText.length * lineHeight) + 5;
+                        
+                        // Page break check inside loop
+                        if (currentY > doc.internal.pageSize.height - 60) {
+                            doc.addPage();
+                            currentY = 40;
+                        }
+                    });
+
+                    // 5. SIGNATURES
+                    currentY += 20;
+                    if (currentY > doc.internal.pageSize.height - 100) { doc.addPage(); currentY = 50; }
+
+                    doc.setFontSize(9);
+                    doc.text("I pay the custom duties to the office before the boxes are delivered.", margin, currentY);
+                    currentY += 40;
+
+                    // Signature Lines
+                    doc.setLineWidth(1);
+                    doc.line(margin, currentY, margin + 200, currentY); // Sig Line 1
+                    doc.line(pageWidth - margin - 200, currentY, pageWidth - margin, currentY); // Sig Line 2
+
+                    currentY += 15;
+                    doc.text("Customer Signature", margin, currentY);
+                    doc.text("Date", pageWidth - margin - 200, currentY);
+
+                    // Open the PDF
+                    window.open(doc.output('bloburl'), '_blank');
+
+                } catch (error) {
+                    console.error("Error generating Concern Form:", error);
+                    alert("Error generating the form. Please check console.");
+                }
+            }
+
+            // --- EVENT LISTENERS ---
+            // --- NEW: GENERATE CONCERN FORM PDF (Detailed) ---
+            async function generateConcernForm() {
+                try {
+                    const { jsPDF } = window.jspdf;
+                    const doc = new jsPDF('p', 'pt', 'a4'); // Portrait, points, A4
+                    
+                    const logoBase64Data = await fetchLogoAsBase64();
+                    
+                    // 1. Gather Data
+                    const senderName = document.getElementById('senderName').value || '';
+                    const senderPhone = document.getElementById('senderPhone').value || '';
+                    const receiverName = document.getElementById('receiverName').value || '';
+                    const receiverAddress = document.getElementById('receiverAddress').value || '';
+                    const receiverPhone = document.getElementById('receiverPhone').value || '';
+                    
+                    const invoiceNumber = document.getElementById('invoiceNumber').value || '';
+                    const totalPackages = document.getElementById('totalPackages').value || '0';
+                    const totalWeight = document.getElementById('totalWeight').value || '0';
+                    
+                    const margin = 30;
+                    const pageWidth = doc.internal.pageSize.width;
+                    let currentY = 40;
+
+                    // 2. HEADER
+                    // Draw Logo Left
+                    if (logoBase64Data) {
+                        doc.addImage(logoBase64Data, 'PNG', margin, currentY, 100, 40);
+                    }
+                    
+                    // Draw Address Right
+                    doc.setFontSize(9); doc.setFont("helvetica", "normal");
+                    doc.text("Bee26 Cargo Services | Bee-Yond Fast | Bee-Yond Trust", pageWidth - margin, currentY + 15, { align: 'right' });
+                    doc.text("614-2 Milepost Place, East York, Ontario M4H 1C7", pageWidth - margin, currentY + 28, { align: 'right' });
+                    doc.text("+1 416-474-4994 | admin@bee26.com", pageWidth - margin, currentY + 41, { align: 'right' });
+                    
+                    // Move down for Title (Fixes Overlap)
+                    currentY += 70;
+
+                    doc.setFontSize(14); doc.setFont("helvetica", "bold");
+                    doc.text("CUSTOMER CONCERN FORM", pageWidth / 2, currentY, { align: 'center' });
+
+                    currentY += 25;
+
+                    // 3. SENDER & RECEIVER BOXES
+                    doc.setLineWidth(0.5); doc.setDrawColor(200);
+                    const boxWidth = (pageWidth - (margin * 2) - 10) / 2;
+                    const boxHeight = 75;
+
+                    // Sender
+                    doc.rect(margin, currentY, boxWidth, boxHeight);
+                    doc.setFontSize(10); doc.setFont("helvetica", "bold");
+                    doc.text("Sender's Details", margin + 10, currentY + 15);
+                    doc.setFontSize(9); doc.setFont("helvetica", "normal");
+                    doc.text(`Name: ${senderName}`, margin + 10, currentY + 30);
+                    doc.text(`Address: --`, margin + 10, currentY + 42); // Placeholder if address missing
+                    doc.text(`Contact No: ${senderPhone}`, margin + 10, currentY + 54);
+                    doc.text(`NIC/Drivers License No: __________________`, margin + 10, currentY + 66);
+
+                    // Receiver
+                    doc.rect(margin + boxWidth + 10, currentY, boxWidth, boxHeight);
+                    doc.setFontSize(10); doc.setFont("helvetica", "bold");
+                    doc.text("Receiver's Details", margin + boxWidth + 20, currentY + 15);
+                    doc.setFontSize(9); doc.setFont("helvetica", "normal");
+                    doc.text(`Name: ${receiverName}`, margin + boxWidth + 20, currentY + 30);
+                    const splitAddr = doc.splitTextToSize(`Address: ${receiverAddress}`, boxWidth - 20);
+                    doc.text(splitAddr, margin + boxWidth + 20, currentY + 42);
+                    doc.text(`Contact No: ${receiverPhone}`, margin + boxWidth + 20, currentY + 42 + (splitAddr.length*10));
+
+                    currentY += boxHeight + 20;
+
+                    // 4. DETAILED ITEMS TABLE (Matching Image Structure)
+                    const tableHead = [['#', 'Image', 'HS Code', 'Description', 'Category', 'Brand', 'Cntry', 'Qty', 'Unit Val', 'Total']];
+                    const tableBody = [];
+                    
+                    // Sort items by category to match the grouping style
+                    const sortedItems = [...local_items].sort((a, b) => (a.category || '').localeCompare(b.category || ''));
+                    let currentCategory = null;
+                    let grandTotalValue = 0;
+                    let grandTotalQty = 0;
+
+                    sortedItems.forEach((item, index) => {
+                        const itemTotal = (parseFloat(item.qty)||0) * (parseFloat(item.value)||0);
+                        grandTotalValue += itemTotal;
+                        grandTotalQty += parseFloat(item.qty)||0;
+
+                        // Add Category Header Row if changed
+                        if (item.category !== currentCategory) {
+                            currentCategory = item.category || 'Uncategorized';
+                            tableBody.push([{ 
+                                content: currentCategory.toUpperCase(), 
+                                colSpan: 10, 
+                                styles: { fillColor: [240, 240, 240], fontStyle: 'bold', textColor: 50, halign: 'center' } 
+                            }]);
+                        }
+
+                        tableBody.push([
+                            index + 1,
+                            { content: '', image: item.image }, // Image column
+                            item.hsCode || '',
+                            item.desc || '',
+                            item.category || '',
+                            item.brand || '--',
+                            item.country || '--',
+                            item.qty,
+                            (parseFloat(item.value)||0).toFixed(2),
+                            itemTotal.toFixed(2)
+                        ]);
+                    });
+
+                    doc.autoTable({
+                        startY: currentY,
+                        head: tableHead,
+                        body: tableBody,
+                        theme: 'grid',
+                        headStyles: { fillColor: [230, 230, 230], textColor: 0, fontStyle: 'bold', fontSize: 8, halign: 'center' },
+                        styles: { fontSize: 8, cellPadding: 3, overflow: 'linebreak', minCellHeight: 25, valign: 'middle' },
+                        columnStyles: {
+                            0: { cellWidth: 20, halign: 'center' }, // #
+                            1: { cellWidth: 30, halign: 'center' }, // Image
+                            2: { cellWidth: 50, halign: 'center' }, // HS
+                            7: { cellWidth: 30, halign: 'center' }, // Qty
+                            8: { cellWidth: 40, halign: 'right' },  // Unit
+                            9: { cellWidth: 45, halign: 'right' }   // Total
+                        },
+                        margin: { left: margin, right: margin },
+                        didDrawCell: function(data) {
+                            if (data.column.index === 1 && data.cell.section === 'body' && data.cell.raw && data.cell.raw.image) {
+                                try {
+                                    const imgData = data.cell.raw.image;
+                                    const dim = 20; 
+                                    const x = data.cell.x + (data.cell.width - dim) / 2;
+                                    const y = data.cell.y + (data.cell.height - dim) / 2;
+                                    doc.addImage(imgData, 'JPEG', x, y, dim, dim);
+                                } catch(err) { /* ignore image error */ }
+                            }
+                        }
+                    });
+
+                    currentY = doc.lastAutoTable.finalY + 15;
+
+                    // 5. SUMMARY FOOTER (Right Aligned)
+                    doc.setFontSize(10); doc.setFont("helvetica", "bold");
+                    const summaryXLabel = pageWidth - 200;
+                    const summaryXValue = pageWidth - margin;
+
+                    // Keep footer on same page if possible
+                    if (currentY > doc.internal.pageSize.height - 150) { doc.addPage(); currentY = 40; }
+
+                    doc.text("Total Quantity:", summaryXLabel, currentY);
+                    doc.text(`${grandTotalQty} pcs`, summaryXValue, currentY, { align: 'right' }); currentY += 15;
+                    
+                    doc.text("Total Packages:", summaryXLabel, currentY);
+                    doc.text(`${totalPackages}`, summaryXValue, currentY, { align: 'right' }); currentY += 15;
+
+                    doc.text("Total Net Weight:", summaryXLabel, currentY);
+                    doc.text(`${totalWeight} kg`, summaryXValue, currentY, { align: 'right' }); currentY += 15;
+
+                    doc.text("Total Declared Value:", summaryXLabel, currentY);
+                    doc.text(`$${grandTotalValue.toFixed(2)} CAD`, summaryXValue, currentY, { align: 'right' }); currentY += 25;
+
+                    doc.setFontSize(9);
+                    doc.text("Declaration: Personal Use – Not for Resale", margin, currentY - 25);
+
+                    // 6. TERMS & CONDITIONS (Page 2 usually, or continued)
+                    // Check space, if less than half page, add new page
+                    if (currentY > doc.internal.pageSize.height - 350) {
+                        doc.addPage();
+                        currentY = 40;
+                    } else {
+                        currentY += 20;
+                    }
+
+                    doc.setFontSize(11); doc.setFont("helvetica", "bold");
+                    doc.text("Terms & Agreements", margin, currentY);
+                    currentY += 15;
+
+                    doc.setFontSize(8); doc.setFont("helvetica", "normal");
+                    const terms = [
+                        { t: "1. Compliance with Regulations:", d: "The customer agrees that all shipments comply with applicable laws and regulations, including International Air Transport Association (IATA) standards and any relevant customs, import/export regulations." },
+                        { t: "2. Accuracy of Shipment Information:", d: "The customer confirms that all information provided regarding the shipment, including contents, value, and destination, is accurate and truthful. Any discrepancies found may lead to the cancellation of the shipment and potential legal action." },
+                        { t: "3. Consignee Liability:", d: "The customer understands that in the event of the shipment containing any illegal or restricted items, the consignee shall bear full responsibility and must face legal consequences as per local and international laws." },
+                        { t: "4. Right to Inspect:", d: "Bee26 cargo services reserves the right to inspect any shipment to ensure compliance with all regulations. Any shipment found to contain prohibited items will be reported to the relevant authorities." },
+                        { t: "5. Prohibited Items:", d: "The customer acknowledges that illegal substances, hazardous materials, and any other prohibited or restricted items are not permitted for shipping. The customer is responsible for ensuring that the contents of their shipment comply with these restrictions and Bee26 cargo services will not take any responsibilities." },
+                        { t: "6. Liability for Delays or Seizure:", d: "Bee26 cargo services is not liable for any delays, losses, or seizures of shipments resulting from violations of the stated conditions or due to the involvement of law enforcement or customs authorities." },
+                        { t: "7. Insurance Policy:", d: "Bee26 cargo services is not liable to pay any damage or loss of shipment unless the customer has accepted the insurance Policy. Victim will get 5$ compensation per each kilo and must be only the damaged items.\nI understand and agree that by declining insurance coverage for this shipment, I assume full responsibility for any loss or damage that may occur during transit." }
+                    ];
+
+                    terms.forEach(term => {
+                        doc.setFont("helvetica", "bold");
+                        doc.text(term.t, margin, currentY);
+                        currentY += 10;
+                        doc.setFont("helvetica", "normal");
+                        const splitD = doc.splitTextToSize(term.d, pageWidth - (margin*2));
+                        doc.text(splitD, margin, currentY);
+                        currentY += (splitD.length * 10) + 8;
+                        
+                        if (currentY > doc.internal.pageSize.height - 50) { doc.addPage(); currentY = 40; }
+                    });
+
+                    // 7. SIGNATURES
+                    if (currentY > doc.internal.pageSize.height - 120) { doc.addPage(); currentY = 50; }
+                    
+                    currentY += 10;
+                    doc.setFont("helvetica", "bold"); doc.setFontSize(9);
+                    // FIXED TEXT: Removed "to Canada"
+                    doc.text("I pay the custom duties to the office before the boxes are delivered", margin, currentY);
+                    currentY += 50;
+
+                    doc.setLineWidth(1);
+                    doc.line(margin, currentY, margin + 200, currentY); // Sig Line 1
+                    doc.line(pageWidth - margin - 200, currentY, pageWidth - margin, currentY); // Sig Line 2
+
+                    currentY += 15;
+                    doc.text("Customer Signature", margin, currentY);
+                    doc.text("Date", pageWidth - margin - 200, currentY);
+
+                    // Open
+                    window.open(doc.output('bloburl'), '_blank');
+
+                } catch (error) {
+                    console.error("Error generating Concern Form:", error);
+                    alert("Error generating the form. Please check console.");
+                }
+            }
+
+            // --- EVENT LISTENERS (Replacing old block) ---
+            // --- NEW: GENERATE CONCERN FORM PDF (Detailed) ---
+            async function generateConcernForm() {
+                try {
+                    const { jsPDF } = window.jspdf;
+                    const doc = new jsPDF('p', 'pt', 'a4'); // Portrait, points, A4
+                    
+                    const logoBase64Data = await fetchLogoAsBase64();
+                    
+                    // 1. Gather Data
+                    const senderName = document.getElementById('senderName').value || '';
+                    const senderPhone = document.getElementById('senderPhone').value || '';
+                    const receiverName = document.getElementById('receiverName').value || '';
+                    const receiverAddress = document.getElementById('receiverAddress').value || '';
+                    const receiverPhone = document.getElementById('receiverPhone').value || '';
+                    
+                    const invoiceNumber = document.getElementById('invoiceNumber').value || '';
+                    const totalPackages = document.getElementById('totalPackages').value || '0';
+                    const totalWeight = document.getElementById('totalWeight').value || '0';
+                    
+                    const margin = 30;
+                    const pageWidth = doc.internal.pageSize.width;
+                    let currentY = 40;
+
+                    // 2. HEADER
+                    if (logoBase64Data) {
+                        doc.addImage(logoBase64Data, 'PNG', margin, currentY, 100, 40);
+                    }
+                    doc.setFontSize(16); doc.setFont("helvetica", "bold");
+                    doc.text("CUSTOMER CONCERN FORM", pageWidth / 2, currentY + 25, { align: 'center' });
+                    
+                    doc.setFontSize(9); doc.setFont("helvetica", "normal");
+                    doc.text("Bee26 Cargo Services | Bee-Yond Fast | Bee-Yond Trust", pageWidth - margin, currentY + 15, { align: 'right' });
+                    doc.text("614-2 Milepost Place, East York, Ontario M4H 1C7", pageWidth - margin, currentY + 28, { align: 'right' });
+                    doc.text("+1 416-474-4994 | admin@bee26.com", pageWidth - margin, currentY + 41, { align: 'right' });
+
+                    currentY += 60;
+
+                    // 3. SENDER & RECEIVER BOXES
+                    doc.setLineWidth(0.5); doc.setDrawColor(200);
+                    const boxWidth = (pageWidth - (margin * 2) - 10) / 2;
+                    const boxHeight = 75;
+
+                    // Sender
+                    doc.rect(margin, currentY, boxWidth, boxHeight);
+                    doc.setFontSize(10); doc.setFont("helvetica", "bold");
+                    doc.text("Sender's Details", margin + 10, currentY + 15);
+                    doc.setFontSize(9); doc.setFont("helvetica", "normal");
+                    doc.text(`Name: ${senderName}`, margin + 10, currentY + 30);
+                    doc.text(`Address: --`, margin + 10, currentY + 42); // Placeholder if address missing
+                    doc.text(`Contact No: ${senderPhone}`, margin + 10, currentY + 54);
+                    doc.text(`NIC/Drivers License No: __________________`, margin + 10, currentY + 66);
+
+                    // Receiver
+                    doc.rect(margin + boxWidth + 10, currentY, boxWidth, boxHeight);
+                    doc.setFontSize(10); doc.setFont("helvetica", "bold");
+                    doc.text("Receiver's Details", margin + boxWidth + 20, currentY + 15);
+                    doc.setFontSize(9); doc.setFont("helvetica", "normal");
+                    doc.text(`Name: ${receiverName}`, margin + boxWidth + 20, currentY + 30);
+                    const splitAddr = doc.splitTextToSize(`Address: ${receiverAddress}`, boxWidth - 20);
+                    doc.text(splitAddr, margin + boxWidth + 20, currentY + 42);
+                    doc.text(`Contact No: ${receiverPhone}`, margin + boxWidth + 20, currentY + 42 + (splitAddr.length*10));
+
+                    currentY += boxHeight + 20;
+
+                    // 4. DETAILED ITEMS TABLE (Matching Image Structure)
+                    const tableHead = [['#', 'Image', 'HS Code', 'Description', 'Category', 'Brand', 'Cntry', 'Qty', 'Unit Val', 'Total']];
+                    const tableBody = [];
+                    
+                    // Sort items by category to match the grouping style
+                    const sortedItems = [...local_items].sort((a, b) => (a.category || '').localeCompare(b.category || ''));
+                    let currentCategory = null;
+                    let grandTotalValue = 0;
+                    let grandTotalQty = 0;
+
+                    sortedItems.forEach((item, index) => {
+                        const itemTotal = (parseFloat(item.qty)||0) * (parseFloat(item.value)||0);
+                        grandTotalValue += itemTotal;
+                        grandTotalQty += parseFloat(item.qty)||0;
+
+                        // Add Category Header Row if changed
+                        if (item.category !== currentCategory) {
+                            currentCategory = item.category || 'Uncategorized';
+                            tableBody.push([{ 
+                                content: currentCategory.toUpperCase(), 
+                                colSpan: 10, 
+                                styles: { fillColor: [240, 240, 240], fontStyle: 'bold', textColor: 50, halign: 'center' } 
+                            }]);
+                        }
+
+                        tableBody.push([
+                            index + 1,
+                            { content: '', image: item.image }, // Image column
+                            item.hsCode || '',
+                            item.desc || '',
+                            item.category || '',
+                            item.brand || '--',
+                            item.country || '--',
+                            item.qty,
+                            (parseFloat(item.value)||0).toFixed(2),
+                            itemTotal.toFixed(2)
+                        ]);
+                    });
+
+                    doc.autoTable({
+                        startY: currentY,
+                        head: tableHead,
+                        body: tableBody,
+                        theme: 'grid',
+                        headStyles: { fillColor: [230, 230, 230], textColor: 0, fontStyle: 'bold', fontSize: 8, halign: 'center' },
+                        styles: { fontSize: 8, cellPadding: 3, overflow: 'linebreak', minCellHeight: 25, valign: 'middle' },
+                        columnStyles: {
+                            0: { cellWidth: 20, halign: 'center' }, // #
+                            1: { cellWidth: 30, halign: 'center' }, // Image
+                            2: { cellWidth: 50, halign: 'center' }, // HS
+                            7: { cellWidth: 30, halign: 'center' }, // Qty
+                            8: { cellWidth: 40, halign: 'right' },  // Unit
+                            9: { cellWidth: 45, halign: 'right' }   // Total
+                        },
+                        margin: { left: margin, right: margin },
+                        didDrawCell: function(data) {
+                            if (data.column.index === 1 && data.cell.section === 'body' && data.cell.raw && data.cell.raw.image) {
+                                try {
+                                    const imgData = data.cell.raw.image;
+                                    const dim = 20; 
+                                    const x = data.cell.x + (data.cell.width - dim) / 2;
+                                    const y = data.cell.y + (data.cell.height - dim) / 2;
+                                    doc.addImage(imgData, 'JPEG', x, y, dim, dim);
+                                } catch(err) { /* ignore image error */ }
+                            }
+                        }
+                    });
+
+                    currentY = doc.lastAutoTable.finalY + 15;
+
+                    // 5. SUMMARY FOOTER (Right Aligned)
+                    doc.setFontSize(10); doc.setFont("helvetica", "bold");
+                    const summaryXLabel = pageWidth - 200;
+                    const summaryXValue = pageWidth - margin;
+
+                    // Keep footer on same page if possible
+                    if (currentY > doc.internal.pageSize.height - 150) { doc.addPage(); currentY = 40; }
+
+                    doc.text("Total Quantity:", summaryXLabel, currentY);
+                    doc.text(`${grandTotalQty} pcs`, summaryXValue, currentY, { align: 'right' }); currentY += 15;
+                    
+                    doc.text("Total Packages:", summaryXLabel, currentY);
+                    doc.text(`${totalPackages}`, summaryXValue, currentY, { align: 'right' }); currentY += 15;
+
+                    doc.text("Total Net Weight:", summaryXLabel, currentY);
+                    doc.text(`${totalWeight} kg`, summaryXValue, currentY, { align: 'right' }); currentY += 15;
+
+                    doc.text("Total Declared Value:", summaryXLabel, currentY);
+                    doc.text(`$${grandTotalValue.toFixed(2)} CAD`, summaryXValue, currentY, { align: 'right' }); currentY += 25;
+
+                    doc.setFontSize(9);
+                    doc.text("Declaration: Personal Use – Not for Resale", margin, currentY - 25);
+
+                    // 6. TERMS & CONDITIONS (Page 2 usually, or continued)
+                    // Check space, if less than half page, add new page
+                    if (currentY > doc.internal.pageSize.height - 350) {
+                        doc.addPage();
+                        currentY = 40;
+                    } else {
+                        currentY += 20;
+                    }
+
+                    doc.setFontSize(11); doc.setFont("helvetica", "bold");
+                    doc.text("Terms & Agreements", margin, currentY);
+                    currentY += 15;
+
+                    doc.setFontSize(8); doc.setFont("helvetica", "normal");
+                    const terms = [
+                        { t: "1. Compliance with Regulations:", d: "The customer agrees that all shipments comply with applicable laws and regulations, including International Air Transport Association (IATA) standards and any relevant customs, import/export regulations." },
+                        { t: "2. Accuracy of Shipment Information:", d: "The customer confirms that all information provided regarding the shipment, including contents, value, and destination, is accurate and truthful. Any discrepancies found may lead to the cancellation of the shipment and potential legal action." },
+                        { t: "3. Consignee Liability:", d: "The customer understands that in the event of the shipment containing any illegal or restricted items, the consignee shall bear full responsibility and must face legal consequences as per local and international laws." },
+                        { t: "4. Right to Inspect:", d: "Bee26 cargo services reserves the right to inspect any shipment to ensure compliance with all regulations. Any shipment found to contain prohibited items will be reported to the relevant authorities." },
+                        { t: "5. Prohibited Items:", d: "The customer acknowledges that illegal substances, hazardous materials, and any other prohibited or restricted items are not permitted for shipping. The customer is responsible for ensuring that the contents of their shipment comply with these restrictions and Bee26 cargo services will not take any responsibilities." },
+                        { t: "6. Liability for Delays or Seizure:", d: "Bee26 cargo services is not liable for any delays, losses, or seizures of shipments resulting from violations of the stated conditions or due to the involvement of law enforcement or customs authorities." },
+                        { t: "7. Insurance Policy:", d: "Bee26 cargo services is not liable to pay any damage or loss of shipment unless the customer has accepted the insurance Policy. Victim will get 5$ compensation per each kilo and must be only the damaged items.\nI understand and agree that by declining insurance coverage for this shipment, I assume full responsibility for any loss or damage that may occur during transit." }
+                    ];
+
+                    terms.forEach(term => {
+                        doc.setFont("helvetica", "bold");
+                        doc.text(term.t, margin, currentY);
+                        currentY += 10;
+                        doc.setFont("helvetica", "normal");
+                        const splitD = doc.splitTextToSize(term.d, pageWidth - (margin*2));
+                        doc.text(splitD, margin, currentY);
+                        currentY += (splitD.length * 10) + 8;
+                        
+                        if (currentY > doc.internal.pageSize.height - 50) { doc.addPage(); currentY = 40; }
+                    });
+
+                    // 7. SIGNATURES
+                    if (currentY > doc.internal.pageSize.height - 120) { doc.addPage(); currentY = 50; }
+                    
+                    currentY += 10;
+                    doc.setFont("helvetica", "bold"); doc.setFontSize(9);
+                    doc.text("I pay the custom duties to the office before the boxes are delivered.", margin, currentY);
+                    currentY += 50;
+
+                    doc.setLineWidth(1);
+                    doc.line(margin, currentY, margin + 200, currentY); // Sig Line 1
+                    doc.line(pageWidth - margin - 200, currentY, pageWidth - margin, currentY); // Sig Line 2
+
+                    currentY += 15;
+                    doc.text("Customer Signature", margin, currentY);
+                    doc.text("Date", pageWidth - margin - 200, currentY);
+
+                    // Open
+                    window.open(doc.output('bloburl'), '_blank');
+
+                } catch (error) {
+                    console.error("Error generating Concern Form:", error);
+                    alert("Error generating the form. Please check console.");
+                }
+            }
+
+            // --- EVENT LISTENERS (Replacing old block) ---
             document.getElementById('printPackingListBtn').addEventListener('click', () => generatePDF('Packing List', 'open'));
             document.getElementById('exportInvoicePDF').addEventListener('click', () => generatePDF('Commercial Invoice', 'save'));
             document.getElementById('exportPackingListExcel').addEventListener('click', generateExcel);
+            
+            // New Listener for Concern Form
+            const btnConcern = document.getElementById('printConcernFormBtn');
+            if(btnConcern) btnConcern.addEventListener('click', generateConcernForm);
+
             // --- WHATSAPP SHARE ---
             const shareWhatsAppBtn = document.getElementById('shareWhatsAppBtn');
             if(shareWhatsAppBtn) {
                 shareWhatsAppBtn.addEventListener('click', () => {
-                   const phone = document.getElementById('receiverPhone').value.replace(/[^0-9]/g, ''); // Remove non-numbers
+                   const phone = document.getElementById('receiverPhone').value.replace(/[^0-9]/g, ''); 
                    const name = document.getElementById('receiverName').value;
                    const inv = document.getElementById('invoiceNumber').value;
                    
