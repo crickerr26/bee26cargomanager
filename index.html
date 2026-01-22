@@ -9,7 +9,7 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>Bee26 Cargo App</title>
-
+<script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -698,8 +698,24 @@
                 <h2 id="modal-title">Add New Item</h2>
                 <button class="close-btn" id="closeModalBtn">&times;</button>
             </div>
+            
+            <div id="scanner-container" style="width: 100%; display: none; margin-bottom: 15px; border: 2px solid var(--blue); border-radius: 8px; overflow: hidden;">
+                <div id="reader" style="width: 100%;"></div>
+                <button type="button" class="btn btn-danger" id="stopScanBtn" style="width: 100%; border-radius: 0;">🛑 Stop Camera</button>
+            </div>
+
             <form id="addItemForm">
                 <div class="form-grid-two-col">
+                    
+                    <div class="input-group" style="grid-column: 1 / -1; background: #f0f7ff; padding: 10px; border-radius: 8px; border: 1px dashed var(--blue);">
+                        <label style="color: var(--blue); font-weight: bold;">Step 1: Scan or Search (Optional)</label>
+                        <div style="display: flex; gap: 10px;">
+                            <input type="text" id="modalBarcode" placeholder="Scan or type barcode..." style="font-weight: bold;">
+                            <button type="button" class="btn btn-primary" id="startScanBtn">📷 Scan</button>
+                        </div>
+                        <small style="color: #666;">If the barcode is new, fill the details below and click Save. The app will remember it next time!</small>
+                    </div>
+
                     <div class="input-group" style="grid-column: 1 / -1;">
                         <label for="modalItemImage" style="display: block; margin-bottom: 5px; font-weight: 600;">Item Photo (Optional)</label>
                         <input type="file" id="modalItemImage" accept="image/jpeg, image/png" style="padding: 10px; border: 1px solid #ddd; border-radius: 4px; width: 100%; box-sizing: border-box;">
@@ -708,10 +724,15 @@
                             <img id="modalImagePreview" src="" alt="Preview" style="max-height: 100px; border: 1px solid #ddd; border-radius: 4px;">
                         </div>
                     </div>
-                    <div class="input-group">
+                    
+                    <div class="input-group" style="grid-column: 1 / -1;">
                         <label for="modalItemDesc">Description</label>
-                        <input type="text" id="modalItemDesc" placeholder="e.g., Men's T-Shirts" required>
+                        <div style="display: flex; gap: 5px;">
+                            <input type="text" id="modalItemDesc" placeholder="e.g., Men's T-Shirts" required style="flex-grow: 1;">
+                            <button type="button" id="voiceDictationBtn" class="btn btn-secondary" style="font-size: 1.2rem; padding: 0 1rem;">🎤</button>
+                        </div>
                     </div>
+
                      <div class="input-group">
                         <div class="input-group">
     <label for="modalItemCat">Category</label>
@@ -1229,15 +1250,121 @@
             const cancelModalBtn = document.getElementById('cancelModalBtn');
             const addItemForm = document.getElementById('addItemForm');
             const itemTableTbody = document.getElementById('itemTableTbody');
+
+            // NEW: Scanner & Voice Elements
+            const modalBarcode = document.getElementById('modalBarcode');
+            const startScanBtn = document.getElementById('startScanBtn');
+            const stopScanBtn = document.getElementById('stopScanBtn');
+            const scannerContainer = document.getElementById('scanner-container');
+            const voiceDictationBtn = document.getElementById('voiceDictationBtn');
+            let html5QrcodeScanner = null;
+
+            // --- A. BARCODE SCANNER LOGIC ---
+            startScanBtn.addEventListener('click', () => {
+                scannerContainer.style.display = 'block';
+                
+                // Initialize scanner if not already done
+                if (!html5QrcodeScanner) {
+                    html5QrcodeScanner = new Html5Qrcode("reader");
+                }
+
+                const config = { fps: 10, qrbox: { width: 250, height: 250 } };
+                
+                // Use back camera
+                html5QrcodeScanner.start({ facingMode: "environment" }, config, onScanSuccess, onScanFailure);
+                
+                startScanBtn.style.display = 'none'; // Hide start button while scanning
+            });
+
+            function stopScanner() {
+                if (html5QrcodeScanner) {
+                    html5QrcodeScanner.stop().then(() => {
+                        scannerContainer.style.display = 'none';
+                        startScanBtn.style.display = 'block';
+                    }).catch(err => console.error(err));
+                } else {
+                     scannerContainer.style.display = 'none';
+                     startScanBtn.style.display = 'block';
+                }
+            }
             
+            stopScanBtn.addEventListener('click', stopScanner);
+
+            async function onScanSuccess(decodedText, decodedResult) {
+                // 1. Beep and Stop
+                stopScanner();
+                window.showToast("Barcode Scanned: " + decodedText, "info");
+                modalBarcode.value = decodedText;
+
+                // 2. Check "Products" Database in Firebase (Learn-As-You-Go)
+                const productRef = dbRef(db, 'products/' + decodedText);
+                try {
+                    const snapshot = await dbGet(productRef);
+                    if (snapshot.exists()) {
+                        const prod = snapshot.val();
+                        // Auto-Fill Found Details
+                        document.getElementById('modalItemDesc').value = prod.desc || '';
+                        document.getElementById('modalItemCat').value = prod.category || '';
+                        document.getElementById('modalItemValue').value = prod.value || '';
+                        document.getElementById('modalItemHSCode').value = prod.hsCode || '';
+                        document.getElementById('modalItemBrand').value = prod.brand || '';
+                        window.showToast("Product found & auto-filled!", "success");
+                    } else {
+                        window.showToast("New Item! Please fill details to save.", "info");
+                        document.getElementById('modalItemDesc').focus();
+                    }
+                } catch (error) {
+                    console.error("Error fetching product:", error);
+                }
+            }
+
+            function onScanFailure(error) {
+                // handle scan failure, usually better to ignore and keep scanning.
+                // console.warn(`Code scan error = ${error}`);
+            }
+
+            // --- B. VOICE DICTATION LOGIC ---
+            if ('webkitSpeechRecognition' in window) {
+                const recognition = new webkitSpeechRecognition();
+                recognition.continuous = false;
+                recognition.lang = 'en-US';
+
+                voiceDictationBtn.addEventListener('click', () => {
+                    voiceDictationBtn.style.color = 'red'; // Visual cue
+                    voiceDictationBtn.classList.add('listening');
+                    recognition.start();
+                });
+
+                recognition.onresult = (event) => {
+                    const transcript = event.results[0][0].transcript;
+                    // Capitalize first letter
+                    const finalTxt = transcript.charAt(0).toUpperCase() + transcript.slice(1);
+                    document.getElementById('modalItemDesc').value = finalTxt;
+                    // Trigger HS Code calculation if exists
+                    if(typeof calculateHSCode === 'function') calculateHSCode();
+                };
+
+                recognition.onend = () => {
+                    voiceDictationBtn.style.color = ''; // Reset color
+                    voiceDictationBtn.classList.remove('listening');
+                };
+            } else {
+                voiceDictationBtn.style.display = 'none'; // Hide if not supported
+            }
+
+
+            // --- C. NORMAL FORM LOGIC ---
             addNewItemBtn.addEventListener('click', () => { 
                 currentEditItemId = null;
                 addItemForm.reset();
                 // Clear image inputs on new item
-                modalItemImageInput.value = '';
+                if(modalItemImageInput) modalItemImageInput.value = '';
                 tempItemCompressedImage = null;
-                modalImagePreview.src = '';
-                modalImagePreviewContainer.style.display = 'none';
+                if(modalImagePreview) modalImagePreview.src = '';
+                if(modalImagePreviewContainer) modalImagePreviewContainer.style.display = 'none';
+                
+                // Clear barcode
+                modalBarcode.value = '';
 
                 document.getElementById('modal-title').textContent = 'Add New Item';
                 document.getElementById('saveItemBtn').textContent = 'Save Item';
@@ -1246,6 +1373,8 @@
             
             function closeModal() { 
                 modal.classList.remove('active');
+                stopScanner(); // Ensure camera turns off
+                
                 // Clear image inputs on close
                 if(modalItemImageInput) modalItemImageInput.value = '';
                 tempItemCompressedImage = null;
@@ -1255,34 +1384,65 @@
             closeModalBtn.addEventListener('click', closeModal);
             cancelModalBtn.addEventListener('click', closeModal);
             
-            addItemForm.addEventListener('submit', (e) => { 
-    e.preventDefault();
-    const item = {
-        desc: document.getElementById('modalItemDesc').value,
-        category: document.getElementById('modalItemCat').value,
-        // NEW LINE ADDED HERE:
-        hsCode: document.getElementById('modalItemHSCode').value,
-        // -------------------
-        // ADDED Image Data:
-        image: tempItemCompressedImage || null,
-        // -------------------
-        qty: parseFloat(document.getElementById('modalItemQty').value),
-        value: parseFloat(document.getElementById('modalItemValue').value),
-        condition: document.getElementById('modalItemCondition').value,
-        brand: document.getElementById('modalItemBrand').value,
-        country: document.getElementById('modalItemCountry').value,
-        note: document.getElementById('modalItemNote').value 
-    };
-    
-    // ... rest of the saving logic stays the same ...
-    if (currentEditItemId !== null) {
-        local_items[currentEditItemId] = item; 
-    } else {
-        local_items.push(item); 
-    }
-    renderItemTable();
-    closeModal();
-});
+            addItemForm.addEventListener('submit', async (e) => { 
+                e.preventDefault();
+                
+                const barcodeVal = modalBarcode.value.trim();
+                const descVal = document.getElementById('modalItemDesc').value;
+                const catVal = document.getElementById('modalItemCat').value;
+                const valVal = parseFloat(document.getElementById('modalItemValue').value);
+                const hsVal = document.getElementById('modalItemHSCode').value;
+                const brandVal = document.getElementById('modalItemBrand').value;
+
+                // 1. SAVE TO LIST
+                const item = {
+                    barcode: barcodeVal, // Save barcode locally too
+                    desc: descVal,
+                    category: catVal,
+                    hsCode: hsVal,
+                    image: tempItemCompressedImage || null,
+                    qty: parseFloat(document.getElementById('modalItemQty').value),
+                    value: valVal,
+                    condition: document.getElementById('modalItemCondition').value,
+                    brand: brandVal,
+                    country: document.getElementById('modalItemCountry').value,
+                    note: document.getElementById('modalItemNote').value 
+                };
+                
+                if (currentEditItemId !== null) {
+                    local_items[currentEditItemId] = item; 
+                } else {
+                    local_items.push(item); 
+                }
+
+                // 2. LEARN-AS-YOU-GO: Save to Global "Products" DB
+                if (barcodeVal) {
+                    const productData = {
+                        desc: descVal,
+                        category: catVal,
+                        value: valVal,
+                        hsCode: hsVal,
+                        brand: brandVal,
+                        lastUpdated: new Date().toISOString()
+                    };
+                    
+                    // We save this to a separate root node "products"
+                    // Note: Barcodes can contain '.', '#', '$', '[', or ']' which Firebase forbids in keys.
+                    // Simple sanitizer: replace forbidden chars with '_'
+                    const safeBarcode = barcodeVal.replace(/[.#$\[\]]/g, "_");
+                    const productRef = dbRef(db, 'products/' + safeBarcode);
+                    
+                    try {
+                        await dbSet(productRef, productData);
+                        console.log("Product master list updated for: " + safeBarcode);
+                    } catch(err) {
+                        console.error("Failed to save to product master list", err);
+                    }
+                }
+
+                renderItemTable();
+                closeModal();
+            });
 
             function renderItemTable() { 
                 itemTableTbody.innerHTML = '';
@@ -1296,23 +1456,24 @@
 
                         const row = document.createElement('tr');
                         row.innerHTML = `
-    <td style="text-align: center;">${imgHtml}</td>
-    <td>
-        ${item.desc} 
-        ${item.hsCode ? '<br><span class="status-badge status-Shipped" style="font-size:0.7rem; padding: 2px 6px;">HS: ' + item.hsCode + '</span>' : ''}
-        ${item.note ? '<br><small style="color:#666">Note: '+item.note+'</small>' : ''}
-    </td>
-    <td>${item.condition || '--'}</td>
-    <td>${item.brand || '--'}</td>
-    <td>${item.country || '--'}</td>
-    <td>${item.qty}</td>
-    <td>$${item.value.toFixed(2)}</td>
-    <td>$${totalVal}</td>
-    <td class="table-actions">
-        <button class="btn btn-secondary btn-small edit-item-btn" data-index="${index}">Edit</button>
-        <button class="btn btn-danger btn-small delete-item-btn" data-index="${index}">Del</button>
-    </td>
-`;
+                            <td style="text-align: center;">${imgHtml}</td>
+                            <td>
+                                ${item.desc} 
+                                ${item.barcode ? '<br><span style="font-size:0.7rem; color:var(--purple); font-weight:bold;">Example: '+item.barcode+'</span>' : ''}
+                                ${item.hsCode ? '<br><span class="status-badge status-Shipped" style="font-size:0.7rem; padding: 2px 6px;">HS: ' + item.hsCode + '</span>' : ''}
+                                ${item.note ? '<br><small style="color:#666">Note: '+item.note+'</small>' : ''}
+                            </td>
+                            <td>${item.condition || '--'}</td>
+                            <td>${item.brand || '--'}</td>
+                            <td>${item.country || '--'}</td>
+                            <td>${item.qty}</td>
+                            <td>$${item.value.toFixed(2)}</td>
+                            <td>$${totalVal}</td>
+                            <td class="table-actions">
+                                <button class="btn btn-secondary btn-small edit-item-btn" data-index="${index}">Edit</button>
+                                <button class="btn btn-danger btn-small delete-item-btn" data-index="${index}">Del</button>
+                            </td>
+                        `;
                         itemTableTbody.appendChild(row);
                     });
                 }
@@ -1340,6 +1501,9 @@
                     currentEditItemId = index;
                     document.getElementById('modal-title').textContent = 'Edit Item';
                     document.getElementById('saveItemBtn').textContent = 'Update Item';
+                    
+                    // Populate Form
+                    modalBarcode.value = item.barcode || '';
                     document.getElementById('modalItemDesc').value = item.desc;
                     document.getElementById('modalItemCat').value = item.category;
                     document.getElementById('modalItemQty').value = item.qty;
@@ -1347,11 +1511,8 @@
                     document.getElementById('modalItemCondition').value = item.condition || 'New';
                     document.getElementById('modalItemBrand').value = item.brand || '';
                     document.getElementById('modalItemCountry').value = item.country || '';
-                    // ...
                     document.getElementById('modalItemNote').value = item.note || ''; 
-                    // NEW LINE ADDED HERE:
                     document.getElementById('modalItemHSCode').value = item.hsCode || ''; 
-                    // -------------------
                     
                     // LOAD IMAGE FOR EDIT
                     if (item.image) {
