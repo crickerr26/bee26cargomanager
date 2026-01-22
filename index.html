@@ -3023,12 +3023,16 @@ async function generateThermalLabel() {
                     currentY = doc.lastAutoTable.finalY + 15;
 
                     // 5. SUMMARY FOOTER (Right Aligned)
+                    // We attempt to keep this on the FIRST PAGE if space permits
                     doc.setFontSize(10); doc.setFont("helvetica", "bold");
                     const summaryXLabel = pageWidth - 200;
                     const summaryXValue = pageWidth - margin;
 
-                    // Keep footer on same page if possible
-                    if (currentY > doc.internal.pageSize.height - 150) { doc.addPage(); currentY = 40; }
+                    // Check if there is enough space (approx 120pts) on the current page for the summary
+                    if (currentY > doc.internal.pageSize.height - 120) { 
+                        doc.addPage(); 
+                        currentY = 40; 
+                    }
 
                     doc.text("Total Quantity:", summaryXLabel, currentY);
                     doc.text(`${grandTotalQty} pcs`, summaryXValue, currentY, { align: 'right' }); currentY += 15;
@@ -3045,14 +3049,10 @@ async function generateThermalLabel() {
                     doc.setFontSize(9);
                     doc.text("Declaration: Personal Use – Not for Resale", margin, currentY - 25);
 
-                    // 6. TERMS & CONDITIONS (Page 2 usually, or continued)
-                    // Check space, if less than half page, add new page
-                    if (currentY > doc.internal.pageSize.height - 350) {
-                        doc.addPage();
-                        currentY = 40;
-                    } else {
-                        currentY += 20;
-                    }
+                    // 6. TERMS & CONDITIONS
+                    // Force a NEW PAGE so Terms appear on the last page separately
+                    doc.addPage();
+                    currentY = 40;
 
                     doc.setFontSize(11); doc.setFont("helvetica", "bold");
                     doc.text("Terms & Agreements", margin, currentY);
@@ -3066,7 +3066,10 @@ async function generateThermalLabel() {
                         { t: "4. Right to Inspect:", d: "Bee26 cargo services reserves the right to inspect any shipment to ensure compliance with all regulations. Any shipment found to contain prohibited items will be reported to the relevant authorities." },
                         { t: "5. Prohibited Items:", d: "The customer acknowledges that illegal substances, hazardous materials, and any other prohibited or restricted items are not permitted for shipping. The customer is responsible for ensuring that the contents of their shipment comply with these restrictions and Bee26 cargo services will not take any responsibilities." },
                         { t: "6. Liability for Delays or Seizure:", d: "Bee26 cargo services is not liable for any delays, losses, or seizures of shipments resulting from violations of the stated conditions or due to the involvement of law enforcement or customs authorities." },
-                        { t: "7. Insurance Policy:", d: "Bee26 cargo services is not liable to pay any damage or loss of shipment unless the customer has accepted the insurance Policy. Victim will get 5$ compensation per each kilo and must be only the damaged items.\nI understand and agree that by declining insurance coverage for this shipment, I assume full responsibility for any loss or damage that may occur during transit." }
+                        { t: "7. Insurance Policy:", d: "Bee26 cargo services is not liable to pay any damage or loss of shipment unless the customer has accepted the insurance Policy. Victim will get 5$ compensation per each kilo and must be only the damaged items.\nI understand and agree that by declining insurance coverage for this shipment, I assume full responsibility for any loss or damage that may occur during transit." },
+                        { t: "8. Sri Lankan Custom Duty & Calculation Method:", d: "Custom duties are calculated and assessed directly by Sri Lanka Customs based on the valuation and nature of the goods. The customer agrees to pay these custom duties to the office before the boxes are delivered." },
+                        { t: "9. Delivery Charges:", d: "The delivery charge has to be paid upon delivery." },
+                        { t: "10. Delivery Time & Delays:", d: "The expected time of delivery will be 10 working days (Sri Lanka). However, there can be cases of delays due to customs, flight schedules, or other unforeseen circumstances. The sender will be informed about any such delays." }
                     ];
 
                     terms.forEach(term => {
@@ -3078,17 +3081,15 @@ async function generateThermalLabel() {
                         doc.text(splitD, margin, currentY);
                         currentY += (splitD.length * 10) + 8;
                         
+                        // Handle page break inside the list if it gets too long
                         if (currentY > doc.internal.pageSize.height - 50) { doc.addPage(); currentY = 40; }
                     });
 
                     // 7. SIGNATURES
+                    // Ensure signatures are on the same page as terms, or add page if needed
                     if (currentY > doc.internal.pageSize.height - 120) { doc.addPage(); currentY = 50; }
                     
-                    currentY += 10;
-                    doc.setFont("helvetica", "bold"); doc.setFontSize(9);
-                    // FIXED TEXT: Removed "to Canada"
-                    doc.text("I pay the custom duties to the office before the boxes are delivered", margin, currentY);
-                    currentY += 50;
+                    currentY += 30;
 
                     doc.setLineWidth(1);
                     doc.line(margin, currentY, margin + 200, currentY); // Sig Line 1
