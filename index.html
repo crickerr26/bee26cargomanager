@@ -699,149 +699,124 @@
                 <button class="close-btn" id="closeModalBtn">&times;</button>
             </div>
             
-            <div id="scanner-container" style="width: 100%; display: none; margin-bottom: 15px; border: 2px solid var(--blue); border-radius: 8px; overflow: hidden;">
-                <div id="reader" style="width: 100%;"></div>
-                <button type="button" class="btn btn-danger" id="stopScanBtn" style="width: 100%; border-radius: 0;">🛑 Stop Camera</button>
-            </div>
-
             <form id="addItemForm">
+                <div class="input-group" style="margin-bottom: 20px; padding: 10px; background: #f0f7ff; border: 1px dashed var(--blue); border-radius: 8px;">
+                    <label style="color: var(--blue); font-weight: bold;">1. Barcode (Optional)</label>
+                    
+                    <div id="scanner-container" style="width: 100%; display: none; margin-bottom: 10px; border: 2px solid var(--blue); border-radius: 8px; overflow: hidden;">
+                        <div id="reader" style="width: 100%;"></div>
+                        <button type="button" class="btn btn-danger" id="stopScanBtn" style="width: 100%; border-radius: 0;">🛑 Stop / Skip</button>
+                    </div>
+
+                    <div style="display: flex; gap: 10px;">
+                        <button type="button" class="btn btn-primary" id="startScanBtn" style="flex: 1;">📷 Scan Barcode</button>
+                        <input type="text" id="modalBarcode" placeholder="Or type..." style="font-weight: bold; flex: 1; text-align: center;">
+                    </div>
+                </div>
+
                 <div class="form-grid-two-col">
                     
-                    <div class="input-group" style="grid-column: 1 / -1; background: #f0f7ff; padding: 10px; border-radius: 8px; border: 1px dashed var(--blue);">
-                        <label style="color: var(--blue); font-weight: bold;">Step 1: Scan or Search (Optional)</label>
-                        <div style="display: flex; gap: 10px;">
-                            <input type="text" id="modalBarcode" placeholder="Scan or type barcode..." style="font-weight: bold;">
-                            <button type="button" class="btn btn-primary" id="startScanBtn">📷 Scan</button>
+                    <div class="input-group" style="grid-column: 1 / -1;">
+                        <label for="modalItemImage" style="font-weight: 700;">2. Product Photo <span style="color:red">*</span></label>
+                        <input type="file" id="modalItemImage" accept="image/jpeg, image/png" style="padding: 10px; border: 1px solid #ddd; border-radius: 4px; width: 100%; box-sizing: border-box;">
+                        
+                        <div id="modalImagePreviewContainer" style="margin-top:10px; display:none;">
+                            <img id="modalImagePreview" src="" alt="Preview" style="max-height: 150px; border: 1px solid #ddd; border-radius: 4px; display: block; margin: auto;">
                         </div>
-                        <small style="color: #666;">If the barcode is new, fill the details below and click Save. The app will remember it next time!</small>
                     </div>
 
                     <div class="input-group" style="grid-column: 1 / -1;">
-                        <label for="modalItemImage" style="display: block; margin-bottom: 5px; font-weight: 600;">Item Photo (Optional)</label>
-                        <input type="file" id="modalItemImage" accept="image/jpeg, image/png" style="padding: 10px; border: 1px solid #ddd; border-radius: 4px; width: 100%; box-sizing: border-box;">
-                        <small style="color: #666;">Photo will be automatically compressed to save space.</small>
-                        <div id="modalImagePreviewContainer" style="margin-top:10px; display:none;">
-                            <img id="modalImagePreview" src="" alt="Preview" style="max-height: 100px; border: 1px solid #ddd; border-radius: 4px;">
-                        </div>
-                    </div>
-                    
-                    <div class="input-group" style="grid-column: 1 / -1;">
-                        <label for="modalItemDesc">Description</label>
+                        <label for="modalItemDesc" style="font-weight: 700;">3. Description <span style="color:red">*</span></label>
                         <div style="display: flex; gap: 5px;">
                             <input type="text" id="modalItemDesc" placeholder="e.g., Men's T-Shirts" required style="flex-grow: 1;">
                             <button type="button" id="voiceDictationBtn" class="btn btn-secondary" style="font-size: 1.2rem; padding: 0 1rem;">🎤</button>
                         </div>
                     </div>
 
-                     <div class="input-group">
-                        <div class="input-group">
-    <label for="modalItemCat">Category</label>
-    <select id="modalItemCat" required>
-        <option value="">Select category...</option>
-        <optgroup label="Apparel & Textiles">
-            <option value="Clothing">Clothing</option>
-            <option value="Footwear & Shoes">Footwear & Shoes</option>
-            <option value="Fabrics & Textiles">Fabrics & Textiles</option>
-            <option value="Kids Clothing">Kids Clothing</option>
-        </optgroup>
-        <optgroup label="Electronics & Media">
-            <option value="Computers & Laptops">Computers & Laptops</option>
-            <option value="Phones & Accessories">Phones & Accessories</option>
-            <option value="Cameras & Equipment">Cameras & Equipment</option>
-            <option value="Electronic Items">Electronic Items</option>
-            <option value="Batteries / Power Banks">Batteries / Power Banks</option>
-            <option value="Books & Media">Books & Media</option>
-        </optgroup>
-        <optgroup label="Food & Perishables">
-            <option value="Packaged Food (Non-Perishable)">Packaged Food (Non-Perishable)</option>
-            <option value="Perishables (Special Handling)">Perishables (Special Handling)</option>
-            <option value="Liquids & Beverages">Liquids & Beverages</option>
-        </optgroup>
-        <optgroup label="Health & Beauty">
-            <option value="Cosmetics & Toiletries">Cosmetics & Toiletries</option>
-            <option value="Medicines & Vitamins">Medicines & Vitamins</option>
-        </optgroup>
-        <optgroup label="Household & Goods">
-            <option value="Kitchenware">Kitchenware</option>
-            <option value="Home Decor">Home Decor</option>
-            <option value="Tools & Hardware">Tools & Hardware</option>
-            <option value="Household Supplies">Household Supplies</option>
-        </optgroup>
-        <optgroup label="Personal Items & Gifts">
-            <option value="Toys & Hobbies">Toys & Hobbies</option>
-            <option value="Kids Toys">Kids Toys</option>
-            <option value="Jewelry & Accessories">Jewelry & Accessories</option>
-            <option value="Gifts & Souvenirs">Gifts & Souvenirs</option>
-            <option value="Sports Equipment">Sports Equipment</option>
-        </optgroup>
-        <optgroup label="Documents & Special">
-            <option value="Documents">Documents</option>
-            <option value="Stationary">Stationary</option>
-            <option value="Fragile Items">Fragile Items</option>
-            <option value="Restricted / Special Handling">Restricted / Special Handling</option>
-        </optgroup>
-        <optgroup label="Other">
-            <option value="General Merchandise">General Merchandise</option>
-            <option value="Other">Other</option>
-        </optgroup>
-    </select>
-</div>
+                    <div class="input-group" style="grid-column: 1 / -1;">
+                        <label for="modalItemCat" style="font-weight: 700;">4. Category <span style="color:red">*</span></label>
+                        <select id="modalItemCat" required>
+                            <option value="">Select category...</option>
+                            <optgroup label="Apparel & Textiles">
+                                <option value="Clothing">Clothing</option>
+                                <option value="Footwear & Shoes">Footwear & Shoes</option>
+                                <option value="Fabrics & Textiles">Fabrics & Textiles</option>
+                                <option value="Kids Clothing">Kids Clothing</option>
+                            </optgroup>
+                            <optgroup label="Electronics & Media">
+                                <option value="Computers & Laptops">Computers & Laptops</option>
+                                <option value="Phones & Accessories">Phones & Accessories</option>
+                                <option value="Cameras & Equipment">Cameras & Equipment</option>
+                                <option value="Electronic Items">Electronic Items</option>
+                            </optgroup>
+                            <optgroup label="Food & Perishables">
+                                <option value="Packaged Food (Non-Perishable)">Packaged Food (Non-Perishable)</option>
+                                <option value="Perishables (Special Handling)">Perishables (Special Handling)</option>
+                            </optgroup>
+                            <optgroup label="Household & Others">
+                                <option value="Kitchenware">Kitchenware</option>
+                                <option value="Home Decor">Home Decor</option>
+                                <option value="Toys & Hobbies">Toys & Hobbies</option>
+                                <option value="Cosmetics & Toiletries">Cosmetics & Toiletries</option>
+                                <option value="Medicines & Vitamins">Medicines & Vitamins</option>
+                                <option value="General Merchandise">General Merchandise</option>
+                            </optgroup>
+                        </select>
+                    </div>
 
-<div class="input-group">
-    <label for="modalItemHSCode">HS Code</label>
-    <div style="display: flex; gap: 0.5rem;">
-        <input type="text" id="modalItemHSCode" placeholder="e.g., 6109.10" style="flex-grow: 1;">
-        <button type="button" class="btn btn-primary btn-small" id="generateHsBtn" style="white-space: nowrap;">⚡ Generate</button>
-    </div>
-</div>
-                     <div class="input-group">
-                        <label for="modalItemQty">Quantity</label>
+                    <div class="input-group">
+                        <label for="modalItemQty" style="font-weight: 700;">5. Quantity <span style="color:red">*</span></label>
                         <input type="number" id="modalItemQty" placeholder="1" min="1" required>
                     </div>
+
                     <div class="input-group">
-                        <label for="modalItemValue">Unit Value (CAD)</label>
+                        <label for="modalItemValue" style="font-weight: 700;">6. Unit Value (CAD) <span style="color:red">*</span></label>
                         <input type="number" id="modalItemValue" placeholder="15.00" min="0" step="0.01" required>
                     </div>
 
-                    <div class="input-group">
-                        <label for="modalItemCondition">Condition</label>
-                        <select id="modalItemCondition" required>
-                            <option value="New">New</option>
-                            <option value="Used">Used</option>
-                        </select>
+                    <div class="input-group" style="grid-column: 1 / -1;">
+                        <label style="font-weight: 700;">7. Condition <span style="color:red">*</span></label>
+                        <div style="display: flex; gap: 10px;">
+                            <button type="button" class="btn btn-secondary condition-btn" data-val="New" style="flex: 1; padding: 12px;">✨ New</button>
+                            <button type="button" class="btn btn-secondary condition-btn" data-val="Used" style="flex: 1; padding: 12px;">♻️ Used</button>
+                        </div>
+                        <input type="hidden" id="modalItemCondition" value="" required> 
                     </div>
+
                     <div class="input-group">
-                        <label for="modalItemBrand">Brand Name</label>
-                        <input type="text" id="modalItemBrand" placeholder="e.g., Nike, Apple, etc.">
+                        <label for="modalItemBrand" style="font-weight: 700;">8. Brand Name <span style="color:red">*</span></label>
+                        <input type="text" id="modalItemBrand" placeholder="e.g. Nike" required>
                     </div>
-                    <div class="input-group"> 
-                        <label for="modalItemCountry">Manufacture Country</label>
+
+                    <div class="input-group">
+                        <label for="modalItemCountry" style="font-weight: 700;">9. Manufacture Country (Skip)</label>
                         <select id="modalItemCountry">
-                            <option value="">Select country...</option>
+                            <option value="">Select (Optional)...</option>
                             <option value="Canada">🇨🇦 Canada</option>
                             <option value="Sri Lanka">🇱🇰 Sri Lanka</option>
                             <option value="USA">🇺🇸 USA</option>
                             <option value="UK">🇬🇧 UK</option>
-                            <option value="India">🇮🇳 India</option>
                             <option value="China">🇨🇳 China</option>
-                            <option value="Germany">🇩🇪 Germany</option>
-                            <option value="Japan">🇯🇵 Japan</option>
-                            <option value="South Korea">🇰🇷 South Korea</option>
-                            <option value="Australia">🇦🇺 Australia</option>
-                            <option value="Bangladesh">🇧🇩 Bangladesh</option>
-                            <option value="Vietnam">🇻🇳 Vietnam</option>
-                            <option value="Turkey">🇹🇷 Turkey</option>
+                            <option value="India">🇮🇳 India</option>
                             <option value="Other">Other</option>
                         </select>
                     </div>
+
                     <div class="input-group" style="grid-column: 1 / -1;">
-                        <label for="modalItemNote">Item Note (Optional)</label>
-                        <input type="text" id="modalItemNote" placeholder="e.g., Serial number, specific color, etc.">
+                        <label for="modalItemNote" style="font-weight: 700;">10. Item Note <span style="color:red">*</span></label>
+                        <input type="text" id="modalItemNote" placeholder="e.g. Serial Number / Color" required>
                     </div>
+                    
+                    <div class="input-group" style="grid-column: 1 / -1;">
+                         <label style="font-size: 0.8rem; color: #888;">HS Code (Auto-Generated)</label>
+                         <input type="text" id="modalItemHSCode" placeholder="e.g., 6109.10">
                     </div>
+
+                </div>
+                
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" id="cancelModalBtn">Cancel</button>
-                    <button type="submit" class="btn btn-primary" id="saveItemBtn">Save Item</button>
+                    <button type="submit" class="btn btn-primary" id="saveItemBtn" style="font-size: 1.2rem; padding: 12px 30px;">SAVE ITEM</button>
                 </div>
             </form>
         </div>
@@ -1257,23 +1232,36 @@
             const stopScanBtn = document.getElementById('stopScanBtn');
             const scannerContainer = document.getElementById('scanner-container');
             const voiceDictationBtn = document.getElementById('voiceDictationBtn');
+            
+            // Condition Buttons
+            const conditionBtns = document.querySelectorAll('.condition-btn');
+            const conditionInput = document.getElementById('modalItemCondition');
+
             let html5QrcodeScanner = null;
 
-            // --- A. BARCODE SCANNER LOGIC ---
+            // --- A. CONDITION BUTTON LOGIC ---
+            conditionBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    // Reset all
+                    conditionBtns.forEach(b => {
+                        b.classList.remove('btn-primary');
+                        b.classList.add('btn-secondary');
+                    });
+                    // Activate clicked
+                    btn.classList.remove('btn-secondary');
+                    btn.classList.add('btn-primary');
+                    // Set Value
+                    conditionInput.value = btn.dataset.val;
+                });
+            });
+
+            // --- B. BARCODE SCANNER LOGIC ---
             startScanBtn.addEventListener('click', () => {
                 scannerContainer.style.display = 'block';
-                
-                // Initialize scanner if not already done
-                if (!html5QrcodeScanner) {
-                    html5QrcodeScanner = new Html5Qrcode("reader");
-                }
-
+                if (!html5QrcodeScanner) { html5QrcodeScanner = new Html5Qrcode("reader"); }
                 const config = { fps: 10, qrbox: { width: 250, height: 250 } };
-                
-                // Use back camera
                 html5QrcodeScanner.start({ facingMode: "environment" }, config, onScanSuccess, onScanFailure);
-                
-                startScanBtn.style.display = 'none'; // Hide start button while scanning
+                startScanBtn.style.display = 'none'; 
             });
 
             function stopScanner() {
@@ -1281,28 +1269,29 @@
                     html5QrcodeScanner.stop().then(() => {
                         scannerContainer.style.display = 'none';
                         startScanBtn.style.display = 'block';
-                    }).catch(err => console.error(err));
+                    }).catch(err => {
+                        // If stop fails (e.g. not running), just hide UI
+                        scannerContainer.style.display = 'none';
+                        startScanBtn.style.display = 'block';
+                    });
                 } else {
                      scannerContainer.style.display = 'none';
                      startScanBtn.style.display = 'block';
                 }
             }
-            
             stopScanBtn.addEventListener('click', stopScanner);
 
             async function onScanSuccess(decodedText, decodedResult) {
-                // 1. Beep and Stop
                 stopScanner();
                 window.showToast("Barcode Scanned: " + decodedText, "info");
                 modalBarcode.value = decodedText;
 
-                // 2. Check "Products" Database in Firebase (Learn-As-You-Go)
+                // Check Database
                 const productRef = dbRef(db, 'products/' + decodedText);
                 try {
                     const snapshot = await dbGet(productRef);
                     if (snapshot.exists()) {
                         const prod = snapshot.val();
-                        // Auto-Fill Found Details
                         document.getElementById('modalItemDesc').value = prod.desc || '';
                         document.getElementById('modalItemCat').value = prod.category || '';
                         document.getElementById('modalItemValue').value = prod.value || '';
@@ -1310,62 +1299,45 @@
                         document.getElementById('modalItemBrand').value = prod.brand || '';
                         window.showToast("Product found & auto-filled!", "success");
                     } else {
-                        window.showToast("New Item! Please fill details to save.", "info");
-                        document.getElementById('modalItemDesc').focus();
+                        window.showToast("New Item! Please fill details.", "info");
                     }
-                } catch (error) {
-                    console.error("Error fetching product:", error);
-                }
+                } catch (error) { console.error("Error fetching product:", error); }
             }
+            function onScanFailure(error) {}
 
-            function onScanFailure(error) {
-                // handle scan failure, usually better to ignore and keep scanning.
-                // console.warn(`Code scan error = ${error}`);
-            }
-
-            // --- B. VOICE DICTATION LOGIC ---
+            // --- C. VOICE DICTATION LOGIC ---
             if ('webkitSpeechRecognition' in window) {
                 const recognition = new webkitSpeechRecognition();
                 recognition.continuous = false;
                 recognition.lang = 'en-US';
-
                 voiceDictationBtn.addEventListener('click', () => {
-                    voiceDictationBtn.style.color = 'red'; // Visual cue
-                    voiceDictationBtn.classList.add('listening');
-                    recognition.start();
+                    voiceDictationBtn.style.color = 'red'; recognition.start();
                 });
-
                 recognition.onresult = (event) => {
                     const transcript = event.results[0][0].transcript;
-                    // Capitalize first letter
-                    const finalTxt = transcript.charAt(0).toUpperCase() + transcript.slice(1);
-                    document.getElementById('modalItemDesc').value = finalTxt;
-                    // Trigger HS Code calculation if exists
+                    document.getElementById('modalItemDesc').value = transcript.charAt(0).toUpperCase() + transcript.slice(1);
                     if(typeof calculateHSCode === 'function') calculateHSCode();
                 };
-
-                recognition.onend = () => {
-                    voiceDictationBtn.style.color = ''; // Reset color
-                    voiceDictationBtn.classList.remove('listening');
-                };
-            } else {
-                voiceDictationBtn.style.display = 'none'; // Hide if not supported
-            }
+                recognition.onend = () => { voiceDictationBtn.style.color = ''; };
+            } else { voiceDictationBtn.style.display = 'none'; }
 
 
-            // --- C. NORMAL FORM LOGIC ---
+            // --- D. FORM SUBMISSION ---
             addNewItemBtn.addEventListener('click', () => { 
                 currentEditItemId = null;
                 addItemForm.reset();
-                // Clear image inputs on new item
+                
+                // Reset Condition Buttons
+                conditionBtns.forEach(b => { b.classList.remove('btn-primary'); b.classList.add('btn-secondary'); });
+                conditionInput.value = ""; 
+
+                // Clear Image
                 if(modalItemImageInput) modalItemImageInput.value = '';
                 tempItemCompressedImage = null;
                 if(modalImagePreview) modalImagePreview.src = '';
                 if(modalImagePreviewContainer) modalImagePreviewContainer.style.display = 'none';
                 
-                // Clear barcode
                 modalBarcode.value = '';
-
                 document.getElementById('modal-title').textContent = 'Add New Item';
                 document.getElementById('saveItemBtn').textContent = 'Save Item';
                 modal.classList.add('active');
@@ -1373,13 +1345,7 @@
             
             function closeModal() { 
                 modal.classList.remove('active');
-                stopScanner(); // Ensure camera turns off
-                
-                // Clear image inputs on close
-                if(modalItemImageInput) modalItemImageInput.value = '';
-                tempItemCompressedImage = null;
-                if(modalImagePreview) modalImagePreview.src = '';
-                if(modalImagePreviewContainer) modalImagePreviewContainer.style.display = 'none';
+                stopScanner();
             }
             closeModalBtn.addEventListener('click', closeModal);
             cancelModalBtn.addEventListener('click', closeModal);
@@ -1387,57 +1353,49 @@
             addItemForm.addEventListener('submit', async (e) => { 
                 e.preventDefault();
                 
-                const barcodeVal = modalBarcode.value.trim();
-                const descVal = document.getElementById('modalItemDesc').value;
-                const catVal = document.getElementById('modalItemCat').value;
-                const valVal = parseFloat(document.getElementById('modalItemValue').value);
-                const hsVal = document.getElementById('modalItemHSCode').value;
-                const brandVal = document.getElementById('modalItemBrand').value;
+                // MANDATORY CHECKS
+                const photo = tempItemCompressedImage;
+                const condition = conditionInput.value;
+                const note = document.getElementById('modalItemNote').value.trim();
 
-                // 1. SAVE TO LIST
+                if (!photo && currentEditItemId === null) {
+                    alert("Error: Product Photo is Mandatory for new items."); return;
+                }
+                if (!condition) {
+                    alert("Error: Please select a Condition (New or Used)."); return;
+                }
+                
+                // Collect Data
                 const item = {
-                    barcode: barcodeVal, // Save barcode locally too
-                    desc: descVal,
-                    category: catVal,
-                    hsCode: hsVal,
-                    image: tempItemCompressedImage || null,
+                    barcode: modalBarcode.value.trim(),
+                    desc: document.getElementById('modalItemDesc').value,
+                    category: document.getElementById('modalItemCat').value,
+                    hsCode: document.getElementById('modalItemHSCode').value,
+                    image: tempItemCompressedImage || null, // Might be null if editing and didn't change
                     qty: parseFloat(document.getElementById('modalItemQty').value),
-                    value: valVal,
-                    condition: document.getElementById('modalItemCondition').value,
-                    brand: brandVal,
+                    value: parseFloat(document.getElementById('modalItemValue').value),
+                    condition: condition,
+                    brand: document.getElementById('modalItemBrand').value,
                     country: document.getElementById('modalItemCountry').value,
-                    note: document.getElementById('modalItemNote').value 
+                    note: note 
                 };
                 
+                // If editing, preserve old image if no new one uploaded
                 if (currentEditItemId !== null) {
+                    if(!item.image) item.image = local_items[currentEditItemId].image;
                     local_items[currentEditItemId] = item; 
                 } else {
                     local_items.push(item); 
                 }
 
-                // 2. LEARN-AS-YOU-GO: Save to Global "Products" DB
-                if (barcodeVal) {
+                // Learn-As-You-Go Save
+                if (item.barcode) {
+                    const safeBarcode = item.barcode.replace(/[.#$\[\]]/g, "_");
                     const productData = {
-                        desc: descVal,
-                        category: catVal,
-                        value: valVal,
-                        hsCode: hsVal,
-                        brand: brandVal,
-                        lastUpdated: new Date().toISOString()
+                        desc: item.desc, category: item.category, value: item.value, 
+                        hsCode: item.hsCode, brand: item.brand, lastUpdated: new Date().toISOString()
                     };
-                    
-                    // We save this to a separate root node "products"
-                    // Note: Barcodes can contain '.', '#', '$', '[', or ']' which Firebase forbids in keys.
-                    // Simple sanitizer: replace forbidden chars with '_'
-                    const safeBarcode = barcodeVal.replace(/[.#$\[\]]/g, "_");
-                    const productRef = dbRef(db, 'products/' + safeBarcode);
-                    
-                    try {
-                        await dbSet(productRef, productData);
-                        console.log("Product master list updated for: " + safeBarcode);
-                    } catch(err) {
-                        console.error("Failed to save to product master list", err);
-                    }
+                    try { await dbSet(dbRef(db, 'products/' + safeBarcode), productData); } catch(err) {}
                 }
 
                 renderItemTable();
@@ -1451,18 +1409,12 @@
                 } else {
                     local_items.forEach((item, index) => {
                         const totalVal = (item.qty * item.value).toFixed(2);
-                        // Image Thumbnail Logic
                         const imgHtml = item.image ? `<img src="${item.image}" alt="item" style="width: 40px; height: 40px; object-fit: cover; border-radius: 4px; border: 1px solid #eee;">` : '<span style="color:#ccc;">No img</span>';
 
                         const row = document.createElement('tr');
                         row.innerHTML = `
                             <td style="text-align: center;">${imgHtml}</td>
-                            <td>
-                                ${item.desc} 
-                                ${item.barcode ? '<br><span style="font-size:0.7rem; color:var(--purple); font-weight:bold;">Example: '+item.barcode+'</span>' : ''}
-                                ${item.hsCode ? '<br><span class="status-badge status-Shipped" style="font-size:0.7rem; padding: 2px 6px;">HS: ' + item.hsCode + '</span>' : ''}
-                                ${item.note ? '<br><small style="color:#666">Note: '+item.note+'</small>' : ''}
-                            </td>
+                            <td>${item.desc}<br><small>${item.brand||''}</small></td>
                             <td>${item.condition || '--'}</td>
                             <td>${item.brand || '--'}</td>
                             <td>${item.country || '--'}</td>
@@ -1477,21 +1429,17 @@
                         itemTableTbody.appendChild(row);
                     });
                 }
-                
-                // SAVE DRAFT WHENEVER ITEMS CHANGE
                 saveDraft();
             }
 
             itemTableTbody.addEventListener('click', (e) => { 
-                // Fix for delete button not working on item clicks
                 const deleteBtn = e.target.closest('.delete-item-btn');
                 if (deleteBtn) {
-                    const index = deleteBtn.dataset.index;
-                    if (confirm('Are you sure you want to delete this item?')) {
-                        local_items.splice(index, 1);
+                    if (confirm('Delete item?')) {
+                        local_items.splice(deleteBtn.dataset.index, 1);
                         renderItemTable();
                     }
-                    return; // Stop here
+                    return;
                 }
 
                 const editBtn = e.target.closest('.edit-item-btn');
@@ -1499,22 +1447,30 @@
                     const index = editBtn.dataset.index;
                     const item = local_items[index];
                     currentEditItemId = index;
+                    
                     document.getElementById('modal-title').textContent = 'Edit Item';
                     document.getElementById('saveItemBtn').textContent = 'Update Item';
                     
-                    // Populate Form
                     modalBarcode.value = item.barcode || '';
                     document.getElementById('modalItemDesc').value = item.desc;
                     document.getElementById('modalItemCat').value = item.category;
                     document.getElementById('modalItemQty').value = item.qty;
                     document.getElementById('modalItemValue').value = item.value;
-                    document.getElementById('modalItemCondition').value = item.condition || 'New';
                     document.getElementById('modalItemBrand').value = item.brand || '';
                     document.getElementById('modalItemCountry').value = item.country || '';
                     document.getElementById('modalItemNote').value = item.note || ''; 
                     document.getElementById('modalItemHSCode').value = item.hsCode || ''; 
                     
-                    // LOAD IMAGE FOR EDIT
+                    // Set Condition Buttons
+                    conditionBtns.forEach(b => {
+                        if(b.dataset.val === item.condition) {
+                             b.classList.remove('btn-secondary'); b.classList.add('btn-primary');
+                             conditionInput.value = item.condition;
+                        } else {
+                             b.classList.remove('btn-primary'); b.classList.add('btn-secondary');
+                        }
+                    });
+
                     if (item.image) {
                         tempItemCompressedImage = item.image;
                         modalImagePreview.src = item.image;
@@ -1524,7 +1480,6 @@
                         modalImagePreview.src = '';
                         modalImagePreviewContainer.style.display = 'none';
                     }
-
                     modal.classList.add('active');
                 }
             });
