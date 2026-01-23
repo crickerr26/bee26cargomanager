@@ -3258,39 +3258,49 @@ async function generateThermalLabel() {
                         }
                     });
 
-                    currentY = doc.lastAutoTable.finalY + 15;
+                    currentY = doc.lastAutoTable.finalY + 25;
 
-                    // 5. SUMMARY FOOTER (Right Aligned)
+                    // 5. SUMMARY FOOTER
+                    // Calculate if we have space on the current page for the summary (approx 80pts needed)
+                    // If not enough space, move summary to next page. Otherwise, keep it here (Page 1).
+                    if (currentY + 80 > doc.internal.pageSize.height - margin) { 
+                        doc.addPage(); 
+                        currentY = 40; 
+                    }
+
                     doc.setFontSize(10); doc.setFont("helvetica", "bold");
                     const summaryXLabel = pageWidth - 200;
                     const summaryXValue = pageWidth - margin;
 
-                    // Keep footer on same page if possible
-                    if (currentY > doc.internal.pageSize.height - 150) { doc.addPage(); currentY = 40; }
-
+                    // -- Line 1: Quantity & Declaration --
+                    // Right Side: Quantity
                     doc.text("Total Quantity:", summaryXLabel, currentY);
-                    doc.text(`${grandTotalQty} pcs`, summaryXValue, currentY, { align: 'right' }); currentY += 15;
+                    doc.text(`${grandTotalQty} pcs`, summaryXValue, currentY, { align: 'right' });
                     
+                    // Left Side: Declaration (Aligned with the first line of totals)
+                    doc.setFontSize(9);
+                    doc.text("Declaration: Personal Use – Not for Resale", margin, currentY);
+                    doc.setFontSize(10); // Reset size
+
+                    currentY += 15;
+                    
+                    // -- Line 2: Packages --
                     doc.text("Total Packages:", summaryXLabel, currentY);
                     doc.text(`${totalPackages}`, summaryXValue, currentY, { align: 'right' }); currentY += 15;
 
+                    // -- Line 3: Weight --
                     doc.text("Total Net Weight:", summaryXLabel, currentY);
                     doc.text(`${totalWeight} kg`, summaryXValue, currentY, { align: 'right' }); currentY += 15;
 
+                    // -- Line 4: Value --
                     doc.text("Total Declared Value:", summaryXLabel, currentY);
-                    doc.text(`$${grandTotalValue.toFixed(2)} CAD`, summaryXValue, currentY, { align: 'right' }); currentY += 25;
-
-                    doc.setFontSize(9);
-                    doc.text("Declaration: Personal Use – Not for Resale", margin, currentY - 25);
-
-                    // 6. TERMS & CONDITIONS (Page 2 usually, or continued)
-                    // Check space, if less than half page, add new page
-                    if (currentY > doc.internal.pageSize.height - 350) {
-                        doc.addPage();
-                        currentY = 40;
-                    } else {
-                        currentY += 20;
-                    }
+                    doc.text(`$${grandTotalValue.toFixed(2)} CAD`, summaryXValue, currentY, { align: 'right' }); 
+                    
+                    
+                    // 6. TERMS & CONDITIONS 
+                    // Force a Page Break here so Terms & Agreements are always on the last page/separate
+                    doc.addPage();
+                    currentY = 40;
 
                     doc.setFontSize(11); doc.setFont("helvetica", "bold");
                     doc.text("Terms & Agreements", margin, currentY);
