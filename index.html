@@ -3261,12 +3261,16 @@ async function generateThermalLabel() {
                     currentY = doc.lastAutoTable.finalY + 25;
 
                     // 5. SUMMARY FOOTER
-                    // Calculate if we have space on the current page for the summary (approx 80pts needed)
-                    // If not enough space, move summary to next page. Otherwise, keep it here (Page 1).
-                    if (currentY + 80 > doc.internal.pageSize.height - margin) { 
+                    // Calculate if we have space on the current page (approx 150pts needed for extra payment info)
+                    if (currentY + 150 > doc.internal.pageSize.height - margin) { 
                         doc.addPage(); 
                         currentY = 40; 
                     }
+
+                    // Fetch Payment Data for PDF
+                    const serviceFee = parseFloat(document.getElementById('paymentTotal').value) || 0;
+                    const addCharges = parseFloat(document.getElementById('additionalChargesAmt').value) || 0;
+                    const totalDue = serviceFee + addCharges;
 
                     doc.setFontSize(10); doc.setFont("helvetica", "bold");
                     const summaryXLabel = pageWidth - 200;
@@ -3292,10 +3296,38 @@ async function generateThermalLabel() {
                     doc.text("Total Net Weight:", summaryXLabel, currentY);
                     doc.text(`${totalWeight} kg`, summaryXValue, currentY, { align: 'right' }); currentY += 15;
 
-                    // -- Line 4: Value --
+                    // -- Line 4: Declared Value --
                     doc.text("Total Declared Value:", summaryXLabel, currentY);
                     doc.text(`$${grandTotalValue.toFixed(2)} CAD`, summaryXValue, currentY, { align: 'right' }); 
                     
+                    currentY += 8; // Small gap
+
+                    // -- SEPARATOR LINE --
+                    doc.setLineWidth(0.5);
+                    doc.setDrawColor(100); // Dark Grey line
+                    doc.line(summaryXLabel, currentY, pageWidth - margin, currentY);
+                    doc.setDrawColor(0); // Reset black
+                    currentY += 15;
+
+                    // -- PAYMENT DETAILS --
+                    doc.setFontSize(9); 
+                    doc.text("Service Fee:", summaryXLabel, currentY);
+                    doc.text(`$${serviceFee.toFixed(2)} CAD`, summaryXValue, currentY, { align: 'right' }); 
+                    currentY += 12;
+
+                    if (addCharges > 0) {
+                        doc.text("Addt'l Charges:", summaryXLabel, currentY);
+                        doc.text(`$${addCharges.toFixed(2)} CAD`, summaryXValue, currentY, { align: 'right' }); 
+                        currentY += 12;
+                    }
+
+                    // Highlighted Total Amount Due
+                    doc.setFontSize(11);
+                    doc.setTextColor(0, 0, 255); // Blue highlight
+                    doc.text("Total Amount Due:", summaryXLabel, currentY);
+                    doc.text(`$${totalDue.toFixed(2)} CAD`, summaryXValue, currentY, { align: 'right' }); 
+                    doc.setTextColor(0, 0, 0); // Reset black
+
                     
                     // 6. TERMS & CONDITIONS 
                     // Force a Page Break here so Terms & Agreements are always on the last page/separate
