@@ -206,13 +206,14 @@
         /* BATCH INPUT STYLE */
         .batch-select {
             width: 100%;
-            padding: 0.5rem;
+            padding: 2px 4px; /* Reduced Padding */
             border: 1px solid var(--grey-mid);
             border-radius: 6px;
-            font-size: 0.85rem;
+            font-size: 0.75rem; /* Smaller Font */
             color: var(--blue);
-            font-weight: 600;
+            font-weight: 700;
             background-color: var(--bg-white);
+            min-width: 60px; /* Ensures it fits B-01 */
         }
 
 
@@ -624,9 +625,9 @@
                     <h2>Itemized List</h2>
                     <div class="table-container">
                         <table class="styled-table">
-                            <thead><tr><th>Image</th><th>Description</th><th>Condition</th><th>Brand</th><th>Country</th><th>Qty</th><th>Unit Value</th><th>Total Value</th><th>Actions</th></tr></thead>
+                            <thead><tr><th>Image</th><th>Description</th><th>Condition</th><th>Brand</th><th>Qty</th><th>Unit Value</th><th>Total Value</th><th>Actions</th></tr></thead>
                             <tbody id="itemTableTbody">
-                                <tr><td colspan="9" style="text-align: center;">No items added yet.</td></tr>
+                                <tr><td colspan="8" style="text-align: center;">No items added yet.</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -713,9 +714,9 @@
                         <h3>Itemized List (<span id="review-itemCount">0</span> items) - Total Declared Value: <strong id="review-declaredTotal" style="color:var(--blue);">$0.00</strong></h3>
                         <div class="table-container">
                             <table class="styled-table">
-                                <thead><tr><th>Image</th><th>Description</th><th>Condition</th><th>Brand</th><th>Country</th><th>Category</th><th>Qty</th><th>Total Value</th></tr></thead>
+                                <thead><tr><th>Image</th><th>Description</th><th>Condition</th><th>Brand</th><th>Category</th><th>Qty</th><th>Total Value</th></tr></thead>
                                 <tbody id="review-itemTableTbody">
-                                    <tr><td colspan="8" style="text-align: center;">--</td></tr>
+                                    <tr><td colspan="7" style="text-align: center;">--</td></tr>
                                 </tbody>
                             </table>
                         </div>
@@ -958,11 +959,13 @@
                         <label for="modalItemCat" style="font-weight: 700;">4. Category <span style="color:red">*</span></label>
                         <select id="modalItemCat" required>
                             <option value="">Select category...</option>
-                            <optgroup label="Apparel & Textiles">
+                            <optgroup label="Apparel & Personal">
                                 <option value="Clothing">Clothing</option>
                                 <option value="Footwear & Shoes">Footwear & Shoes</option>
-                                <option value="Fabrics & Textiles">Fabrics & Textiles</option>
                                 <option value="Kids Clothing">Kids Clothing</option>
+                                <option value="Men's Accessories">Men's Accessories</option>
+                                <option value="Ladies' Accessories">Ladies' Accessories</option>
+                                <option value="Fabrics & Textiles">Fabrics & Textiles</option>
                             </optgroup>
                             <optgroup label="Electronics & Media">
                                 <option value="Computers & Laptops">Computers & Laptops</option>
@@ -978,9 +981,14 @@
                                 <option value="Kitchenware">Kitchenware</option>
                                 <option value="Home Decor">Home Decor</option>
                                 <option value="Toys & Hobbies">Toys & Hobbies</option>
+                                <option value="Baby Items">Baby Items</option>
                                 <option value="Cosmetics & Toiletries">Cosmetics & Toiletries</option>
                                 <option value="Medicines & Vitamins">Medicines & Vitamins</option>
+                                <option value="Books & Stationery">Books & Stationery</option>
+                                <option value="Tools & Hardware">Tools & Hardware</option>
+                                <option value="Automotive Parts">Automotive Parts</option>
                                 <option value="General Merchandise">General Merchandise</option>
+                                <option value="Other">Other</option>
                             </optgroup>
                         </select>
                     </div>
@@ -1009,22 +1017,8 @@
                         <input type="text" id="modalItemBrand" placeholder="e.g. Nike" required>
                     </div>
 
-                    <div class="input-group">
-                        <label for="modalItemCountry" style="font-weight: 700;">9. Manufacture Country (Skip)</label>
-                        <select id="modalItemCountry">
-                            <option value="">Select (Optional)...</option>
-                            <option value="Canada">🇨🇦 Canada</option>
-                            <option value="Sri Lanka">🇱🇰 Sri Lanka</option>
-                            <option value="USA">🇺🇸 USA</option>
-                            <option value="UK">🇬🇧 UK</option>
-                            <option value="China">🇨🇳 China</option>
-                            <option value="India">🇮🇳 India</option>
-                            <option value="Other">Other</option>
-                        </select>
-                    </div>
-
                     <div class="input-group" style="grid-column: 1 / -1;">
-                        <label for="modalItemNote" style="font-weight: 700;">10. Item Note <span style="color:red">*</span></label>
+                        <label for="modalItemNote" style="font-weight: 700;">9. Item Note <span style="color:red">*</span></label>
                         <input type="text" id="modalItemNote" placeholder="e.g. Serial Number / Color" required>
                     </div>
                     
@@ -1449,6 +1443,22 @@
                 document.getElementById('additionalChargesDesc').value = '';
                 document.getElementById('additionalChargesAmt').value = '';
 
+                // --- AUTO-GENERATE INVOICE NUMBER ---
+                let maxInv = 0;
+                if (local_shipments_cache && local_shipments_cache.length > 0) {
+                    local_shipments_cache.forEach(s => {
+                        if(s.invoiceNumber && s.invoiceNumber.toUpperCase().startsWith('BEE26-')) {
+                            // Extract number part "020" from "BEE26-020"
+                            const numPart = s.invoiceNumber.split('-')[1];
+                            const num = parseInt(numPart);
+                            if(!isNaN(num) && num > maxInv) maxInv = num;
+                        }
+                    });
+                }
+                const nextInv = maxInv + 1;
+                // Pad with zeros (e.g., 21 -> 021)
+                document.getElementById('invoiceNumber').value = `BEE26-${nextInv.toString().padStart(3, '0')}`;
+
                 local_items = []; 
                 currentEditItemId = null;
                 currentEditShipmentId = null; 
@@ -1732,7 +1742,7 @@
                     value: parseFloat(document.getElementById('modalItemValue').value),
                     condition: condition,
                     brand: document.getElementById('modalItemBrand').value,
-                    country: document.getElementById('modalItemCountry').value,
+                    // country: Removed
                     note: note 
                 };
                 
@@ -1773,7 +1783,6 @@
                             <td>${item.desc}<br><small>${item.brand||''}</small></td>
                             <td>${item.condition || '--'}</td>
                             <td>${item.brand || '--'}</td>
-                            <td>${item.country || '--'}</td>
                             <td>${item.qty}</td>
                             <td>$${item.value.toFixed(2)}</td>
                             <td>$${totalVal}</td>
@@ -1813,7 +1822,7 @@
                     document.getElementById('modalItemQty').value = item.qty;
                     document.getElementById('modalItemValue').value = item.value;
                     document.getElementById('modalItemBrand').value = item.brand || '';
-                    document.getElementById('modalItemCountry').value = item.country || '';
+                    // document.getElementById('modalItemCountry').value = item.country || ''; // Removed
                     document.getElementById('modalItemNote').value = item.note || ''; 
                     document.getElementById('modalItemHSCode').value = item.hsCode || ''; 
                     
@@ -1889,7 +1898,6 @@
                                 <td>${item.desc}</td>
                                 <td>${item.condition || '--'}</td>
                                 <td>${item.brand || '--'}</td>
-                                <td>${item.country || '--'}</td>
                                 <td>${item.category}</td>
                                 <td>${item.qty}</td>
                                 <td>$${itemTotal.toFixed(2)}</td>
@@ -2067,18 +2075,19 @@
                 let options = `<option value="">--</option>`;
                 for(let i=1; i<=50; i++) {
                     const num = i.toString().padStart(2, '0');
-                    const val = `Batch - ${num}`;
+                    const val = `Batch - ${num}`;      // Database Value (Full)
+                    const display = `B-${num}`;        // Display Value (Short)
                     const isSelected = (currentBatchValue === val) ? 'selected' : '';
-                    options += `<option value="${val}" ${isSelected}>${val}</option>`;
+                    options += `<option value="${val}" ${isSelected}>${display}</option>`;
                 }
                 return options;
             }
 
             function renderShipmentsTable() {
-                // Ensure Header has Batch No
+                // Ensure Header has Batch No (Reduced width for B-01 style)
                 const tableHeader = document.querySelector('#page-all-shipments .styled-table thead tr');
                 if (tableHeader) {
-                    tableHeader.innerHTML = '<th>Invoice #</th><th style="width:140px;">Batch No</th><th>Date</th><th>Sender</th><th>Receiver</th><th>Weight</th><th>Total Amt</th><th>Status</th><th>Payment</th><th>Actions</th>';
+                    tableHeader.innerHTML = '<th>Invoice #</th><th style="width:80px;">Batch</th><th>Date</th><th>Sender</th><th>Receiver</th><th>Weight</th><th>Total Amt</th><th>Status</th><th>Payment</th><th>Actions</th>';
                 }
 
                  shipmentsTableTbody.innerHTML = '';
@@ -2089,14 +2098,31 @@
                 
                 // FILTER LOGIC
                 const selectedBatchFilter = batchSelector.value;
+                const searchTerm = document.getElementById('allShipmentsSearch').value.toLowerCase().trim(); // Get Search Text
+
                 let filteredShipments = [...local_shipments_cache].sort((a, b) => new Date(b.invoiceDate) - new Date(a.invoiceDate));
                 
+                // 1. Apply Batch Filter
                 if (selectedBatchFilter) {
                     filteredShipments = filteredShipments.filter(s => s.batchNo === selectedBatchFilter);
-                    if (filteredShipments.length === 0) {
-                         shipmentsTableTbody.innerHTML = `<tr><td colspan="10" style="text-align: center;">No shipments found in <strong>${selectedBatchFilter}</strong>.</td></tr>`; 
-                         return;
-                    }
+                }
+
+                // 2. Apply Search Filter
+                if (searchTerm) {
+                    filteredShipments = filteredShipments.filter(s => {
+                        const inv = (s.invoiceNumber || '').toLowerCase();
+                        const send = (s.senderName || '').toLowerCase();
+                        const recv = (s.receiverName || '').toLowerCase();
+                        const phone = (s.senderPhone || '').toLowerCase();
+                        const rPhone = (s.receiverPhone || '').toLowerCase();
+                        
+                        return inv.includes(searchTerm) || send.includes(searchTerm) || recv.includes(searchTerm) || phone.includes(searchTerm) || rPhone.includes(searchTerm);
+                    });
+                }
+
+                if (filteredShipments.length === 0) {
+                     shipmentsTableTbody.innerHTML = `<tr><td colspan="10" style="text-align: center;">No shipments found matching filters.</td></tr>`; 
+                     return;
                 }
 
                 const updateSelectColor = (select) => {
@@ -2967,8 +2993,8 @@
                     
                     let tableStartY = Math.max(senderBlockY, receiverBlockY) + sectionSpacing;
                     
-                    // --- UPDATED TABLE HEADERS TO INCLUDE IMAGE ---
-                    const tableHead = [['#', 'Image', 'HS Code', 'Description', 'Category', 'Brand', 'Cntry', 'Qty', 'Unit Val', 'Total']];
+                    // --- UPDATED TABLE HEADERS (No Country) ---
+                    const tableHead = [['#', 'Image', 'HS Code', 'Description', 'Category', 'Brand', 'Qty', 'Unit Val', 'Total']];
                     const tableBody = [];
                     let currentCategory = null;
 
@@ -2976,8 +3002,8 @@
                         const itemCat = item.category || 'Uncategorized';
                         if (itemCat !== currentCategory) {
                             currentCategory = itemCat;
-                            // Update colspan to 10 to match new column count (Added Image col)
-                            tableBody.push([{ content: currentCategory.toUpperCase(), colSpan: 10, styles: { fillColor: [240, 240, 240], fontStyle: 'bold', textColor: 50 } }]);
+                            // Update colspan to 9 (Removed Country)
+                            tableBody.push([{ content: currentCategory.toUpperCase(), colSpan: 9, styles: { fillColor: [240, 240, 240], fontStyle: 'bold', textColor: 50 } }]);
                         }
                         
                         // Push Row with Image Object
@@ -2988,7 +3014,7 @@
                             item.desc || '', 
                             item.category || '', 
                             item.brand || '--', 
-                            item.country || '--', 
+                            // item.country || '--',  <-- REMOVED
                             parseFloat(item.qty) || 0, 
                             (parseFloat(item.value) || 0).toFixed(2), 
                             ((parseFloat(item.qty) || 0) * (parseFloat(item.value) || 0)).toFixed(2)
@@ -3006,9 +3032,10 @@
                             0: { cellWidth: 20, halign: 'center' }, // #
                             1: { cellWidth: 30, halign: 'center' }, // Image Column
                             2: { cellWidth: 50, halign: 'center' }, // HS Code
-                            7: { cellWidth: 30, halign: 'center' }, // Qty
-                            8: { cellWidth: 40, halign: 'right' },  // Unit
-                            9: { cellWidth: 40, halign: 'right' }   // Total
+                            // Adjusted Indices after removing Country (index 6 was Country)
+                            6: { cellWidth: 30, halign: 'center' }, // Qty (was 7)
+                            7: { cellWidth: 40, halign: 'right' },  // Unit (was 8)
+                            8: { cellWidth: 40, halign: 'right' }   // Total (was 9)
                         }, 
                         margin: { left: leftMargin, right: rightMargin },
                         
@@ -3140,13 +3167,13 @@ async function generateThermalLabel() {
                     const wsInfo = XLSX.utils.aoa_to_sheet(infoData);
                     
                     // --- UPDATED HEADERS TO INCLUDE HS CODE ---
-                    const itemsHeader = ['HS Code', 'Description', 'Condition', 'Brand', 'Country', 'Category', 'Quantity', 'Unit Value (CAD)', 'Total Value (CAD)'];
+                    const itemsHeader = ['HS Code', 'Description', 'Condition', 'Brand', 'Category', 'Quantity', 'Unit Value (CAD)', 'Total Value (CAD)'];
                     
                     const safeItems = Array.isArray(local_items) ? local_items : [];
                     const itemsBody = safeItems.map(item => { 
                         const qty = parseFloat(item.qty) || 0, value = parseFloat(item.value) || 0; 
-                        // --- ADDED item.hsCode to the row data ---
-                        return [item.hsCode || '', item.desc || '', item.condition || '', item.brand || '', item.country || '', item.category || '', qty, value, qty * value]; 
+                        // --- REMOVED Country ---
+                        return [item.hsCode || '', item.desc || '', item.condition || '', item.brand || '', item.category || '', qty, value, qty * value]; 
                     });
                     
                     const totalQty = safeItems.reduce((sum, item) => sum + (parseFloat(item.qty) || 0), 0);
@@ -3371,30 +3398,53 @@ async function generateThermalLabel() {
                     // 3. SENDER & RECEIVER BOXES
                     doc.setLineWidth(0.5); doc.setDrawColor(200);
                     const boxWidth = (pageWidth - (margin * 2) - 10) / 2;
-                    const boxHeight = 75;
+                    const boxHeight = 85; // Increased slightly to accommodate wrapping text
 
-                    // Sender
+                    // --- SENDER BOX ---
                     doc.rect(margin, currentY, boxWidth, boxHeight);
                     doc.setFontSize(10); doc.setFont("helvetica", "bold");
                     doc.text("Sender's Details", margin + 10, currentY + 15);
                     doc.setFontSize(9); doc.setFont("helvetica", "normal");
-                    doc.text(`Name: ${senderName}`, margin + 10, currentY + 30);
                     
+                    // Dynamic Y Calculation for Sender
+                    let sY = currentY + 30; // Start Y
+                    
+                    // 1. Name (Wrapped)
+                    const splitSenderName = doc.splitTextToSize(`Name: ${senderName}`, boxWidth - 20);
+                    doc.text(splitSenderName, margin + 10, sY);
+                    sY += (splitSenderName.length * 11); // Add dynamic height based on lines
+                    
+                    // 2. Address (Wrapped)
                     const splitSenderAddr = doc.splitTextToSize(`Address: ${senderAddress}`, boxWidth - 20);
-                    doc.text(splitSenderAddr, margin + 10, currentY + 42); 
-                    
-                    let senderYOffset = 42 + (splitSenderAddr.length * 10);
-                    doc.text(`Contact No: ${senderPhone}`, margin + 10, currentY + senderYOffset);
+                    doc.text(splitSenderAddr, margin + 10, sY); 
+                    sY += (splitSenderAddr.length * 11);
 
-                    // Receiver
+                    // 3. Contact & NIC
+                    doc.text(`Contact No: ${senderPhone}`, margin + 10, sY);
+                    sY += 11;
+                    doc.text(`NIC/Drivers License No:`, margin + 10, sY);
+
+                    // --- RECEIVER BOX ---
                     doc.rect(margin + boxWidth + 10, currentY, boxWidth, boxHeight);
                     doc.setFontSize(10); doc.setFont("helvetica", "bold");
                     doc.text("Receiver's Details", margin + boxWidth + 20, currentY + 15);
                     doc.setFontSize(9); doc.setFont("helvetica", "normal");
-                    doc.text(`Name: ${receiverName}`, margin + boxWidth + 20, currentY + 30);
-                    const splitAddr = doc.splitTextToSize(`Address: ${receiverAddress}`, boxWidth - 20);
-                    doc.text(splitAddr, margin + boxWidth + 20, currentY + 42);
-                    doc.text(`Contact No: ${receiverPhone}`, margin + boxWidth + 20, currentY + 42 + (splitAddr.length*10));
+
+                    // Dynamic Y Calculation for Receiver
+                    let rY = currentY + 30;
+
+                    // 1. Name (Wrapped)
+                    const splitRecName = doc.splitTextToSize(`Name: ${receiverName}`, boxWidth - 20);
+                    doc.text(splitRecName, margin + boxWidth + 20, rY);
+                    rY += (splitRecName.length * 11);
+
+                    // 2. Address (Wrapped)
+                    const splitRecAddr = doc.splitTextToSize(`Address: ${receiverAddress}`, boxWidth - 20);
+                    doc.text(splitRecAddr, margin + boxWidth + 20, rY);
+                    rY += (splitRecAddr.length * 11);
+
+                    // 3. Contact
+                    doc.text(`Contact No: ${receiverPhone}`, margin + boxWidth + 20, rY);
 
                     currentY += boxHeight + 20;
 
@@ -3641,8 +3691,8 @@ async function generateThermalLabel() {
 
                     currentY += boxHeight + 20;
 
-                    // 4. DETAILED ITEMS TABLE (Matching Image Structure)
-                    const tableHead = [['#', 'Image', 'HS Code', 'Description', 'Category', 'Brand', 'Cntry', 'Qty', 'Unit Val', 'Total']];
+                    // 4. DETAILED ITEMS TABLE (No Country)
+                    const tableHead = [['#', 'Image', 'HS Code', 'Description', 'Category', 'Brand', 'Qty', 'Unit Val', 'Total']];
                     const tableBody = [];
                     
                     // Sort items by category to match the grouping style
@@ -3661,7 +3711,7 @@ async function generateThermalLabel() {
                             currentCategory = item.category || 'Uncategorized';
                             tableBody.push([{ 
                                 content: currentCategory.toUpperCase(), 
-                                colSpan: 10, 
+                                colSpan: 9, // Adjusted colspan
                                 styles: { fillColor: [240, 240, 240], fontStyle: 'bold', textColor: 50, halign: 'center' } 
                             }]);
                         }
@@ -3673,7 +3723,7 @@ async function generateThermalLabel() {
                             item.desc || '',
                             item.category || '',
                             item.brand || '--',
-                            item.country || '--',
+                            // item.country || '--', <--- REMOVED
                             item.qty,
                             (parseFloat(item.value)||0).toFixed(2),
                             itemTotal.toFixed(2)
@@ -3691,9 +3741,10 @@ async function generateThermalLabel() {
                             0: { cellWidth: 20, halign: 'center' }, // #
                             1: { cellWidth: 30, halign: 'center' }, // Image
                             2: { cellWidth: 50, halign: 'center' }, // HS
-                            7: { cellWidth: 30, halign: 'center' }, // Qty
-                            8: { cellWidth: 40, halign: 'right' },  // Unit
-                            9: { cellWidth: 45, halign: 'right' }   // Total
+                            // Adjusted Indices (removed Country at index 6)
+                            6: { cellWidth: 30, halign: 'center' }, // Qty (was 7)
+                            7: { cellWidth: 40, halign: 'right' },  // Unit (was 8)
+                            8: { cellWidth: 45, halign: 'right' }   // Total (was 9)
                         },
                         margin: { left: margin, right: margin },
                         didDrawCell: function(data) {
@@ -4010,6 +4061,7 @@ async function generateThermalLabel() {
         { code: "8471.30", keywords: ["laptop", "macbook", "notebook", "computer", "ipad", "tablet"] },
         { code: "8517.13", keywords: ["iphone", "samsung", "pixel", "smartphone", "mobile phone"] }, 
         { code: "8517.62", keywords: ["smart watch", "apple watch", "fitbit"] },
+        { code: "9102.11", keywords: ["wrist watch", "analog watch", "quartz watch", "mechanical watch", "casio", "rolex", "seiko"], negative: ["smart"] },
         { code: "8518.30", keywords: ["headphone", "earphone", "airpod", "headset", "galaxy bud"] },
         { code: "9405.42", keywords: ["led strip", "light strip", "govee", "rope light"], negative: ["bulb"] }, // Specific for your LED strips
         { code: "9405.21", keywords: ["floor lamp", "desk lamp", "table lamp"] },
