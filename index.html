@@ -3116,8 +3116,8 @@ async function generateThermalLabel() {
                     doc.text("Customer Signature", margin, currentY);
                     doc.text("Date", pageWidth - margin - 200, currentY);
 
-                    // Open
-                    window.open(doc.output('bloburl'), '_blank');
+                    // Save PDF with specific name
+                    doc.save("Invoice & Concern Form.pdf");
 
                 } catch (error) {
                     console.error("Error generating Concern Form:", error);
