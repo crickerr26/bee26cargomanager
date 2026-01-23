@@ -556,7 +556,7 @@
                     <div class="doc-buttons">
                         <button class="btn btn-secondary" id="printPackingListBtn">Print Packing List</button>
                         <button class="btn btn-primary" id="exportInvoicePDF">Download Invoice (PDF)</button>
-                        <button class="btn btn-secondary" style="background-color: #5856d6; color: white;" id="printConcernFormBtn">Concern Form (PDF)</button>
+                        <button class="btn btn-secondary" style="background-color: #5856d6; color: white;" id="printConcernFormBtn">Invoice & Concern Form (PDF)</button>
                         <button class="btn btn-secondary" id="exportPackingListExcel">Download Excel</button>
                         <button class="btn btn-secondary" id="printThermalLabelBtn">Print 4x6 Label</button>
                         <button class="btn btn-primary" style="background-color:#25D366;" id="shareWhatsAppBtn">Share on WhatsApp 💬</button>
@@ -2736,8 +2736,8 @@ async function generateThermalLabel() {
                     if (logoBase64Data) {
                         doc.addImage(logoBase64Data, 'PNG', margin, currentY, 100, 40); // Adjust size as needed
                     }
-                    doc.setFontSize(18); doc.setFont("helvetica", "bold");
-                    doc.text("CONCERN FORM", pageWidth / 2, currentY + 25, { align: 'center' });
+                    doc.setFontSize(12); doc.setFont("helvetica", "bold");
+                    doc.text("INVOICE & CONCERN FORM", pageWidth / 2, currentY + 25, { align: 'center' });
                     
                     doc.setFontSize(10); doc.setFont("helvetica", "normal");
                     doc.text("Bee26 Cargo Services", pageWidth - margin, currentY + 15, { align: 'right' });
@@ -2884,7 +2884,6 @@ async function generateThermalLabel() {
                     // 1. Gather Data
                     const senderName = document.getElementById('senderName').value || '';
                     const senderPhone = document.getElementById('senderPhone').value || '';
-                    // NEW FIELDS
                     const senderAddress = document.getElementById('senderAddress').value || '';
                     const senderNic = document.getElementById('senderNic').value || '';
 
@@ -2901,24 +2900,22 @@ async function generateThermalLabel() {
                     let currentY = 40;
 
                     // 2. HEADER
-                    // Draw Logo
                     if (logoBase64Data) {
                         doc.addImage(logoBase64Data, 'PNG', margin, currentY, 100, 40);
                     }
-                    
-                    // Draw Company Info
-                    doc.setFontSize(9); doc.setFont("helvetica", "normal");
-                    doc.text("Bee26 Cargo Services | Bee-Yond Fast | Bee-Yond Trust", pageWidth - margin, currentY + 15, { align: 'right' });
-                    doc.text("614-2 Milepost Place, East York, Ontario M4H 1C7", pageWidth - margin, currentY + 28, { align: 'right' });
-                    doc.text("+1 416-474-4994 | admin@bee26.com", pageWidth - margin, currentY + 41, { align: 'right' });
-                    
-                    // Move down for Title (Fixes Overlap)
-                    currentY += 70;
-
+                    // UPDATED TITLE
                     doc.setFontSize(14); doc.setFont("helvetica", "bold");
-                    doc.text("CUSTOMER CONCERN FORM", pageWidth / 2, currentY, { align: 'center' });
+                    doc.text("Concern Form and Customer Invoice", pageWidth / 2, currentY + 25, { align: 'center' });
+                    
+                    // UPDATED ADDRESS FORMAT
+                    doc.setFontSize(9); doc.setFont("helvetica", "normal");
+                    doc.text("Bee26 Cargo Services", pageWidth - margin, currentY + 10, { align: 'right' });
+                    doc.text("614-2 Milepost Place,", pageWidth - margin, currentY + 22, { align: 'right' });
+                    doc.text("East York, Ontario M4H 1C7,", pageWidth - margin, currentY + 34, { align: 'right' });
+                    doc.text("Canada.", pageWidth - margin, currentY + 46, { align: 'right' });
+                    doc.text("+1 416-474-4994 | admin@bee26.com", pageWidth - margin, currentY + 58, { align: 'right' });
 
-                    currentY += 25;
+                    currentY += 75;
 
                     // 3. SENDER & RECEIVER BOXES
                     doc.setLineWidth(0.5); doc.setDrawColor(200);
@@ -2931,14 +2928,12 @@ async function generateThermalLabel() {
                     doc.text("Sender's Details", margin + 10, currentY + 15);
                     doc.setFontSize(9); doc.setFont("helvetica", "normal");
                     doc.text(`Name: ${senderName}`, margin + 10, currentY + 30);
-                    // FIXED: Now uses actual sender address
+                    
                     const splitSenderAddr = doc.splitTextToSize(`Address: ${senderAddress}`, boxWidth - 20);
                     doc.text(splitSenderAddr, margin + 10, currentY + 42); 
                     
-                    // Adjust Y if address is long
                     let senderYOffset = 42 + (splitSenderAddr.length * 10);
                     doc.text(`Contact No: ${senderPhone}`, margin + 10, currentY + senderYOffset);
-                    doc.text(`NIC/Drivers License No: ${senderNic}`, margin + 10, currentY + senderYOffset + 12);
 
                     // Receiver
                     doc.rect(margin + boxWidth + 10, currentY, boxWidth, boxHeight);
@@ -2952,11 +2947,11 @@ async function generateThermalLabel() {
 
                     currentY += boxHeight + 20;
 
-                    // 4. DETAILED ITEMS TABLE (Matching Image Structure)
+                    // 4. DETAILED ITEMS TABLE
                     const tableHead = [['#', 'Image', 'HS Code', 'Description', 'Category', 'Brand', 'Cntry', 'Qty', 'Unit Val', 'Total']];
                     const tableBody = [];
                     
-                    // Sort items by category to match the grouping style
+                    // Sort items by category
                     const sortedItems = [...local_items].sort((a, b) => (a.category || '').localeCompare(b.category || ''));
                     let currentCategory = null;
                     let grandTotalValue = 0;
@@ -3022,37 +3017,50 @@ async function generateThermalLabel() {
 
                     currentY = doc.lastAutoTable.finalY + 15;
 
-                    // 5. SUMMARY FOOTER (Right Aligned)
-                    // We attempt to keep this on the FIRST PAGE if space permits
-                    doc.setFontSize(10); doc.setFont("helvetica", "bold");
-                    const summaryXLabel = pageWidth - 200;
-                    const summaryXValue = pageWidth - margin;
-
-                    // Check if there is enough space (approx 120pts) on the current page for the summary
-                    if (currentY > doc.internal.pageSize.height - 120) { 
+                    // 5. SUMMARY FOOTER (Aligned Left/Right per request)
+                    // LOGIC: If less than ~100 points left, add page. Else keep on same page.
+                    if (currentY > doc.internal.pageSize.height - 100) { 
                         doc.addPage(); 
                         currentY = 40; 
                     }
 
+                    doc.setFontSize(10); doc.setFont("helvetica", "bold");
+                    const summaryXLabel = pageWidth - 200;
+                    const summaryXValue = pageWidth - margin;
+
+                    // We use the same Y for left (Declaration) and Right (Totals) to save space
+                    let startSummaryY = currentY;
+
+                    // Right Side: Totals
                     doc.text("Total Quantity:", summaryXLabel, currentY);
-                    doc.text(`${grandTotalQty} pcs`, summaryXValue, currentY, { align: 'right' }); currentY += 15;
+                    doc.text(`${grandTotalQty} pcs`, summaryXValue, currentY, { align: 'right' }); 
+                    currentY += 15;
                     
                     doc.text("Total Packages:", summaryXLabel, currentY);
-                    doc.text(`${totalPackages}`, summaryXValue, currentY, { align: 'right' }); currentY += 15;
+                    doc.text(`${totalPackages}`, summaryXValue, currentY, { align: 'right' }); 
+                    currentY += 15;
 
                     doc.text("Total Net Weight:", summaryXLabel, currentY);
-                    doc.text(`${totalWeight} kg`, summaryXValue, currentY, { align: 'right' }); currentY += 15;
+                    doc.text(`${totalWeight} kg`, summaryXValue, currentY, { align: 'right' }); 
+                    currentY += 15;
 
                     doc.text("Total Declared Value:", summaryXLabel, currentY);
-                    doc.text(`$${grandTotalValue.toFixed(2)} CAD`, summaryXValue, currentY, { align: 'right' }); currentY += 25;
+                    doc.text(`$${grandTotalValue.toFixed(2)} CAD`, summaryXValue, currentY, { align: 'right' }); 
 
+                    // Left Side: Declaration (Same starting height)
                     doc.setFontSize(9);
-                    doc.text("Declaration: Personal Use – Not for Resale", margin, currentY - 25);
+                    doc.text("Declaration: Personal Use – Not for Resale", margin, startSummaryY + 45); // Align with bottom of totals
 
-                    // 6. TERMS & CONDITIONS
-                    // Force a NEW PAGE so Terms appear on the last page separately
-                    doc.addPage();
-                    currentY = 40;
+                    currentY += 30;
+
+                    // 6. TERMS & CONDITIONS (Updated Text)
+                    // Check space, if less than half page, add new page
+                    if (currentY > doc.internal.pageSize.height - 350) {
+                        doc.addPage();
+                        currentY = 40;
+                    } else {
+                        currentY += 20;
+                    }
 
                     doc.setFontSize(11); doc.setFont("helvetica", "bold");
                     doc.text("Terms & Agreements", margin, currentY);
@@ -3061,15 +3069,15 @@ async function generateThermalLabel() {
                     doc.setFontSize(8); doc.setFont("helvetica", "normal");
                     const terms = [
                         { t: "1. Compliance with Regulations:", d: "The customer agrees that all shipments comply with applicable laws and regulations, including International Air Transport Association (IATA) standards and any relevant customs, import/export regulations." },
-                        { t: "2. Accuracy of Shipment Information:", d: "The customer confirms that all information provided regarding the shipment, including contents, value, and destination, is accurate and truthful. Any discrepancies found may lead to the cancellation of the shipment and potential legal action." },
+                        { t: "2. Accuracy of Shipment Information:", d: "The customer confirms that all information provided regarding the shipment, including contents, value, and destination, is accurate and truthful. Any discrepancies may lead to the cancellation of the shipment and potential legal action." },
                         { t: "3. Consignee Liability:", d: "The customer understands that in the event of the shipment containing any illegal or restricted items, the consignee shall bear full responsibility and must face legal consequences as per local and international laws." },
-                        { t: "4. Right to Inspect:", d: "Bee26 cargo services reserves the right to inspect any shipment to ensure compliance with all regulations. Any shipment found to contain prohibited items will be reported to the relevant authorities." },
-                        { t: "5. Prohibited Items:", d: "The customer acknowledges that illegal substances, hazardous materials, and any other prohibited or restricted items are not permitted for shipping. The customer is responsible for ensuring that the contents of their shipment comply with these restrictions and Bee26 cargo services will not take any responsibilities." },
-                        { t: "6. Liability for Delays or Seizure:", d: "Bee26 cargo services is not liable for any delays, losses, or seizures of shipments resulting from violations of the stated conditions or due to the involvement of law enforcement or customs authorities." },
-                        { t: "7. Insurance Policy:", d: "Bee26 cargo services is not liable to pay any damage or loss of shipment unless the customer has accepted the insurance Policy. Victim will get 5$ compensation per each kilo and must be only the damaged items.\nI understand and agree that by declining insurance coverage for this shipment, I assume full responsibility for any loss or damage that may occur during transit." },
-                        { t: "8. Sri Lankan Custom Duty & Calculation Method:", d: "Custom duties are calculated and assessed directly by Sri Lanka Customs based on the valuation and nature of the goods. The customer agrees to pay these custom duties to the office before the boxes are delivered." },
-                        { t: "9. Delivery Charges:", d: "The delivery charge has to be paid upon delivery." },
-                        { t: "10. Delivery Time & Delays:", d: "The expected time of delivery will be 10 working days (Sri Lanka). However, there can be cases of delays due to customs, flight schedules, or other unforeseen circumstances. The sender will be informed about any such delays." }
+                        { t: "4. Right to Inspect:", d: "Bee26 Cargo Services reserves the right to inspect any shipment to ensure compliance with all regulations. Any shipment found to contain prohibited items will be reported to the relevant authorities." },
+                        { t: "5. Prohibited Items:", d: "The customer acknowledges that illegal substances, hazardous materials, and any other prohibited or restricted items are not permitted for shipping. The customer is responsible for ensuring that the contents of their shipment comply with these restrictions and Bee26 Cargo Services will not take any responsibilities." },
+                        { t: "6. Liability for Delays or Seizure:", d: "Bee26 Cargo Services is not liable for any delays, losses, or seizures of shipments resulting from violations of the stated conditions or due to the involvement of law enforcement or customs authorities." },
+                        { t: "7. Insurance Policy:", d: "Bee26 Cargo Services is not liable to pay any damage or loss of shipment unless the customer has accepted the Insurance Policy. Victim will get $5 compensation per each kilo and must be only the damaged items. I understand and agree that by declining insurance coverage for this shipment, I assume full responsibility for any loss or damage that may occur during transit." },
+                        { t: "8. Estimated Delivery Time:", d: "Standard delivery time to Sri Lanka is approximately 10 working days. While we strive for punctuality, please be aware that unforeseen delays due to airline transit or customs clearance may occur. We appreciate your patience and professional understanding in such instances." },
+                        { t: "9. Customs Duties & VAT Calculation:", d: "Customers should note that Sri Lanka Customs calculates VAT and other duties based on the assessed value of the items (CIF Method: Cost, Insurance, and Freight) and the quantity, not merely on the weight of the box. The final valuation and applicable taxes are determined solely by the Customs Officer at the time of inspection." },
+                        { t: "10. Local Delivery Surcharges:", d: "The standard shipping rate covers delivery to main distribution centers. Please note that final delivery charges may vary and incur an extra fee depending on the specific delivery zone or remote location within Sri Lanka." }
                     ];
 
                     terms.forEach(term => {
@@ -3081,15 +3089,24 @@ async function generateThermalLabel() {
                         doc.text(splitD, margin, currentY);
                         currentY += (splitD.length * 10) + 8;
                         
-                        // Handle page break inside the list if it gets too long
                         if (currentY > doc.internal.pageSize.height - 50) { doc.addPage(); currentY = 40; }
                     });
 
                     // 7. SIGNATURES
-                    // Ensure signatures are on the same page as terms, or add page if needed
                     if (currentY > doc.internal.pageSize.height - 120) { doc.addPage(); currentY = 50; }
                     
+                    currentY += 10;
+                    doc.setFont("helvetica", "bold"); doc.setFontSize(9);
+                    doc.text("I pay the custom duties to the office before the boxes are delivered.", margin, currentY);
+                    
                     currentY += 30;
+
+                    // NEW: NIC/Drivers License Number (Above Signature)
+                    doc.setFontSize(10);
+                    // Shows the variable if populated, otherwise a blank line for manual writing
+                    const nicDisplay = senderNic ? senderNic : "______________________";
+                    doc.text(`Drivers Licence No / NIC: ${nicDisplay}`, margin, currentY);
+                    currentY += 30; 
 
                     doc.setLineWidth(1);
                     doc.line(margin, currentY, margin + 200, currentY); // Sig Line 1
@@ -3137,7 +3154,7 @@ async function generateThermalLabel() {
                         doc.addImage(logoBase64Data, 'PNG', margin, currentY, 100, 40);
                     }
                     doc.setFontSize(8); doc.setFont("helvetica", "bold");
-                    doc.text("CONCERN FORM", pageWidth / 2, currentY + 25, { align: 'center' });
+                    doc.text("INVOICE & CONCERN FORM", pageWidth / 2, currentY + 25, { align: 'center' });
                     
                     doc.setFontSize(9); doc.setFont("helvetica", "normal");
                     doc.text("Bee26 Cargo Services", pageWidth - margin, currentY + 15, { align: 'right' });
@@ -3282,12 +3299,15 @@ async function generateThermalLabel() {
                     doc.setFontSize(8); doc.setFont("helvetica", "normal");
                     const terms = [
                         { t: "1. Compliance with Regulations:", d: "The customer agrees that all shipments comply with applicable laws and regulations, including International Air Transport Association (IATA) standards and any relevant customs, import/export regulations." },
-                        { t: "2. Accuracy of Shipment Information:", d: "The customer confirms that all information provided regarding the shipment, including contents, value, and destination, is accurate and truthful. Any discrepancies found may lead to the cancellation of the shipment and potential legal action." },
+                        { t: "2. Accuracy of Shipment Information:", d: "The customer confirms that all information provided regarding the shipment, including contents, value, and destination, is accurate and truthful. Any discrepancies may lead to the cancellation of the shipment and potential legal action." },
                         { t: "3. Consignee Liability:", d: "The customer understands that in the event of the shipment containing any illegal or restricted items, the consignee shall bear full responsibility and must face legal consequences as per local and international laws." },
-                        { t: "4. Right to Inspect:", d: "Bee26 cargo services reserves the right to inspect any shipment to ensure compliance with all regulations. Any shipment found to contain prohibited items will be reported to the relevant authorities." },
-                        { t: "5. Prohibited Items:", d: "The customer acknowledges that illegal substances, hazardous materials, and any other prohibited or restricted items are not permitted for shipping. The customer is responsible for ensuring that the contents of their shipment comply with these restrictions and Bee26 cargo services will not take any responsibilities." },
-                        { t: "6. Liability for Delays or Seizure:", d: "Bee26 cargo services is not liable for any delays, losses, or seizures of shipments resulting from violations of the stated conditions or due to the involvement of law enforcement or customs authorities." },
-                        { t: "7. Insurance Policy:", d: "Bee26 cargo services is not liable to pay any damage or loss of shipment unless the customer has accepted the insurance Policy. Victim will get 5$ compensation per each kilo and must be only the damaged items.\nI understand and agree that by declining insurance coverage for this shipment, I assume full responsibility for any loss or damage that may occur during transit." }
+                        { t: "4. Right to Inspect:", d: "Bee26 Cargo Services reserves the right to inspect any shipment to ensure compliance with all regulations. Any shipment found to contain prohibited items will be reported to the relevant authorities." },
+                        { t: "5. Prohibited Items:", d: "The customer acknowledges that illegal substances, hazardous materials, and any other prohibited or restricted items are not permitted for shipping. The customer is responsible for ensuring that the contents of their shipment comply with these restrictions and Bee26 Cargo Services will not take any responsibilities." },
+                        { t: "6. Liability for Delays or Seizure:", d: "Bee26 Cargo Services is not liable for any delays, losses, or seizures of shipments resulting from violations of the stated conditions or due to the involvement of law enforcement or customs authorities." },
+                        { t: "7. Insurance Policy:", d: "Bee26 Cargo Services is not liable to pay any damage or loss of shipment unless the customer has accepted the Insurance Policy. Victim will get $5 compensation per each kilo and must be only the damaged items. I understand and agree that by declining insurance coverage for this shipment, I assume full responsibility for any loss or damage that may occur during transit." },
+                        { t: "8. Estimated Delivery Time:", d: "Standard delivery time to Sri Lanka is approximately 10 working days. While we strive for punctuality, please be aware that unforeseen delays due to airline transit or customs clearance may occur. We appreciate your patience and professional understanding in such instances." },
+                        { t: "9. Customs Duties & VAT Calculation:", d: "Customers should note that Sri Lanka Customs calculates VAT and other duties based on the assessed value of the items (CIF Method: Cost, Insurance, and Freight) and the quantity, not merely on the weight of the box. The final valuation and applicable taxes are determined solely by the Customs Officer at the time of inspection." },
+                        { t: "10. Local Delivery Surcharges:", d: "The standard shipping rate covers delivery to main distribution centers. Please note that final delivery charges may vary and incur an extra fee depending on the specific delivery zone or remote location within Sri Lanka." }
                     ];
 
                     terms.forEach(term => {
