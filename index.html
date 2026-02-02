@@ -3866,11 +3866,47 @@ async function generateThermalLabel() {
                         if (currentY > doc.internal.pageSize.height - 50) { doc.addPage(); currentY = 40; }
                     });
 
+                    // --- NEW: SRI LANKA TAX NOTICE (CIF METHOD) ---
+                    currentY += 15;
+                    // Check if we need a new page for the notice
+                    if (currentY > doc.internal.pageSize.height - 150) { doc.addPage(); currentY = 40; }
+
+                    // 1. Title (Red)
+                    doc.setFont("helvetica", "bold");
+                    doc.setFontSize(10);
+                    doc.setTextColor(200, 0, 0); // Dark Red
+                    doc.text("IMPORTANT: Sri Lanka Customs Tax Notice", margin, currentY);
+                    doc.setTextColor(0, 0, 0); // Reset to Black
+                    currentY += 15;
+
+                    // 2. Explanation Text
+                    doc.setFont("helvetica", "normal");
+                    doc.setFontSize(9);
+                    const noticeText = "Please be aware that Sri Lanka Customs calculates duties based on the CIF Method. You are taxed on the total cost of the shipment, not just the value of the goods.";
+                    const splitNotice = doc.splitTextToSize(noticeText, pageWidth - (margin * 2));
+                    doc.text(splitNotice, margin, currentY);
+                    currentY += (splitNotice.length * 10) + 10;
+
+                    // 3. Equation (Centered & Bold)
+                    doc.setFont("helvetica", "bold");
+                    doc.setFontSize(10);
+                    const equationText = "Taxable Total = Value of Items + Shipping Cost + Insurance";
+                    doc.text(equationText, pageWidth / 2, currentY, { align: 'center' }); 
+                    currentY += 15;
+
+                    // 4. Note (Italic)
+                    doc.setFont("helvetica", "italic");
+                    doc.setFontSize(8);
+                    const noteText = "Note: The final valuation of items is determined solely by the Customs Officer at the time of inspection.";
+                    doc.text(noteText, margin, currentY);
+                    currentY += 20;
+
+
                     // 7. SIGNATURES
                     if (currentY > doc.internal.pageSize.height - 120) { doc.addPage(); currentY = 50; }
                     
                     currentY += 10;
-                    doc.setFont("helvetica", "bold"); doc.setFontSize(9);
+                    doc.setFont("helvetica", "bold"); doc.setFontSize(9); // Reset font from Italic
                     doc.text("I pay the custom duties to the office before the boxes are delivered.", margin, currentY);
                     currentY += 50;
 
