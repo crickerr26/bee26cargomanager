@@ -1997,7 +1997,7 @@
                 document.getElementById('additionalChargesDesc').value = shipment.additionalChargesDesc || '';
                 document.getElementById('additionalChargesAmt').value = shipment.additionalChargesAmt || '';
 
-                // FIX: Safely handle items whether they are an Array or a Firebase Object
+                // FIX: Safely handle items (Array vs Object) AND Filter out null/undefined to prevent crashes
                 let safeItems = [];
                 if (shipment.items) {
                     if (Array.isArray(shipment.items)) {
@@ -2007,7 +2007,8 @@
                         safeItems = Object.values(shipment.items);
                     }
                 }
-                local_items = [...safeItems];
+                // FILTER: This removes any 'null' or 'undefined' holes in the list causing the crash
+                local_items = safeItems.filter(item => item && typeof item === 'object');
 
                 renderItemTable();
                 return true; 
