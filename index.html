@@ -2994,7 +2994,8 @@
                     let tableStartY = Math.max(senderBlockY, receiverBlockY) + sectionSpacing;
                     
                     // --- UPDATED TABLE HEADERS (No Country) ---
-                    const tableHead = [['#', 'Image', 'HS Code', 'Description', 'Category', 'Brand', 'Qty', 'Unit Val', 'Total']];
+                    // COLUMNS: #, Image, HS Code, Barcode, Description, Brand, Note, Qty, Unit, Total
+                    const tableHead = [['#', 'Image', 'HS Code', 'Barcode', 'Description', 'Brand', 'Note', 'Qty', 'Unit Val', 'Total']];
                     const tableBody = [];
                     let currentCategory = null;
 
@@ -3002,8 +3003,8 @@
                         const itemCat = item.category || 'Uncategorized';
                         if (itemCat !== currentCategory) {
                             currentCategory = itemCat;
-                            // Update colspan to 9 (Removed Country)
-                            tableBody.push([{ content: currentCategory.toUpperCase(), colSpan: 9, styles: { fillColor: [240, 240, 240], fontStyle: 'bold', textColor: 50 } }]);
+                            // Update colspan to 10 to match new column count
+                            tableBody.push([{ content: currentCategory.toUpperCase(), colSpan: 10, styles: { fillColor: [240, 240, 240], fontStyle: 'bold', textColor: 50 } }]);
                         }
                         
                         // Push Row with Image Object
@@ -3011,10 +3012,10 @@
                             index + 1, 
                             { content: '', image: item.image }, // Image Column (Object with image data)
                             item.hsCode || '--', 
+                            item.barcode || '', // Added Barcode
                             item.desc || '', 
-                            item.category || '', 
                             item.brand || '--', 
-                            // item.country || '--',  <-- REMOVED
+                            item.note || '', // Added Note
                             parseFloat(item.qty) || 0, 
                             (parseFloat(item.value) || 0).toFixed(2), 
                             ((parseFloat(item.qty) || 0) * (parseFloat(item.value) || 0)).toFixed(2)
@@ -3032,10 +3033,11 @@
                             0: { cellWidth: 20, halign: 'center' }, // #
                             1: { cellWidth: 30, halign: 'center' }, // Image Column
                             2: { cellWidth: 50, halign: 'center' }, // HS Code
-                            // Adjusted Indices after removing Country (index 6 was Country)
-                            6: { cellWidth: 30, halign: 'center' }, // Qty (was 7)
-                            7: { cellWidth: 40, halign: 'right' },  // Unit (was 8)
-                            8: { cellWidth: 40, halign: 'right' }   // Total (was 9)
+                            3: { cellWidth: 50, halign: 'center' }, // Barcode
+                            // 4(Desc), 5(Brand), 6(Note) use auto width
+                            7: { cellWidth: 30, halign: 'center' }, // Qty
+                            8: { cellWidth: 40, halign: 'right' },  // Unit
+                            9: { cellWidth: 40, halign: 'right' }   // Total
                         }, 
                         margin: { left: leftMargin, right: rightMargin },
                         
@@ -3691,8 +3693,8 @@ async function generateThermalLabel() {
 
                     currentY += boxHeight + 20;
 
-                    // 4. DETAILED ITEMS TABLE (No Country)
-                    const tableHead = [['#', 'Image', 'HS Code', 'Description', 'Category', 'Brand', 'Qty', 'Unit Val', 'Total']];
+                    // 4. DETAILED ITEMS TABLE (Updated: Note added, Category column removed)
+                    const tableHead = [['#', 'Image', 'HS Code', 'Description', 'Brand', 'Note', 'Qty', 'Unit Val', 'Total']];
                     const tableBody = [];
                     
                     // Sort items by category to match the grouping style
@@ -3711,7 +3713,7 @@ async function generateThermalLabel() {
                             currentCategory = item.category || 'Uncategorized';
                             tableBody.push([{ 
                                 content: currentCategory.toUpperCase(), 
-                                colSpan: 9, // Adjusted colspan
+                                colSpan: 9, // Spans 9 columns
                                 styles: { fillColor: [240, 240, 240], fontStyle: 'bold', textColor: 50, halign: 'center' } 
                             }]);
                         }
@@ -3721,9 +3723,8 @@ async function generateThermalLabel() {
                             { content: '', image: item.image }, // Image column
                             item.hsCode || '',
                             item.desc || '',
-                            item.category || '',
                             item.brand || '--',
-                            // item.country || '--', <--- REMOVED
+                            item.note || '', // Added Note
                             item.qty,
                             (parseFloat(item.value)||0).toFixed(2),
                             itemTotal.toFixed(2)
@@ -3741,10 +3742,10 @@ async function generateThermalLabel() {
                             0: { cellWidth: 20, halign: 'center' }, // #
                             1: { cellWidth: 30, halign: 'center' }, // Image
                             2: { cellWidth: 50, halign: 'center' }, // HS
-                            // Adjusted Indices (removed Country at index 6)
-                            6: { cellWidth: 30, halign: 'center' }, // Qty (was 7)
-                            7: { cellWidth: 40, halign: 'right' },  // Unit (was 8)
-                            8: { cellWidth: 45, halign: 'right' }   // Total (was 9)
+                            // Indices: 0=#, 1=Img, 2=HS, 3=Desc, 4=Brand, 5=Note, 6=Qty, 7=Val, 8=Total
+                            6: { cellWidth: 30, halign: 'center' }, // Qty
+                            7: { cellWidth: 40, halign: 'right' },  // Unit
+                            8: { cellWidth: 45, halign: 'right' }   // Total
                         },
                         margin: { left: margin, right: margin },
                         didDrawCell: function(data) {
