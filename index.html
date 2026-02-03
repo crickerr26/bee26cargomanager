@@ -1997,7 +1997,18 @@
                 document.getElementById('additionalChargesDesc').value = shipment.additionalChargesDesc || '';
                 document.getElementById('additionalChargesAmt').value = shipment.additionalChargesAmt || '';
 
-                local_items = [...(shipment.items || [])];
+                // FIX: Safely handle items whether they are an Array or a Firebase Object
+                let safeItems = [];
+                if (shipment.items) {
+                    if (Array.isArray(shipment.items)) {
+                        safeItems = shipment.items;
+                    } else {
+                        // If it's an object (e.g. {0: item, 1: item}), convert to array
+                        safeItems = Object.values(shipment.items);
+                    }
+                }
+                local_items = [...safeItems];
+
                 renderItemTable();
                 return true; 
             }
@@ -2098,7 +2109,7 @@
                 
                 // FILTER LOGIC
                 const selectedBatchFilter = batchSelector.value;
-                const searchTerm = document.getElementById('allShipmentsSearch').value.toLowerCase().trim(); // Get Search Text
+                const searchTerm = document.getElementById('allShipmentsSearch').value.toLowerCase().trim();
 
                 let filteredShipments = [...local_shipments_cache].sort((a, b) => new Date(b.invoiceDate) - new Date(a.invoiceDate));
                 
@@ -2136,11 +2147,13 @@
                     const serviceFee = parseFloat(shipment.paymentTotal) || 0;
                     const additionalCharges = parseFloat(shipment.additionalChargesAmt) || 0;
                     const totalAmount = serviceFee + additionalCharges;
+                    // FIX: Ensure ID is valid to prevent button breakage
+                    const safeId = shipment.id || '';
 
                     // Delivery Status
                     const deliveryStatusSelect = document.createElement('select');
                     deliveryStatusSelect.className = 'status-select';
-                    deliveryStatusSelect.dataset.id = shipment.id;
+                    deliveryStatusSelect.dataset.id = safeId;
                     deliveryStatusSelect.dataset.field = 'deliveryStatus';
                     deliveryStatusSelect.innerHTML = `
                         <option value="Pending" ${shipment.deliveryStatus === 'Pending' ? 'selected' : ''}>Pending</option>
@@ -2153,7 +2166,7 @@
                     // Payment Status
                     const paymentStatusSelect = document.createElement('select');
                     paymentStatusSelect.className = 'status-select';
-                    paymentStatusSelect.dataset.id = shipment.id;
+                    paymentStatusSelect.dataset.id = safeId;
                     paymentStatusSelect.dataset.field = 'paymentStatus';
                     paymentStatusSelect.innerHTML = `
                         <option value="Not-Paid" ${shipment.paymentStatus === 'Not-Paid' ? 'selected' : ''}>Not Paid</option>
@@ -2166,13 +2179,13 @@
                     // Batch SELECT (Dropdown)
                     const batchSelect = document.createElement('select');
                     batchSelect.className = 'batch-select';
-                    batchSelect.dataset.id = shipment.id;
+                    batchSelect.dataset.id = safeId;
                     batchSelect.innerHTML = generateBatchSelectHTML(shipment.batchNo);
                     
                     // Format Weight
                     const weightDisplay = shipment.totalWeight ? `${shipment.totalWeight} kg` : '--';
 
-                    // Format Date (Shorten: Remove first 2 digits of year, e.g., 2025-12-01 -> 25-12-01)
+                    // Format Date
                     let shortDate = shipment.invoiceDate;
                     if(shortDate && shortDate.length === 10) {
                         shortDate = shortDate.substring(2); 
@@ -2197,15 +2210,15 @@
                     paymentTd.appendChild(paymentStatusSelect);
                     row.appendChild(paymentTd);
 
-                    // FIXED: Create actions cell as an element to preserve functionality
+                    // ACTIONS COLUMN
                     const actionsTd = document.createElement('td');
                     actionsTd.className = 'table-actions';
                     actionsTd.innerHTML = `
-                        <button class="btn btn-secondary btn-small view-invoice-btn" data-id="${shipment.id}">View Invoice</button>
-                        <button class="btn btn-secondary btn-small view-shipment-btn" data-id="${shipment.id}">View</button>
-                        <button class="btn btn-primary btn-small edit-shipment-btn" data-id="${shipment.id}">Edit</button>
-                        <button class="btn btn-success btn-small download-shipment-btn" style="background-color: #28a745; color: white;" data-id="${shipment.id}">Download</button>
-                        <button class="btn btn-danger btn-small delete-shipment-btn" data-id="${shipment.id}">Delete</button>
+                        <button class="btn btn-secondary btn-small view-invoice-btn" data-id="${safeId}">View Invoice</button>
+                        <button class="btn btn-secondary btn-small view-shipment-btn" data-id="${safeId}">View</button>
+                        <button class="btn btn-primary btn-small edit-shipment-btn" data-id="${safeId}">Edit</button>
+                        <button class="btn btn-success btn-small download-shipment-btn" style="background-color: #28a745; color: white;" data-id="${safeId}">Download</button>
+                        <button class="btn btn-danger btn-small delete-shipment-btn" data-id="${safeId}">Delete</button>
                     `;
                     row.appendChild(actionsTd);
 
@@ -2323,92 +2336,107 @@
             });
 
             shipmentsTableTbody.addEventListener('click', (e) => {
-                // FIXED: Use closest('button') to ensuring clicking the button works perfectly
+                // FIXED: Robust Event Delegation with Error Handling
                 const btn = e.target.closest('button');
                 if (!btn) return;
+                
+                // Prevent default action (just in case)
+                e.preventDefault();
 
                 const shipmentId = btn.dataset.id;
-                if (!shipmentId) return; 
-
-                if (btn.classList.contains('edit-shipment-btn')) {
-                    loadShipmentForEdit(shipmentId); 
+                if (!shipmentId) {
+                    console.error("Button clicked but no Shipment ID found");
+                    return; 
                 }
-                else if (btn.classList.contains('view-shipment-btn')) {
-                     loadShipmentForView(shipmentId); 
-                }
-                else if (btn.classList.contains('view-invoice-btn')) {
-                     viewShipmentInvoice(shipmentId); 
-                }
-                // --- NEW: DOWNLOAD BUTTON LOGIC (Fix for Mobile/Large Files) ---
-                else if (btn.classList.contains('download-shipment-btn')) {
-                    // 1. Create Modal UI dynamically
-                    const modalId = 'downloadOptionsModal';
-                    let modal = document.getElementById(modalId);
-                    if (modal) modal.remove(); // Clean up existing
 
-                    const modalHTML = `
-                        <div id="${modalId}" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9999; display:flex; align-items:center; justify-content:center;">
-                            <div style="background:white; padding:25px; border-radius:12px; width:90%; max-width:350px; text-align:center; box-shadow:0 10px 25px rgba(0,0,0,0.2);">
-                                <h3 style="margin-top:0; color:#333;">Download Options</h3>
-                                <p style="color:#666; margin-bottom:20px;">Select a document to download for this shipment:</p>
-                                <div style="display:flex; flex-direction:column; gap:10px;">
-                                    <button class="btn btn-primary" onclick="window.triggerDownload('${shipmentId}', 'Invoice')">📄 Customer Invoice</button>
-                                    <button class="btn btn-secondary" onclick="window.triggerDownload('${shipmentId}', 'Packing List')">📦 Packing List</button>
-                                    <button class="btn btn-secondary" style="background-color:#5856d6; color:white;" onclick="window.triggerDownload('${shipmentId}', 'Concern Form')">📝 Concern Form</button>
-                                </div>
-                                <button onclick="document.getElementById('${modalId}').remove()" style="margin-top:20px; background:none; border:none; color:#999; text-decoration:underline; cursor:pointer;">Cancel</button>
-                            </div>
-                        </div>
-                    `;
-                    document.body.insertAdjacentHTML('beforeend', modalHTML);
-
-                    // 2. Define Helper for Silent Download (Bypasses heavy table rendering)
-                    window.triggerDownload = (id, type) => {
-                        document.getElementById(modalId).remove();
-                        const shipment = local_shipments_cache.find(s => s.id === id);
-                        if (!shipment) { alert("Shipment data not found."); return; }
-
-                        // Silent Populate (Fills data but SKIPS renderItemTable to avoid crash)
-                        document.getElementById('senderName').value = shipment.senderName || '';
-                        document.getElementById('senderPhone').value = shipment.senderPhone || '';
-                        document.getElementById('senderAddress').value = shipment.senderAddress || '';
-                        document.getElementById('senderNic').value = shipment.senderNic || '';
-
-                        document.getElementById('receiverName').value = shipment.receiverName || '';
-                        document.getElementById('receiverPhone').value = shipment.receiverPhone || '';
-                        document.getElementById('receiverAddress').value = shipment.receiverAddress || '';
-                        document.getElementById('customerRemarks').value = shipment.customerRemarks || '';
-                        
-                        document.getElementById('totalPackages').value = shipment.totalPackages || '';
-                        document.getElementById('totalWeight').value = shipment.totalWeight || '';
-                        document.getElementById('invoiceNumber').value = shipment.invoiceNumber || '';
-                        document.getElementById('invoiceDate').value = shipment.invoiceDate || '';
-                        document.getElementById('hsCode').value = shipment.hsCode || '';
-                        
-                        document.getElementById('paymentTotal').value = shipment.paymentTotal || '';
-                        document.getElementById('additionalChargesAmt').value = shipment.additionalChargesAmt || '';
-                        document.getElementById('additionalChargesDesc').value = shipment.additionalChargesDesc || '';
-
-                        // Update local variable directly without DOM table update
-                        local_items = [...(shipment.items || [])];
-
-                        // Trigger Generation with 'save' action where possible
-                        if (type === 'Invoice') {
-                            generatePDF('Commercial Invoice', 'save');
-                        } else if (type === 'Packing List') {
-                            generatePDF('Packing List', 'save');
-                        } else if (type === 'Concern Form') {
-                            generateConcernForm(); // Opens PDF in new tab (Mobile friendly)
-                        }
-                    };
-                }
-                else if (btn.classList.contains('delete-shipment-btn')) {
-                    const shipment = local_shipments_cache.find(s => s.id === shipmentId);
-                    const invoiceNum = shipment ? shipment.invoiceNumber : 'this shipment';
-
-                    if (confirm(`Are you sure you want to permanently delete Invoice #${invoiceNum}?`)) {
-                        deleteShipment(shipmentId);
+                try {
+                    if (btn.classList.contains('edit-shipment-btn')) {
+                        loadShipmentForEdit(shipmentId); 
                     }
+                    else if (btn.classList.contains('view-shipment-btn')) {
+                         loadShipmentForView(shipmentId); 
+                    }
+                    else if (btn.classList.contains('view-invoice-btn')) {
+                         viewShipmentInvoice(shipmentId); 
+                    }
+                    // --- NEW: DOWNLOAD BUTTON LOGIC (Fix for Mobile/Large Files) ---
+                    else if (btn.classList.contains('download-shipment-btn')) {
+                        // 1. Create Modal UI dynamically
+                        const modalId = 'downloadOptionsModal';
+                        let modal = document.getElementById(modalId);
+                        if (modal) modal.remove(); // Clean up existing
+    
+                        const modalHTML = `
+                            <div id="${modalId}" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9999; display:flex; align-items:center; justify-content:center;">
+                                <div style="background:white; padding:25px; border-radius:12px; width:90%; max-width:350px; text-align:center; box-shadow:0 10px 25px rgba(0,0,0,0.2);">
+                                    <h3 style="margin-top:0; color:#333;">Download Options</h3>
+                                    <p style="color:#666; margin-bottom:20px;">Select a document to download for this shipment:</p>
+                                    <div style="display:flex; flex-direction:column; gap:10px;">
+                                        <button class="btn btn-primary" onclick="window.triggerDownload('${shipmentId}', 'Invoice')">📄 Customer Invoice</button>
+                                        <button class="btn btn-secondary" onclick="window.triggerDownload('${shipmentId}', 'Packing List')">📦 Packing List</button>
+                                        <button class="btn btn-secondary" style="background-color:#5856d6; color:white;" onclick="window.triggerDownload('${shipmentId}', 'Concern Form')">📝 Concern Form</button>
+                                    </div>
+                                    <button onclick="document.getElementById('${modalId}').remove()" style="margin-top:20px; background:none; border:none; color:#999; text-decoration:underline; cursor:pointer;">Cancel</button>
+                                </div>
+                            </div>
+                        `;
+                        document.body.insertAdjacentHTML('beforeend', modalHTML);
+    
+                        // 2. Define Helper for Silent Download (Bypasses heavy table rendering)
+                        window.triggerDownload = (id, type) => {
+                            document.getElementById(modalId).remove();
+                            const shipment = local_shipments_cache.find(s => s.id === id);
+                            if (!shipment) { alert("Shipment data not found."); return; }
+    
+                            // Silent Populate (Fills data but SKIPS renderItemTable to avoid crash)
+                            document.getElementById('senderName').value = shipment.senderName || '';
+                            document.getElementById('senderPhone').value = shipment.senderPhone || '';
+                            document.getElementById('senderAddress').value = shipment.senderAddress || '';
+                            document.getElementById('senderNic').value = shipment.senderNic || '';
+    
+                            document.getElementById('receiverName').value = shipment.receiverName || '';
+                            document.getElementById('receiverPhone').value = shipment.receiverPhone || '';
+                            document.getElementById('receiverAddress').value = shipment.receiverAddress || '';
+                            document.getElementById('customerRemarks').value = shipment.customerRemarks || '';
+                            
+                            document.getElementById('totalPackages').value = shipment.totalPackages || '';
+                            document.getElementById('totalWeight').value = shipment.totalWeight || '';
+                            document.getElementById('invoiceNumber').value = shipment.invoiceNumber || '';
+                            document.getElementById('invoiceDate').value = shipment.invoiceDate || '';
+                            document.getElementById('hsCode').value = shipment.hsCode || '';
+                            
+                            document.getElementById('paymentTotal').value = shipment.paymentTotal || '';
+                            document.getElementById('additionalChargesAmt').value = shipment.additionalChargesAmt || '';
+                            document.getElementById('additionalChargesDesc').value = shipment.additionalChargesDesc || '';
+    
+                            // Fix for Items Object/Array
+                            let safeItems = [];
+                            if (shipment.items) {
+                                safeItems = Array.isArray(shipment.items) ? shipment.items : Object.values(shipment.items);
+                            }
+                            local_items = [...safeItems];
+    
+                            // Trigger Generation with 'save' action where possible
+                            if (type === 'Invoice') {
+                                generatePDF('Commercial Invoice', 'save');
+                            } else if (type === 'Packing List') {
+                                generatePDF('Packing List', 'save');
+                            } else if (type === 'Concern Form') {
+                                generateConcernForm(); // Opens PDF in new tab (Mobile friendly)
+                            }
+                        };
+                    }
+                    else if (btn.classList.contains('delete-shipment-btn')) {
+                        const shipment = local_shipments_cache.find(s => s.id === shipmentId);
+                        const invoiceNum = shipment ? shipment.invoiceNumber : 'this shipment';
+    
+                        if (confirm(`Are you sure you want to permanently delete Invoice #${invoiceNum}?`)) {
+                            deleteShipment(shipmentId);
+                        }
+                    }
+                } catch (err) {
+                    console.error("Action Error:", err);
+                    alert("An error occurred while performing this action on the shipment. Check console for details.");
                 }
             });
             function viewShipmentInvoice(shipmentId) {
