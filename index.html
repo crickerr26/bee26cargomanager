@@ -2204,6 +2204,7 @@
                         <button class="btn btn-secondary btn-small view-invoice-btn" data-id="${shipment.id}">View Invoice</button>
                         <button class="btn btn-secondary btn-small view-shipment-btn" data-id="${shipment.id}">View</button>
                         <button class="btn btn-primary btn-small edit-shipment-btn" data-id="${shipment.id}">Edit</button>
+                        <button class="btn btn-success btn-small download-shipment-btn" style="background-color: #28a745; color: white;" data-id="${shipment.id}">Download</button>
                         <button class="btn btn-danger btn-small delete-shipment-btn" data-id="${shipment.id}">Delete</button>
                     `;
                     row.appendChild(actionsTd);
@@ -2337,6 +2338,69 @@
                 }
                 else if (btn.classList.contains('view-invoice-btn')) {
                      viewShipmentInvoice(shipmentId); 
+                }
+                // --- NEW: DOWNLOAD BUTTON LOGIC (Fix for Mobile/Large Files) ---
+                else if (btn.classList.contains('download-shipment-btn')) {
+                    // 1. Create Modal UI dynamically
+                    const modalId = 'downloadOptionsModal';
+                    let modal = document.getElementById(modalId);
+                    if (modal) modal.remove(); // Clean up existing
+
+                    const modalHTML = `
+                        <div id="${modalId}" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9999; display:flex; align-items:center; justify-content:center;">
+                            <div style="background:white; padding:25px; border-radius:12px; width:90%; max-width:350px; text-align:center; box-shadow:0 10px 25px rgba(0,0,0,0.2);">
+                                <h3 style="margin-top:0; color:#333;">Download Options</h3>
+                                <p style="color:#666; margin-bottom:20px;">Select a document to download for this shipment:</p>
+                                <div style="display:flex; flex-direction:column; gap:10px;">
+                                    <button class="btn btn-primary" onclick="window.triggerDownload('${shipmentId}', 'Invoice')">📄 Customer Invoice</button>
+                                    <button class="btn btn-secondary" onclick="window.triggerDownload('${shipmentId}', 'Packing List')">📦 Packing List</button>
+                                    <button class="btn btn-secondary" style="background-color:#5856d6; color:white;" onclick="window.triggerDownload('${shipmentId}', 'Concern Form')">📝 Concern Form</button>
+                                </div>
+                                <button onclick="document.getElementById('${modalId}').remove()" style="margin-top:20px; background:none; border:none; color:#999; text-decoration:underline; cursor:pointer;">Cancel</button>
+                            </div>
+                        </div>
+                    `;
+                    document.body.insertAdjacentHTML('beforeend', modalHTML);
+
+                    // 2. Define Helper for Silent Download (Bypasses heavy table rendering)
+                    window.triggerDownload = (id, type) => {
+                        document.getElementById(modalId).remove();
+                        const shipment = local_shipments_cache.find(s => s.id === id);
+                        if (!shipment) { alert("Shipment data not found."); return; }
+
+                        // Silent Populate (Fills data but SKIPS renderItemTable to avoid crash)
+                        document.getElementById('senderName').value = shipment.senderName || '';
+                        document.getElementById('senderPhone').value = shipment.senderPhone || '';
+                        document.getElementById('senderAddress').value = shipment.senderAddress || '';
+                        document.getElementById('senderNic').value = shipment.senderNic || '';
+
+                        document.getElementById('receiverName').value = shipment.receiverName || '';
+                        document.getElementById('receiverPhone').value = shipment.receiverPhone || '';
+                        document.getElementById('receiverAddress').value = shipment.receiverAddress || '';
+                        document.getElementById('customerRemarks').value = shipment.customerRemarks || '';
+                        
+                        document.getElementById('totalPackages').value = shipment.totalPackages || '';
+                        document.getElementById('totalWeight').value = shipment.totalWeight || '';
+                        document.getElementById('invoiceNumber').value = shipment.invoiceNumber || '';
+                        document.getElementById('invoiceDate').value = shipment.invoiceDate || '';
+                        document.getElementById('hsCode').value = shipment.hsCode || '';
+                        
+                        document.getElementById('paymentTotal').value = shipment.paymentTotal || '';
+                        document.getElementById('additionalChargesAmt').value = shipment.additionalChargesAmt || '';
+                        document.getElementById('additionalChargesDesc').value = shipment.additionalChargesDesc || '';
+
+                        // Update local variable directly without DOM table update
+                        local_items = [...(shipment.items || [])];
+
+                        // Trigger Generation with 'save' action where possible
+                        if (type === 'Invoice') {
+                            generatePDF('Commercial Invoice', 'save');
+                        } else if (type === 'Packing List') {
+                            generatePDF('Packing List', 'save');
+                        } else if (type === 'Concern Form') {
+                            generateConcernForm(); // Opens PDF in new tab (Mobile friendly)
+                        }
+                    };
                 }
                 else if (btn.classList.contains('delete-shipment-btn')) {
                     const shipment = local_shipments_cache.find(s => s.id === shipmentId);
