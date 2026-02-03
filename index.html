@@ -2215,8 +2215,6 @@
                     const actionsTd = document.createElement('td');
                     actionsTd.className = 'table-actions';
                     actionsTd.innerHTML = `
-                        <button class="btn btn-secondary btn-small view-invoice-btn" data-id="${safeId}">View Invoice</button>
-                        <button class="btn btn-secondary btn-small view-shipment-btn" data-id="${safeId}">View</button>
                         <button class="btn btn-primary btn-small edit-shipment-btn" data-id="${safeId}">Edit</button>
                         <button class="btn btn-success btn-small download-shipment-btn" style="background-color: #28a745; color: white;" data-id="${safeId}">Download</button>
                         <button class="btn btn-danger btn-small delete-shipment-btn" data-id="${safeId}">Delete</button>
@@ -2353,12 +2351,6 @@
                 try {
                     if (btn.classList.contains('edit-shipment-btn')) {
                         loadShipmentForEdit(shipmentId); 
-                    }
-                    else if (btn.classList.contains('view-shipment-btn')) {
-                         loadShipmentForView(shipmentId); 
-                    }
-                    else if (btn.classList.contains('view-invoice-btn')) {
-                         viewShipmentInvoice(shipmentId); 
                     }
                     // --- NEW: DOWNLOAD BUTTON LOGIC (Fix for Mobile/Large Files) ---
                     else if (btn.classList.contains('download-shipment-btn')) {
