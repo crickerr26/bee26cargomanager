@@ -1,0 +1,1221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Bee26 - Customer Item Submission</title>
+    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
+      import { getDatabase, ref, push } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-database.js";
+      
+      const firebaseConfig = {
+        apiKey: "AIzaSyAMZHYef6CXhkfJNdewMQ8M2gifGgS07k",
+        authDomain: "bee26cargoservices-2651f.firebaseapp.com",
+        projectId: "bee26cargoservices-2651f",
+        storageBucket: "bee26cargoservices-2651f.appspot.com", 
+        messagingSenderId: "508829616627",
+        appId: "1:508829616627:web:062d3f033cad60a9089686",
+        measurementId: "G-YSB8DJ5PE6",
+        databaseURL: "https://bee26cargoservices-2651f-default-rtdb.firebaseio.com" 
+      };
+
+      const app = initializeApp(firebaseConfig);
+      window.db = getDatabase(app);
+      window.dbRef = ref;
+      window.dbPush = push;
+    </script>
+
+    <style>
+        /* Importing a sleek, modern FinTech font */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+        :root {
+            --brand-primary: #0F172A; /* Slate 900 - Premium dark for main buttons */
+            --brand-accent: #2563EB; /* Blue 600 - Action accent */
+            --brand-accent-hover: #1D4ED8; 
+            --bg-body: #F8FAFC; /* Slate 50 - Very soft background */
+            --bg-surface: #FFFFFF;
+            --text-heading: #1E293B;
+            --text-body: #334155;
+            --text-muted: #64748B;
+            --border-light: #E2E8F0;
+            --danger: #EF4444;
+            --font-main: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+
+        body { 
+            font-family: var(--font-main); 
+            background-color: var(--bg-body); 
+            color: var(--text-body); 
+            margin: 0; 
+            padding: 20px 12px; 
+            -webkit-font-smoothing: antialiased;
+            line-height: 1.5;
+        }
+
+        .container { 
+            max-width: 800px; 
+            margin: 0 auto; 
+            padding-bottom: 50px;
+        }
+
+        /* Header Re-styling */
+        .header { 
+            text-align: center; 
+            margin-bottom: 40px; 
+            padding-top: 20px;
+        }
+        .header img { 
+            height: 60px; 
+            margin-bottom: 16px;
+            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.05));
+        }
+        h2 { 
+            margin: 0 0 8px 0; 
+            font-size: 32px; 
+            font-weight: 800; 
+            letter-spacing: -0.02em;
+            color: var(--text-heading);
+        }
+        .header p {
+            margin: 0 auto;
+            max-width: 500px;
+            font-size: 15px;
+            color: var(--text-muted);
+        }
+        
+        /* Premium Soft Cards */
+        .form-section { 
+            background: var(--bg-surface); 
+            border-radius: 20px; 
+            padding: 32px; 
+            margin-bottom: 30px; 
+            box-shadow: 0 10px 40px -10px rgba(0,0,0,0.08); 
+            border: 1px solid rgba(226, 232, 240, 0.6);
+        }
+        .form-section h3 {
+            margin-top: 0;
+            margin-bottom: 24px;
+            font-size: 20px;
+            font-weight: 700;
+            letter-spacing: -0.01em;
+            color: var(--text-heading);
+            border-bottom: 2px solid var(--bg-body);
+            padding-bottom: 16px;
+        }
+        
+        .form-grid-two-col { 
+            display: grid; 
+            grid-template-columns: 1fr; 
+            gap: 20px; 
+        }
+        @media (min-width: 600px) {
+            .form-grid-two-col { grid-template-columns: 1fr 1fr; }
+        }
+        
+        /* Input Hierarchy Fix */
+        .input-group { 
+            display: flex; 
+            flex-direction: column; 
+            gap: 6px; 
+        }
+        .input-group label { 
+            font-size: 12px; 
+            font-weight: 700; 
+            color: var(--text-heading); 
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-left: 2px;
+        }
+        
+        .input-group input, .input-group select, .input-group textarea { 
+            width: 100%; 
+            padding: 14px 16px; 
+            font-size: 16px; /* Perfect reading size */
+            font-weight: 500;
+            color: var(--text-heading);
+            background-color: #F8FAFC; /* Subtle fill */
+            border: 1.5px solid var(--border-light); 
+            border-radius: 12px; 
+            box-sizing: border-box; 
+            font-family: inherit; 
+            transition: all 0.2s ease;
+            -webkit-appearance: none;
+            appearance: none; 
+        }
+
+        /* VITAL: Placeholder De-Cluttering */
+        .input-group input::placeholder, 
+        .input-group textarea::placeholder {
+            color: #94A3B8; /* Muted slate color */
+            font-size: 14px; /* Noticeably smaller than real text */
+            font-weight: 400; /* Regular weight so it doesn't fight labels */
+            opacity: 1; 
+        }
+
+        /* Custom Dropdown Arrow */
+        .input-group select {
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 16px center;
+            background-size: 16px;
+        }
+
+        /* Focus State glow */
+        .input-group input:focus, .input-group select:focus, .input-group textarea:focus { 
+            outline: none; 
+            background-color: var(--bg-surface);
+            border-color: var(--brand-accent); 
+            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1); 
+        }
+        
+        /* Premium Buttons */
+        .btn { 
+            padding: 16px 24px; 
+            font-size: 16px; 
+            font-weight: 600; 
+            border: none; 
+            border-radius: 12px; 
+            cursor: pointer; 
+            transition: all 0.2s ease; 
+            text-align: center;
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            letter-spacing: 0.01em;
+        }
+        .btn:active {
+            transform: scale(0.98);
+        }
+        .btn-primary { 
+            background-color: var(--brand-primary); 
+            color: white; 
+            box-shadow: 0 4px 12px rgba(15, 23, 42, 0.15);
+        }
+        .btn-primary:hover { 
+            background-color: #1E293B; 
+            box-shadow: 0 6px 16px rgba(15, 23, 42, 0.2);
+            transform: translateY(-1px);
+        }
+        .btn-secondary { 
+            background-color: #F1F5F9; 
+            color: var(--text-heading); 
+            border: 1px solid var(--border-light);
+        }
+        .btn-secondary:hover {
+            background-color: #E2E8F0;
+        }
+        
+        /* Table Styles */
+        .table-container {
+            width: 100%;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            border-radius: 12px;
+            border: 1px solid var(--border-light);
+        }
+        .styled-table { 
+            width: 100%; 
+            border-collapse: collapse; 
+            font-size: 14px; 
+            white-space: nowrap;
+            background: white;
+        }
+        .styled-table th, .styled-table td { 
+            padding: 16px; 
+            text-align: left; 
+            border-bottom: 1px solid var(--border-light); 
+        }
+        .styled-table th { 
+            color: var(--text-muted); 
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 12px;
+            letter-spacing: 0.05em;
+            background: #F8FAFC;
+        }
+        
+        #itemFormContainer { 
+            display: none; 
+            padding-top: 32px; 
+            margin-top: 24px;
+            border-top: 2px dashed var(--border-light); 
+        }
+        
+        /* Condition Buttons (New/Used) */
+        .condition-btn { 
+            flex: 1; 
+            padding: 14px;
+            background-color: #F8FAFC;
+            color: var(--text-body);
+            border: 1.5px solid var(--border-light);
+        }
+        .active-condition { 
+            background: var(--brand-accent) !important; 
+            color: white !important; 
+            border-color: var(--brand-accent) !important;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+        }
+
+        /* Elevated Scanner Box */
+        .scanner-box {
+            background: linear-gradient(to right bottom, #F0F9FF, #E0F2FE);
+            border: 1.5px solid #BAE6FD;
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+        .scanner-box label {
+            color: #0369A1;
+            font-size: 14px;
+            margin-bottom: 16px;
+            margin-left: 0;
+            display: block;
+            text-transform: none;
+            letter-spacing: 0;
+        }
+        .scanner-box .btn-secondary {
+            background-color: var(--danger);
+            color: white;
+            border: none;
+        }
+        .scanner-box .btn-secondary:hover {
+            background-color: #DC2626;
+        }
+        .scanner-box input {
+            background: white;
+            border-color: #BAE6FD;
+        }
+        
+        /* Autocomplete Suggestions */
+        .suggestions-list {
+            list-style: none; padding: 0; margin: 0;
+            background: var(--bg-surface); border: 1px solid var(--border-light);
+            max-height: 200px; overflow-y: auto;
+            position: absolute; width: 100%; z-index: 1000;
+            border-radius: 0 0 12px 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            top: 100%; left: 0;
+        }
+        .suggestions-list li { padding: 12px 16px; cursor: pointer; border-bottom: 1px solid var(--border-light); font-size: 14px; color: var(--text-heading); transition: background 0.2s ease; }
+        .suggestions-list li:hover { background-color: var(--bg-body); color: var(--brand-accent); }
+        .suggestions-list li:last-child { border-bottom: none; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="header">
+            <img src="https://raw.githubusercontent.com/crickerr26/bee26cargomanager/main/BEE26.png" alt="Bee26 Logo">
+            <h2>Shipment Declaration</h2>
+            <p>Please list all the items you wish to ship. We will prepare your invoice automatically.</p>
+        </div>
+
+        <div class="form-section">
+            <h3>Sender Details</h3>
+            <div class="form-grid-two-col">
+                <div class="input-group"><label>Full Name</label><input type="text" id="senderName" placeholder="John Doe" required></div>
+                <div class="input-group"><label>Phone Number</label><input type="tel" id="senderPhone" placeholder="+1 (000) 000-0000" required></div>
+                <div class="input-group"><label>Email Address</label><input type="email" id="senderEmail" placeholder="name@example.com" required></div>
+                <div class="input-group"><label>Driver's License / Passport</label><input type="text" id="senderNic" placeholder="Required" required></div>
+                <div class="input-group" style="grid-column: 1 / -1; position: relative;">
+                    <label>Full Address</label>
+                    <input type="text" id="senderAddress" placeholder="Start typing address..." required autocomplete="off">
+                    <ul id="senderSuggestions" class="suggestions-list" style="display:none;"></ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-section">
+            <h3>Receiver Details</h3>
+            <div class="form-grid-two-col">
+                <div class="input-group"><label>Full Name</label><input type="text" id="receiverName" placeholder="Jane Smith" required></div>
+                <div class="input-group"><label>Phone Number</label><input type="tel" id="receiverPhone" placeholder="+94 77 000 0000" required></div>
+                <div class="input-group" style="grid-column: 1 / -1; position: relative;">
+                    <label>Full Address</label>
+                    <input type="text" id="receiverAddress" placeholder="Start typing address..." required autocomplete="off">
+                    <ul id="receiverSuggestions" class="suggestions-list" style="display:none;"></ul>
+                </div>
+                <div class="input-group" style="grid-column: 1 / -1;">
+                    <label>Delivery Special Note</label>
+                    <textarea id="customerRemarks" rows="2" placeholder="Any specific delivery instructions... (Optional)"></textarea>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-section">
+            <h3>Shipment Details</h3>
+            <div class="form-grid-two-col">
+                <div class="input-group"><label>Total Packages</label><input type="number" id="totalPackages" placeholder="e.g., 2" min="1" required></div>
+                <div class="input-group"><label>Total Weight (KG)</label><input type="number" id="totalWeight" placeholder="e.g., 15.5" step="0.01" min="0.1" required></div>
+            </div>
+        </div>
+
+        <div class="form-section">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h3 style="margin-bottom: 0; border: none; padding-bottom: 0;">Your Items List</h3>
+                <button type="button" class="btn btn-secondary" style="width: auto; padding: 10px 16px; font-size: 15px;" onclick="document.getElementById('itemFormContainer').style.display='block'">+ Add Item</button>
+            </div>
+            
+            <div class="table-container">
+                <table class="styled-table">
+                    <thead><tr><th>Image</th><th>Description</th><th>Note</th><th>Condition</th><th>Brand</th><th>Qty</th><th>Unit Value</th><th>Total Value</th><th>Action</th></tr></thead>
+                    <tbody id="itemsTableBody">
+                        <tr><td colspan="9" style="text-align: center; color: var(--apple-text-muted); padding: 24px;">No items added yet. Click "+ Add Item"</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div id="itemFormContainer">
+                <h3 style="color: var(--apple-blue); border-bottom: none; margin-bottom: 16px;">Add New Item</h3>
+
+                <div class="scanner-box">
+                    <label>1. Barcode (Optional)</label>
+                    
+                    <div id="scanner-container" style="display: none; margin-bottom: 12px; border-radius: 12px; overflow: hidden;">
+                        <div id="reader" style="width: 100%;"></div>
+                        <button type="button" class="btn btn-secondary" onclick="stopScanner()" style="border-radius: 0;">🛑 Stop / Skip</button>
+                    </div>
+
+                    <div style="display: flex; gap: 10px;">
+                        <button type="button" class="btn btn-primary" id="startScanBtn" onclick="startScanner()" style="flex: 1;">📷 Scan Barcode</button>
+                        <input type="text" id="itemBarcode" placeholder="Or type..." style="font-weight: bold; flex: 1; text-align: center; background: white;" onchange="fetchBarcodeData(this.value)">
+                    </div>
+                    <small id="barcodeStatus" style="color: var(--apple-blue); margin-top: 8px; display: none; font-weight: 600;">Fetching product details...</small>
+                </div>
+
+                <div class="input-group">
+                    <label>2. Product Photo</label>
+                    <input type="file" id="itemImage" accept="image/*" style="background: transparent; padding: 4px;">
+                    <img id="imagePreview" src="" style="width: 120px; height: 120px; object-fit: cover; display: none; margin-top: 10px; border-radius: 12px; border: 1px solid #E5E5EA; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
+                </div>
+                
+                <div class="input-group">
+                    <label>3. Description</label>
+                    <input type="text" id="itemDesc" placeholder="e.g., Men's T-Shirts">
+                </div>
+
+                <div class="input-group">
+                    <label>4. Category</label>
+                    <select id="itemCat">
+                        <option value="">Select category...</option>
+                        <optgroup label="Apparel & Personal">
+                            <option value="Clothing">Clothing</option>
+                            <option value="Footwear & Shoes">Footwear & Shoes</option>
+                            <option value="Kids Clothing">Kids Clothing</option>
+                            <option value="Men's Accessories">Men's Accessories</option>
+                            <option value="Ladies' Accessories">Ladies' Accessories</option>
+                            <option value="Fabrics & Textiles">Fabrics & Textiles</option>
+                        </optgroup>
+                        <optgroup label="Electronics & Media">
+                            <option value="Computers & Laptops">Computers & Laptops</option>
+                            <option value="Phones & Accessories">Phones & Accessories</option>
+                            <option value="Cameras & Equipment">Cameras & Equipment</option>
+                            <option value="Electronic Items">Electronic Items</option>
+                        </optgroup>
+                        <optgroup label="Food & Perishables">
+                            <option value="Packaged Food (Non-Perishable)">Packaged Food (Non-Perishable)</option>
+                            <option value="Perishables (Special Handling)">Perishables (Special Handling)</option>
+                        </optgroup>
+                        <optgroup label="Household & Others">
+                            <option value="Kitchenware">Kitchenware</option>
+                            <option value="Home Decor">Home Decor</option>
+                            <option value="Toys & Hobbies">Toys & Hobbies</option>
+                            <option value="Baby Items">Baby Items</option>
+                            <option value="Cosmetics & Toiletries">Cosmetics & Toiletries</option>
+                            <option value="Medicines & Vitamins">Medicines & Vitamins</option>
+                            <option value="Books & Stationery">Books & Stationery</option>
+                            <option value="Tools & Hardware">Tools & Hardware</option>
+                            <option value="Automotive Parts">Automotive Parts</option>
+                            <option value="General Merchandise">General Merchandise</option>
+                            <option value="Other">Other</option>
+                        </optgroup>
+                    </select>
+                </div>
+
+                <div class="form-grid-two-col">
+                    <div class="input-group"><label>5. Quantity</label><input type="number" id="itemQty" placeholder="e.g. 2" min="1"></div>
+                    <div class="input-group"><label>6. Unit Value (CAD)</label><input type="number" id="itemValue" placeholder="15.00" step="0.01"></div>
+                </div>
+
+                <div class="input-group">
+                    <label>7. Condition</label>
+                    <div style="display: flex; gap: 10px;">
+                        <button type="button" class="btn btn-secondary condition-btn" data-val="New" onclick="setCondition(this)">✨ New</button>
+                        <button type="button" class="btn btn-secondary condition-btn" data-val="Used" onclick="setCondition(this)">♻️ Used</button>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label>8. Brand Name</label>
+                    <input type="text" id="itemBrand" placeholder="e.g. Nike">
+                </div>
+
+                <div class="input-group">
+                    <label>9. Item Note</label>
+                    <input type="text" id="itemNote" placeholder="e.g. Serial Number / Color">
+                </div>
+
+                <div class="input-group" style="opacity: 0.6;">
+                    <label>HS Code (Auto-Generated)</label>
+                    <input type="text" id="itemHSCode" placeholder="e.g., 6109.10" readonly>
+                </div>
+
+                <div style="display: flex; gap: 12px; margin-top: 24px;">
+                    <button type="button" class="btn btn-secondary" style="flex: 1;" onclick="document.getElementById('itemFormContainer').style.display='none'">Cancel</button>
+                    <button type="button" class="btn btn-primary" style="flex: 2;" onclick="saveItemToTable()">Save Item To List</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-section">
+            <h3>Terms & Agreements</h3>
+            <div style="max-height: 250px; overflow-y: auto; padding: 16px; background: #F8FAFC; border: 1.5px solid var(--border-light); border-radius: 12px; font-size: 13px; color: var(--text-body); margin-bottom: 20px;">
+                <p><strong>1. Compliance with Regulations:</strong> The customer agrees that all shipments comply with applicable laws and regulations, including International Air Transport Association (IATA) standards and any relevant customs, import/export regulations.</p>
+                <p><strong>2. Accuracy of Shipment Information:</strong> The customer confirms that all information provided regarding the shipment, including contents, value, and destination, is accurate and truthful. Any discrepancies may lead to the cancellation of the shipment and potential legal action.</p>
+                <p><strong>3. Consignee Liability:</strong> The customer understands that in the event of the shipment containing any illegal or restricted items, the consignee shall bear full responsibility and must face legal consequences as per local and international laws.</p>
+                <p><strong>4. Right to Inspect:</strong> Bee26 Cargo Services reserves the right to inspect any shipment to ensure compliance with all regulations. Any shipment found to contain prohibited items will be reported to the relevant authorities.</p>
+                <p><strong>5. Prohibited Items:</strong> The customer acknowledges that illegal substances, hazardous materials, and any other prohibited or restricted items are not permitted for shipping. The customer is responsible for ensuring that the contents of their shipment comply with these restrictions and Bee26 Cargo Services will not take any responsibilities.</p>
+                <p><strong>6. Liability for Delays or Seizure:</strong> Bee26 Cargo Services is not liable for any delays, losses, or seizures of shipments resulting from violations of the stated conditions or due to the involvement of law enforcement or customs authorities.</p>
+                <p><strong>7. Insurance Policy:</strong> Bee26 Cargo Services is not liable to pay any damage or loss of shipment unless the customer has accepted the Insurance Policy. Victim will get $5 compensation per each kilo and must be only the damaged items. I understand and agree that by declining insurance coverage for this shipment, I assume full responsibility for any loss or damage that may occur during transit.</p>
+                <p><strong>8. Estimated Delivery Time:</strong> Standard delivery time to Sri Lanka is approximately 10 working days. While we strive for punctuality, please be aware that unforeseen delays due to airline transit or customs clearance may occur. We appreciate your patience and professional understanding in such instances.</p>
+                <p><strong>9. Customs Duties & VAT Calculation:</strong> Customers should note that Sri Lanka Customs calculates VAT and other duties based on the assessed value of the items (CIF Method: Cost, Insurance, and Freight) and the quantity, not merely on the weight of the box. The final valuation and applicable taxes are determined solely by the Customs Officer at the time of inspection.</p>
+                <p><strong>10. Local Delivery Surcharges:</strong> The standard shipping rate covers delivery to main distribution centers. Please note that final delivery charges may vary and incur an extra fee depending on the specific delivery zone or remote location within Sri Lanka.</p>
+                
+                <h4 style="color: var(--danger); margin-top: 20px; font-size: 14px;">IMPORTANT: Sri Lanka Customs Tax Notice</h4>
+                <p>Please be aware that Sri Lanka Customs calculates duties based on the CIF Method. You are taxed on the total cost of the shipment, not just the value of the goods.<br>
+                <strong style="display: block; margin: 8px 0;">Taxable Total = Value of Items + Shipping Cost + Insurance</strong>
+                <em>Note: The final valuation of items is determined solely by the Customs Officer at the time of inspection.</em></p>
+                
+                <div style="background: var(--bg-surface); padding: 12px; border-left: 4px solid var(--brand-accent); margin-top: 20px; border-radius: 4px;">
+                    <p style="font-weight: 700; margin: 0; font-size: 14px; color: var(--text-heading);">I agree to pay the custom duties to the relevant authorities or to Bee26 Cargo Services before the boxes are delivered.</p>
+                </div>
+            </div>
+
+            <div class="input-group">
+                <label style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 8px;">
+                    <span>Customer Signature *</span>
+                    <button type="button" id="clearSignatureBtn" style="background: none; border: none; color: var(--brand-accent); font-size: 13px; cursor: pointer; font-weight: bold; padding: 0;">Clear Signature</button>
+                </label>
+                <div style="border: 2px dashed var(--border-light); border-radius: 12px; background: #fff; overflow: hidden; touch-action: none; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);">
+                    <canvas id="signatureCanvas" width="1000" height="200" style="width: 100%; height: 180px; display: block; cursor: crosshair;"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div style="display: flex; gap: 16px; flex-direction: column; margin-top: 20px;">
+            <button type="button" class="btn btn-secondary" id="viewSummaryBtn" style="font-size: 1.1rem; padding: 16px; background-color: #E2E8F0; color: var(--brand-primary);">📄 View Summary Before Submitting</button>
+            <button type="button" class="btn btn-primary" id="submitAllBtn" style="font-size: 1.2rem; padding: 18px;">Submit All Items to Bee26</button>
+            <button type="button" class="btn btn-secondary" id="clearFormBtn" style="font-size: 1rem; padding: 14px; background-color: var(--danger); color: white; border: none;">🗑️ Clear Form & Start New</button>
+        </div>
+
+        <div id="summaryModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(15,23,42,0.7); z-index:900; align-items:center; justify-content:center; padding: 20px; box-sizing: border-box; backdrop-filter: blur(4px);">
+            <div style="background:var(--bg-surface); padding:32px; border-radius:24px; width:100%; max-width:600px; max-height:85vh; overflow-y:auto; box-shadow:0 20px 40px rgba(0,0,0,0.2);">
+                <h2 style="margin-top:0; color:var(--text-heading); border-bottom:2px solid var(--border-light); padding-bottom:12px; font-size: 24px;">Shipment Summary</h2>
+                
+                <h4 style="color:var(--brand-accent); margin: 20px 0 8px 0; font-size: 16px; text-transform: uppercase; letter-spacing: 0.05em;">Sender Details</h4>
+                <p id="sumSender" style="margin:0; font-size:15px; color:var(--text-body); line-height: 1.6; background: #F8FAFC; padding: 12px; border-radius: 12px; border: 1px solid var(--border-light);"></p>
+                
+                <h4 style="color:var(--brand-accent); margin: 20px 0 8px 0; font-size: 16px; text-transform: uppercase; letter-spacing: 0.05em;">Receiver Details</h4>
+                <p id="sumReceiver" style="margin:0; font-size:15px; color:var(--text-body); line-height: 1.6; background: #F8FAFC; padding: 12px; border-radius: 12px; border: 1px solid var(--border-light);"></p>
+                
+                <h4 style="color:var(--brand-accent); margin: 20px 0 8px 0; font-size: 16px; text-transform: uppercase; letter-spacing: 0.05em;">Shipment Details</h4>
+                <p id="sumShipment" style="margin:0; font-size:15px; color:var(--text-body); line-height: 1.6; background: #F8FAFC; padding: 12px; border-radius: 12px; border: 1px solid var(--border-light);"></p>
+                
+                <h4 style="color:var(--brand-accent); margin: 20px 0 8px 0; font-size: 16px; text-transform: uppercase; letter-spacing: 0.05em;">Items (<span id="sumItemCount">0</span>)</h4>
+                <ul id="sumItemsList" style="margin:0 0 24px 0; padding-left:0; list-style: none; font-size:15px; color:var(--text-body); max-height: 200px; overflow-y: auto; background: #F8FAFC; padding: 12px; border-radius: 12px; border: 1px solid var(--border-light);"></ul>
+                
+                <button type="button" class="btn btn-primary" onclick="document.getElementById('summaryModal').style.display='none'" style="width: 100%;">Close Summary</button>
+            </div>
+        </div>
+
+        <div id="loadingOverlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(255,255,255,0.9); z-index:999; align-items:center; justify-content:center; flex-direction:column;">
+            <h2 style="color: var(--apple-blue);">Sending your list...</h2>
+            <p style="color: var(--apple-text-muted);">Please do not close this window.</p>
+        </div>
+
+        <div id="confirmClearModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(15,23,42,0.7); z-index:1000; align-items:center; justify-content:center; padding: 20px; box-sizing: border-box; backdrop-filter: blur(4px);">
+            <div style="background:var(--bg-surface); padding:32px; border-radius:20px; width:100%; max-width:400px; box-shadow:0 20px 40px rgba(0,0,0,0.2); text-align:center;">
+                <div style="font-size: 40px; margin-bottom: 16px;">⚠️</div>
+                <h2 style="margin-top:0; margin-bottom: 12px; color:var(--text-heading); font-size: 22px;">Clear Form?</h2>
+                <p style="color:var(--text-body); margin-bottom: 24px; font-size: 15px;">Do you want to clear all your current data and start a new entry? This cannot be undone.</p>
+                <div style="display: flex; gap: 12px;">
+                    <button type="button" class="btn btn-secondary" id="cancelClearBtn" style="flex: 1;">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="confirmClearBtn" style="flex: 1; background-color: var(--danger); box-shadow: none;">Clear Form</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let customerItems = [];
+        let currentImageBase64 = null;
+        let selectedCondition = "";
+        let html5QrcodeScanner = null;
+        const DRAFT_KEY = "bee26_customer_draft_v1";
+        let currentEditIndex = -1;
+
+        // --- 0. Auto-Save (Draft) Logic ---
+        function saveDraft() {
+            const draft = {
+                senderName: document.getElementById('senderName').value,
+                senderPhone: document.getElementById('senderPhone').value,
+                senderEmail: document.getElementById('senderEmail').value,
+                senderNic: document.getElementById('senderNic').value,
+                senderAddress: document.getElementById('senderAddress').value,
+                receiverName: document.getElementById('receiverName').value,
+                receiverPhone: document.getElementById('receiverPhone').value,
+                receiverAddress: document.getElementById('receiverAddress').value,
+                customerRemarks: document.getElementById('customerRemarks').value,
+                totalPackages: document.getElementById('totalPackages').value,
+                totalWeight: document.getElementById('totalWeight').value,
+                items: customerItems
+            };
+            localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
+        }
+
+        function restoreDraft() {
+            const draftJson = localStorage.getItem(DRAFT_KEY);
+            if(draftJson) {
+                try {
+                    const draft = JSON.parse(draftJson);
+                    document.getElementById('senderName').value = draft.senderName || '';
+                    document.getElementById('senderPhone').value = draft.senderPhone || '';
+                    document.getElementById('senderEmail').value = draft.senderEmail || '';
+                    document.getElementById('senderNic').value = draft.senderNic || '';
+                    document.getElementById('senderAddress').value = draft.senderAddress || '';
+                    document.getElementById('receiverName').value = draft.receiverName || '';
+                    document.getElementById('receiverPhone').value = draft.receiverPhone || '';
+                    document.getElementById('receiverAddress').value = draft.receiverAddress || '';
+                    document.getElementById('customerRemarks').value = draft.customerRemarks || '';
+                    document.getElementById('totalPackages').value = draft.totalPackages || '';
+                    document.getElementById('totalWeight').value = draft.totalWeight || '';
+                    if(draft.items && Array.isArray(draft.items)) {
+                        customerItems = draft.items;
+                        renderTable();
+                    }
+                } catch(e) { console.error("Draft restore error", e); }
+            }
+        }
+
+        // Attach auto-save and auto-capitalize to all inputs
+        document.querySelectorAll('input, textarea, select').forEach(el => {
+            el.addEventListener('input', function(e) {
+                // Auto-capitalize the first letter for text inputs and textareas
+                if (this.tagName === 'TEXTAREA' || (this.tagName === 'INPUT' && this.type === 'text')) {
+                    if (this.value.length > 0) {
+                        let start = this.selectionStart;
+                        let end = this.selectionEnd;
+                        let oldVal = this.value;
+                        let newVal = oldVal.charAt(0).toUpperCase() + oldVal.slice(1);
+                        
+                        // Only update if a change was made to prevent cursor jumping
+                        if (oldVal !== newVal) {
+                            this.value = newVal;
+                            this.setSelectionRange(start, end);
+                        }
+                    }
+                }
+                saveDraft();
+            });
+            el.addEventListener('change', saveDraft);
+        });
+
+        window.addEventListener('DOMContentLoaded', restoreDraft);
+
+        // --- 1. HS Code Auto-Generator ---
+        const HS_RULES = [
+            { code: "2106.90", keywords: ["creatine", "protein", "whey", "pre-workout", "bcaa", "vitamin", "supplement", "capsule", "gummies", "centrum", "omega", "fish oil", "food prep"] },
+            { code: "3004.90", keywords: ["medicine", "panadol", "tylenol", "advil", "syrup", "tablet", "pain relief"] },
+            { code: "3305.10", keywords: ["shampoo"] },
+            { code: "3305.90", keywords: ["hair color", "hair colour", "hair dye", "conditioner", "hair mask", "hair gel"] }, 
+            { code: "3304.91", keywords: ["powder", "talc"], negative: ["protein", "creatine", "drink", "milk"] }, 
+            { code: "3304.99", keywords: ["baby oil", "body oil", "face wash", "lotion", "cream", "moisturizer", "scrub", "sunscreen", "vaseline", "sudo", "skin care"] }, 
+            { code: "3307.20", keywords: ["deodorant", "body spray", "antiperspirant"] },
+            { code: "3303.00", keywords: ["perfume", "cologne", "fragrance", "edt", "edp"] },
+            { code: "3306.10", keywords: ["toothpaste"] },
+            { code: "3401.30", keywords: ["body wash", "shower gel", "liquid soap", "hand wash"] },
+            { code: "6111.20", keywords: ["baby", "onesie", "romper", "bib", "frock", "infant"], negative: ["oil", "lotion", "powder", "shampoo", "toy", "walker", "bottle"] }, 
+            { code: "6109.10", keywords: ["t-shirt", "tee", "polo", "top", "blouse", "shirt"] },
+            { code: "6203.42", keywords: ["jean", "denim", "trouser", "pant", "short", "legging"] },
+            { code: "6204.42", keywords: ["dress", "skirt", "maxi"] },
+            { code: "6115.95", keywords: ["sock", "stocking"] },
+            { code: "8471.30", keywords: ["laptop", "macbook", "notebook", "computer", "ipad", "tablet"] },
+            { code: "8517.13", keywords: ["iphone", "samsung", "pixel", "smartphone", "mobile phone"] }, 
+            { code: "8517.62", keywords: ["smart watch", "apple watch", "fitbit"] },
+            { code: "9102.11", keywords: ["wrist watch", "analog watch", "quartz watch", "mechanical watch", "casio", "rolex", "seiko"], negative: ["smart"] },
+            { code: "8518.30", keywords: ["headphone", "earphone", "airpod", "headset", "galaxy bud"] },
+            { code: "9405.42", keywords: ["led strip", "light strip", "govee", "rope light"], negative: ["bulb"] }, 
+            { code: "9405.21", keywords: ["floor lamp", "desk lamp", "table lamp"] },
+            { code: "1806.90", keywords: ["chocolate", "candy", "sweet"] },
+            { code: "3924.10", keywords: ["bottle", "tupperware", "plastic cup", "lunch box", "kitchen"], negative: ["feeding bottle"] },
+            { code: "3924.90", keywords: ["feeding bottle", "baby bottle"] }, 
+            { code: "6403.99", keywords: ["shoe", "sneaker", "boot", "sandal", "slipper", "footwear", "runner", "trainer"] }
+        ];
+
+        const HS_CATEGORY_DEFAULTS = {
+            "Cosmetics & Toiletries": "3304.99",
+            "Medicines & Vitamins": "3004.90",
+            "Clothing": "6109.10",
+            "Kids Clothing": "6111.20",
+            "Footwear & Shoes": "6403.99",
+            "Fabrics & Textiles": "6307.90",
+            "Computers & Laptops": "8471.30",
+            "Phones & Accessories": "8517.13",
+            "Electronic Items": "8543.70",
+            "Packaged Food (Non-Perishable)": "2106.90",
+            "Toys & Hobbies": "9503.00",
+            "Kitchenware": "3924.10",
+            "Other": ""
+        };
+
+        function calculateHSCode() {
+            const desc = document.getElementById('itemDesc').value.toLowerCase().trim();
+            const cat = document.getElementById('itemCat').value;
+            const hsOutput = document.getElementById('itemHSCode');
+            let bestMatch = null;
+            let highestScore = 0;
+
+            HS_RULES.forEach(rule => {
+                let score = 0;
+                let negativeMatch = false;
+                if (rule.negative) {
+                    rule.negative.forEach(neg => { if (desc.includes(neg)) negativeMatch = true; });
+                }
+                if (!negativeMatch) {
+                    rule.keywords.forEach(keyword => {
+                        if (desc.includes(keyword)) { score += (keyword.length + 5); }
+                    });
+                }
+                if (score > highestScore) {
+                    highestScore = score;
+                    bestMatch = rule.code;
+                }
+            });
+
+            if (bestMatch) {
+                hsOutput.value = bestMatch;
+            } else if (cat && HS_CATEGORY_DEFAULTS[cat]) {
+                hsOutput.value = HS_CATEGORY_DEFAULTS[cat];
+            } else {
+                hsOutput.value = "";
+            }
+        }
+
+        document.getElementById('itemDesc').addEventListener('keyup', calculateHSCode);
+        document.getElementById('itemCat').addEventListener('change', calculateHSCode);
+
+        // --- 2. Barcode Scanner & Auto-Fetch API Logic ---
+        function startScanner() {
+            document.getElementById('scanner-container').style.display = 'block';
+            document.getElementById('startScanBtn').style.display = 'none';
+            if (!html5QrcodeScanner) {
+                html5QrcodeScanner = new Html5Qrcode("reader");
+            }
+            const config = { fps: 10, qrbox: { width: 250, height: 250 } };
+            html5QrcodeScanner.start({ facingMode: "environment" }, config, 
+                (decodedText) => {
+                    stopScanner();
+                    document.getElementById('itemBarcode').value = decodedText;
+                    fetchBarcodeData(decodedText);
+                }, 
+                (errorMessage) => {}
+            );
+        }
+
+        function stopScanner() {
+            if (html5QrcodeScanner) {
+                html5QrcodeScanner.stop().then(() => {
+                    document.getElementById('scanner-container').style.display = 'none';
+                    document.getElementById('startScanBtn').style.display = 'block';
+                }).catch(err => {
+                    document.getElementById('scanner-container').style.display = 'none';
+                    document.getElementById('startScanBtn').style.display = 'block';
+                });
+            } else {
+                document.getElementById('scanner-container').style.display = 'none';
+                document.getElementById('startScanBtn').style.display = 'block';
+            }
+        }
+
+        async function fetchBarcodeData(barcode) {
+            if (!barcode) return;
+            const statusEl = document.getElementById('barcodeStatus');
+            statusEl.textContent = "Fetching international product details...";
+            statusEl.style.display = "block";
+            statusEl.style.color = "var(--brand-accent)";
+
+            try {
+                let res = await fetch(`https://api.upcitemdb.com/prod/trial/lookup?upc=${barcode}`);
+                let data = await res.json();
+                
+                if (data && data.items && data.items.length > 0) {
+                    document.getElementById('itemDesc').value = data.items[0].title || '';
+                    document.getElementById('itemBrand').value = data.items[0].brand || '';
+                    statusEl.textContent = "✅ Product found via UPC Database!";
+                    statusEl.style.color = "green";
+                    calculateHSCode();
+                    return;
+                }
+
+                res = await fetch(`https://world.openfoodfacts.org/api/v0/product/${barcode}.json`);
+                data = await res.json();
+                
+                if (data && data.status === 1) {
+                    document.getElementById('itemDesc').value = data.product.product_name || '';
+                    document.getElementById('itemBrand').value = data.product.brands || '';
+                    statusEl.textContent = "✅ Product found via OpenFoodFacts!";
+                    statusEl.style.color = "green";
+                    calculateHSCode();
+                    return;
+                }
+
+                statusEl.textContent = "⚠️ Barcode valid, but no public info found. Please enter manually.";
+                statusEl.style.color = "#d46b08";
+            } catch(e) {
+                console.error("API Error", e);
+                statusEl.textContent = "⚠️ Error fetching data. Please enter manually.";
+                statusEl.style.color = "red";
+            }
+        }
+
+        // --- 3. Image Compression Helper ---
+        document.getElementById('itemImage').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = event => {
+                const img = new Image();
+                img.src = event.target.result;
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    let width = img.width; let height = img.height;
+                    const max = 600;
+                    if (width > height && width > max) { height *= max / width; width = max; } 
+                    else if (height > max) { width *= max / height; height = max; }
+                    canvas.width = width; canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+                    currentImageBase64 = canvas.toDataURL('image/jpeg', 0.6);
+                    document.getElementById('imagePreview').src = currentImageBase64;
+                    document.getElementById('imagePreview').style.display = 'block';
+                };
+            };
+        });
+
+        function setCondition(btn) {
+            document.querySelectorAll('.condition-btn').forEach(b => b.classList.remove('active-condition'));
+            btn.classList.add('active-condition');
+            selectedCondition = btn.dataset.val;
+        }
+
+        // --- 4. Add to Table ---
+        function saveItemToTable() {
+            const barcode = document.getElementById('itemBarcode').value;
+            const desc = document.getElementById('itemDesc').value;
+            const cat = document.getElementById('itemCat').value;
+            const qty = document.getElementById('itemQty').value;
+            const val = document.getElementById('itemValue').value;
+            const brand = document.getElementById('itemBrand').value;
+            const note = document.getElementById('itemNote').value;
+            const hsCode = document.getElementById('itemHSCode').value || ""; 
+
+            if(!currentImageBase64 || !desc || !cat || !qty || !val || !selectedCondition || !brand || !note) {
+                alert("Please fill out all mandatory fields and attach a photo."); return;
+            }
+
+            const newItem = {
+                barcode: barcode,
+                image: currentImageBase64,
+                desc: desc, category: cat, qty: qty, value: val,
+                condition: selectedCondition, brand: brand, note: note, hsCode: hsCode
+            };
+
+            if (currentEditIndex > -1) {
+                customerItems[currentEditIndex] = newItem;
+                currentEditIndex = -1; // reset after edit
+            } else {
+                customerItems.push(newItem);
+            }
+
+            renderTable();
+            saveDraft();
+            
+            // Clear inputs
+            document.getElementById('itemBarcode').value = '';
+            document.getElementById('barcodeStatus').style.display = 'none';
+            document.getElementById('itemDesc').value = '';
+            document.getElementById('itemCat').value = '';
+            document.getElementById('itemQty').value = ''; 
+            document.getElementById('itemValue').value = '';
+            document.getElementById('itemBrand').value = '';
+            document.getElementById('itemNote').value = '';
+            document.getElementById('itemHSCode').value = '';
+            document.getElementById('itemImage').value = '';
+            document.getElementById('imagePreview').style.display = 'none';
+            currentImageBase64 = null;
+            document.querySelectorAll('.condition-btn').forEach(b => b.classList.remove('active-condition'));
+            selectedCondition = "";
+            document.getElementById('itemFormContainer').style.display = 'none';
+        }
+
+        function renderTable() {
+            const tbody = document.getElementById('itemsTableBody');
+            tbody.innerHTML = '';
+            if(customerItems.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="9" style="text-align: center; color: #999;">No items added yet. Click "+ Add Item"</td></tr>';
+                return;
+            }
+            customerItems.forEach((item, idx) => {
+                const unitVal = parseFloat(item.value) || 0;
+                const qty = parseFloat(item.qty) || 0;
+                const totalVal = (unitVal * qty).toFixed(2);
+                
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td><img src="${item.image}" style="width:40px; height:40px; border-radius:4px; object-fit:cover;"></td>
+                    <td style="vertical-align: middle;">${item.desc}</td>
+                    <td style="vertical-align: middle;">${item.note || '--'}</td>
+                    <td style="vertical-align: middle;">${item.condition}</td>
+                    <td style="vertical-align: middle;">${item.brand}</td>
+                    <td style="vertical-align: middle;">${item.qty}</td>
+                    <td style="vertical-align: middle;">$${unitVal.toFixed(2)}</td>
+                    <td style="vertical-align: middle; font-weight: 600;">$${totalVal}</td>
+                    <td style="vertical-align: middle;">
+                        <div style="display: flex; gap: 12px; align-items: center;">
+                            <button onclick="editItem(${idx})" style="color: var(--brand-accent); border: none; background: transparent; cursor: pointer; font-weight: 700; font-size: 14px; padding: 6px 10px; border-radius: 6px; transition: background 0.2s;" onmouseover="this.style.background='#EFF6FF'" onmouseout="this.style.background='transparent'">Edit</button>
+                            <button onclick="removeItem(${idx})" style="color: var(--danger); border: none; background: transparent; cursor: pointer; font-weight: 700; font-size: 14px; padding: 6px 10px; border-radius: 6px; transition: background 0.2s;" onmouseover="this.style.background='#FEF2F2'" onmouseout="this.style.background='transparent'">Delete</button>
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        window.editItem = function(idx) {
+            const item = customerItems[idx];
+            currentEditIndex = idx;
+            
+            // Populate form
+            document.getElementById('itemBarcode').value = item.barcode || '';
+            document.getElementById('itemDesc').value = item.desc || '';
+            document.getElementById('itemCat').value = item.category || '';
+            document.getElementById('itemQty').value = item.qty || '';
+            document.getElementById('itemValue').value = item.value || '';
+            document.getElementById('itemBrand').value = item.brand || '';
+            document.getElementById('itemNote').value = item.note || '';
+            document.getElementById('itemHSCode').value = item.hsCode || '';
+            
+            // Handle Condition
+            document.querySelectorAll('.condition-btn').forEach(b => b.classList.remove('active-condition'));
+            const matchingBtn = Array.from(document.querySelectorAll('.condition-btn')).find(b => b.dataset.val === item.condition);
+            if(matchingBtn) {
+                matchingBtn.classList.add('active-condition');
+                selectedCondition = item.condition;
+            }
+
+            // Handle Image
+            if(item.image) {
+                currentImageBase64 = item.image;
+                document.getElementById('imagePreview').src = item.image;
+                document.getElementById('imagePreview').style.display = 'block';
+            }
+
+            // Show form
+            document.getElementById('itemFormContainer').style.display = 'block';
+            document.getElementById('itemFormContainer').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        window.removeItem = function(idx) {
+            if(confirm("Are you sure you want to remove this item from your list?")) {
+                customerItems.splice(idx, 1);
+                // Reset edit state if they delete the item they are currently editing
+                if (currentEditIndex === idx) {
+                    currentEditIndex = -1;
+                    document.getElementById('itemFormContainer').style.display = 'none';
+                }
+                renderTable();
+                saveDraft();
+            }
+        }
+
+        // --- 5. View Summary ---
+        document.getElementById('viewSummaryBtn').addEventListener('click', () => {
+            const sName = document.getElementById('senderName').value;
+            const sPhone = document.getElementById('senderPhone').value;
+            const rName = document.getElementById('receiverName').value;
+            const rPhone = document.getElementById('receiverPhone').value;
+
+            document.getElementById('sumSender').innerHTML = `<strong>Name:</strong> ${sName || 'Not entered'}<br><strong>Phone:</strong> ${sPhone || 'Not entered'}<br><strong>Email:</strong> ${document.getElementById('senderEmail').value || '--'}<br><strong>Address:</strong> ${document.getElementById('senderAddress').value || '--'}`;
+            document.getElementById('sumReceiver').innerHTML = `<strong>Name:</strong> ${rName || 'Not entered'}<br><strong>Phone:</strong> ${rPhone || 'Not entered'}<br><strong>Address:</strong> ${document.getElementById('receiverAddress').value || '--'}<br><strong>Note:</strong> ${document.getElementById('customerRemarks').value || '--'}`;
+            document.getElementById('sumShipment').innerHTML = `<strong>Total Packages:</strong> ${document.getElementById('totalPackages').value || '--'}<br><strong>Total Weight:</strong> ${document.getElementById('totalWeight').value ? document.getElementById('totalWeight').value + ' kg' : '--'}`;
+            
+            document.getElementById('sumItemCount').textContent = customerItems.length;
+            const list = document.getElementById('sumItemsList');
+            list.innerHTML = '';
+            
+            if(customerItems.length === 0) {
+                list.innerHTML = '<li>No items added yet.</li>';
+            } else {
+                let totalVal = 0;
+                
+                // Group items by category
+                const groupedItems = {};
+                customerItems.forEach(item => {
+                    const cat = item.category || 'Uncategorized';
+                    if(!groupedItems[cat]) groupedItems[cat] = [];
+                    groupedItems[cat].push(item);
+                });
+
+                // Render by category
+                for (const category in groupedItems) {
+                    list.innerHTML += `<li style="background: var(--border-light); padding: 6px 12px; font-weight: bold; color: var(--text-heading); border-radius: 6px; margin: 10px 0 6px 0; font-size: 13px; text-transform: uppercase;">${category}</li>`;
+                    
+                    groupedItems[category].forEach(item => {
+                        const lineTotal = (item.qty * item.value);
+                        totalVal += lineTotal;
+                        
+                        const imgHtml = item.image ? `<img src="${item.image}" style="width:50px; height:50px; object-fit:cover; border-radius:8px; border:1px solid #ddd; flex-shrink:0;">` : `<div style="width:50px; height:50px; background:#eee; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:10px; color:#aaa; flex-shrink:0;">No Img</div>`;
+                        
+                        list.innerHTML += `
+                        <li style="display:flex; gap:12px; margin-bottom: 12px; border-bottom: 1px solid var(--border-light); padding-bottom: 12px; align-items: center;">
+                            ${imgHtml}
+                            <div style="flex-grow:1;">
+                                <strong style="color:var(--text-heading); font-size:15px;">${item.qty}x ${item.desc}</strong>
+                                <span style="background: var(--bg-body); padding: 2px 6px; border-radius: 4px; font-size: 11px; color: var(--text-muted); margin-left: 6px; border: 1px solid var(--border-light);">${item.condition}</span>
+                                <div style="color: var(--text-muted); font-size: 13px; margin-top: 4px;">
+                                    Brand: ${item.brand || '--'} | HS Code: ${item.hsCode || '--'}
+                                </div>
+                            </div>
+                            <div style="text-align:right;">
+                                <div style="font-weight:bold; color:var(--text-heading);">$${lineTotal.toFixed(2)}</div>
+                                <div style="color:var(--text-muted); font-size:12px;">$${parseFloat(item.value).toFixed(2)}/ea</div>
+                            </div>
+                        </li>`;
+                    });
+                }
+                
+                list.innerHTML += `<li style="margin-top: 16px; font-size: 18px; font-weight: 800; color: var(--brand-primary); text-align: right; padding-top: 12px; border-top: 2px dashed var(--border-light);">Total Declared Value: $${totalVal.toFixed(2)} CAD</li>`;
+            }
+            
+            document.getElementById('summaryModal').style.display = 'flex';
+        });
+
+        // --- 6. Signature Pad Logic ---
+        const canvas = document.getElementById('signatureCanvas');
+        const ctx = canvas.getContext('2d');
+        let isDrawing = false;
+        let isSignatureEmpty = true;
+
+        // Ensure canvas scaling matches CSS bounds for crisp lines
+        function resizeCanvas() {
+            const rect = canvas.parentElement.getBoundingClientRect();
+            canvas.width = rect.width;
+            canvas.height = 180;
+            ctx.lineWidth = 3;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            ctx.strokeStyle = '#0F172A';
+        }
+        window.addEventListener('resize', resizeCanvas);
+        setTimeout(resizeCanvas, 100);
+
+        function startDrawing(e) {
+            isDrawing = true;
+            isSignatureEmpty = false;
+            draw(e);
+        }
+
+        function stopDrawing() {
+            isDrawing = false;
+            ctx.beginPath();
+        }
+
+        function draw(e) {
+            if (!isDrawing) return;
+            e.preventDefault(); // Prevents page scrolling on mobile while signing
+            
+            const rect = canvas.getBoundingClientRect();
+            let x, y;
+            if (e.touches && e.touches.length > 0) {
+                x = e.touches[0].clientX - rect.left;
+                y = e.touches[0].clientY - rect.top;
+            } else {
+                x = e.clientX - rect.left;
+                y = e.clientY - rect.top;
+            }
+
+            ctx.lineTo(x, y);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(x, y);
+        }
+
+        // Mouse Events
+        canvas.addEventListener('mousedown', startDrawing);
+        canvas.addEventListener('mousemove', draw);
+        canvas.addEventListener('mouseup', stopDrawing);
+        canvas.addEventListener('mouseout', stopDrawing);
+
+        // Touch Events
+        canvas.addEventListener('touchstart', startDrawing, {passive: false});
+        canvas.addEventListener('touchmove', draw, {passive: false});
+        canvas.addEventListener('touchend', stopDrawing);
+
+        document.getElementById('clearSignatureBtn').addEventListener('click', () => {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            isSignatureEmpty = true;
+            ctx.beginPath();
+        });
+
+        // --- 7. Final Submit to Firebase ---
+        document.getElementById('submitAllBtn').addEventListener('click', async () => {
+            const sName = document.getElementById('senderName').value;
+            const sPhone = document.getElementById('senderPhone').value;
+            const sEmail = document.getElementById('senderEmail').value;
+            const sNic = document.getElementById('senderNic').value;
+            const sAddress = document.getElementById('senderAddress').value;
+
+            const rName = document.getElementById('receiverName').value;
+            const rPhone = document.getElementById('receiverPhone').value;
+            const rAddress = document.getElementById('receiverAddress').value;
+            const cRemarks = document.getElementById('customerRemarks').value;
+            
+            const tPackages = document.getElementById('totalPackages').value;
+            const tWeight = document.getElementById('totalWeight').value;
+
+            if(!sName || !sPhone || !sEmail || !sNic || !sAddress || !rName || !rPhone || !rAddress || !tPackages || !tWeight) { 
+                alert("Please fill out all mandatory sender, receiver, and shipment details."); 
+                return; 
+            }
+            if(customerItems.length === 0) { alert("Please add at least one item."); return; }
+            if(isSignatureEmpty) { alert("Please sign the Terms & Agreements before submitting."); return; }
+
+            document.getElementById('loadingOverlay').style.display = 'flex';
+
+            // Convert canvas drawing to Base64 image
+            const signatureData = canvas.toDataURL('image/png');
+
+            const payload = {
+                date: new Date().toISOString(),
+                senderName: sName,
+                senderPhone: sPhone,
+                senderEmail: sEmail,
+                senderNic: sNic,
+                senderAddress: sAddress,
+                receiverName: rName,
+                receiverPhone: rPhone,
+                receiverAddress: rAddress,
+                customerRemarks: cRemarks,
+                totalPackages: tPackages,
+                totalWeight: tWeight,
+                items: customerItems,
+                signature: signatureData // <-- New: Saving signature to DB
+            };
+
+            try {
+                await window.dbPush(window.dbRef(window.db, 'web_submissions'), payload);
+                // Clear draft securely after a successful send
+                localStorage.removeItem(DRAFT_KEY);
+                document.getElementById('loadingOverlay').innerHTML = "<h2 style='color:green;'>Success!</h2><p>Your items have been submitted successfully. We will be in touch shortly.</p>";
+            } catch(e) {
+                console.error(e);
+                alert("Error submitting. Please check your connection.");
+                document.getElementById('loadingOverlay').style.display = 'none';
+            }
+        });
+
+        // --- 8. Clear Form Logic ---
+        document.getElementById('clearFormBtn').addEventListener('click', () => {
+            document.getElementById('confirmClearModal').style.display = 'flex';
+        });
+
+        document.getElementById('cancelClearBtn').addEventListener('click', () => {
+            document.getElementById('confirmClearModal').style.display = 'none';
+        });
+
+        document.getElementById('confirmClearBtn').addEventListener('click', () => {
+            // Hide the modal
+            document.getElementById('confirmClearModal').style.display = 'none';
+            
+            // Clear local storage draft
+            localStorage.removeItem(DRAFT_KEY);
+            
+            // Clear all input fields
+            document.querySelectorAll('input:not([type="file"]), textarea, select').forEach(el => el.value = '');
+            
+            // Reset condition buttons
+            document.querySelectorAll('.condition-btn').forEach(b => b.classList.remove('active-condition'));
+            selectedCondition = "";
+            
+            // Clear image
+            document.getElementById('itemImage').value = '';
+            document.getElementById('imagePreview').style.display = 'none';
+            currentImageBase64 = null;
+
+            // Clear signature
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            isSignatureEmpty = true;
+            ctx.beginPath();
+
+            // Clear items array and UI
+            customerItems = [];
+            currentEditIndex = -1;
+            renderTable();
+            
+            // Hide item form container
+            document.getElementById('itemFormContainer').style.display = 'none';
+
+            // Scroll to top
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+
+        // --- 8. Address Autocomplete Logic ---
+        function setupAutocomplete(inputId, listId) {
+            const input = document.getElementById(inputId);
+            const list = document.getElementById(listId);
+            let timeout = null;
+
+            input.addEventListener('input', () => {
+                const query = input.value;
+                if(query.length < 3) { list.style.display = 'none'; return; }
+                
+                clearTimeout(timeout);
+                timeout = setTimeout(async () => {
+                    const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`;
+                    try {
+                        const res = await fetch(url);
+                        const data = await res.json();
+                        list.innerHTML = '';
+                        if(data.length > 0) {
+                            list.style.display = 'block';
+                            data.slice(0, 5).forEach(place => {
+                                const li = document.createElement('li');
+                                li.textContent = place.display_name;
+                                li.addEventListener('click', () => {
+                                    input.value = place.display_name;
+                                    list.style.display = 'none';
+                                    saveDraft(); // trigger auto-save
+                                });
+                                list.appendChild(li);
+                            });
+                        } else { list.style.display = 'none'; }
+                    } catch(e) { console.error(e); }
+                }, 500); // 500ms debounce
+            });
+
+            // Close list if clicked outside
+            document.addEventListener('click', (e) => {
+                if (e.target !== input && e.target !== list) {
+                    list.style.display = 'none';
+                }
+            });
+        }
+
+        setupAutocomplete('senderAddress', 'senderSuggestions');
+        setupAutocomplete('receiverAddress', 'receiverSuggestions');
+    </script>
+</body>
+</html>
