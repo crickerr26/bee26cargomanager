@@ -763,7 +763,10 @@
 
         <div id="page-web-submissions" class="page-content">
              <div class="card">
-                <h2>Incoming Customer Submissions</h2>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
+                    <h2 style="margin: 0;">Incoming Customer Submissions</h2>
+                    <button class="btn btn-primary" style="background-color:#25D366; border:none;" id="shareCustomerFormBtn">Share Form Link 💬</button>
+                </div>
                 <p style="color: #666; font-size: 0.9rem; margin-bottom: 15px;">Review items submitted by customers via the web form. Click "Create Shipment" to load their data directly into a new shipment draft.</p>
                 <div class="table-container">
                     <table class="styled-table">
@@ -4208,6 +4211,17 @@ async function generateThermalLabel() {
             // New Listener for Concern Form
             const btnConcern = document.getElementById('printConcernFormBtn');
             if(btnConcern) btnConcern.addEventListener('click', generateConcernForm);
+
+            // --- SHARE CUSTOMER SUBMISSION FORM ---
+            const shareFormBtn = document.getElementById('shareCustomerFormBtn');
+            if(shareFormBtn) {
+                shareFormBtn.addEventListener('click', () => {
+                    const formLink = "https://crickerr26.github.io/bee26cargomanager/customer_form.html";
+                    const message = `Hello! Please click the link below to fill in your shipment items and details. Once submitted, we will process your shipment. \n\nLink: ${formLink} \n\nIf you have any doubts, feel free to contact me at +14164744994. Thank you!`;
+                    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
+                    window.open(whatsappUrl, '_blank');
+                });
+            }
 
             // --- WHATSAPP SHARE ---
             const shareWhatsAppBtn = document.getElementById('shareWhatsAppBtn');
