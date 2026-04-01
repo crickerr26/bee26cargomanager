@@ -452,9 +452,6 @@
 
             /* Summary View */
             .summary-grid { grid-template-columns: 90px 1fr; font-size: 0.95rem; gap: 8px; }
-            
-            /* Login Screen */
-            .login-box { width: 90%; padding: 30px 20px; border-radius: 16px; }
         }
         /* --- TOAST NOTIFICATIONS --- */
         .toast-container { position: fixed; top: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; }
@@ -477,47 +474,11 @@
         .suggestions-list li { padding: 10px; cursor: pointer; border-bottom: 1px solid #eee; font-size: 0.9rem; }
         .suggestions-list li:hover { background-color: var(--blue-light); }
 
-        /* --- NEW: LOGIN SCREEN CSS --- */
-        #login-screen {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: linear-gradient(135deg, #1a202c 0%, #2d3748 100%);
-            z-index: 9999; display: flex; align-items: center; justify-content: center;
-            flex-direction: column; color: white;
-        }
-        .login-box {
-            background: white; color: #333; padding: 40px; border-radius: 12px;
-            width: 100%; max-width: 400px; box-shadow: 0 20px 50px rgba(0,0,0,0.3);
-            text-align: center;
-        }
-        .login-box h2 { color: var(--blue); margin-bottom: 20px; }
-        .login-input {
-            width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid #ddd;
-            border-radius: 8px; font-size: 1rem; box-sizing: border-box;
-        }
-        .login-btn {
-            width: 100%; padding: 12px; background: var(--blue); color: white;
-            border: none; border-radius: 8px; font-size: 1.1rem; font-weight: bold;
-            cursor: pointer; transition: background 0.2s;
-        }
-        .login-btn:hover { background: #0056b3; }
+        /* --- LOGIN SCREEN CSS REMOVED --- */
 
     </style>
 </head>
 <body>
-
-    <div id="login-screen">
-        <div class="login-box">
-            <img src="https://raw.githubusercontent.com/crickerr26/bee26cargomanager/main/BEE26.png" alt="Logo" style="height: 60px; margin-bottom: 20px;">
-            <h2>Admin Login</h2>
-            <form id="loginForm">
-                <input type="email" id="loginEmail" class="login-input" placeholder="Email Address" required>
-                <input type="password" id="loginPassword" class="login-input" placeholder="Password" required>
-                <button type="submit" class="login-btn" id="loginBtn">Secure Login</button>
-            </form>
-            <p id="loginError" style="color:red; margin-top:10px; display:none;">Invalid credentials</p>
-        </div>
-        <p style="margin-top: 20px; opacity: 0.6; font-size: 0.8rem;">Bee26 Cargo Management System v2.0</p>
-    </div>
 
     <nav class="sidebar">
         <div class="sidebar-logo">
@@ -527,8 +488,9 @@
             <li><a class="nav-link active" data-page="page-dashboard"><span class="nav-icon">🏠</span><span class="nav-text">Dashboard</span></a></li>
             <li><a class="nav-link" data-page="page-new-shipment"><span class="nav-icon">➕</span><span class="nav-text">New Shipment</span></a></li>
             <li><a class="nav-link" data-page="page-all-shipments"><span class="nav-icon">🚚</span><span class="nav-text">All Shipments</span></a></li>
+            <li><a class="nav-link" data-page="page-web-submissions"><span class="nav-icon">📥</span><span class="nav-text">Web Submissions</span></a></li>
             <li><a class="nav-link" data-page="page-customers"><span class="nav-icon">👥</span><span class="nav-text">Customers</span></a></li>
-            <li><a class="nav-link" data-page="page-payments"><span class="nav-icon">💳</span><span class="nav-text">Payments & Expenses</span></a></li>
+            <li><a class="nav-link" data-page="page-payments"><span class="nav-icon">💳</span><span class="nav-text">Payments & Exp.</span></a></li>
         </ul>
         <div class="sidebar-bottom">
             <ul class="sidebar-nav" style="margin: 0;">
@@ -793,6 +755,21 @@
                         <thead><tr><th>Name (Sender)</th><th>Phone</th><th>Last Shipment</th><th>Total Shipments</th><th>Actions</th></tr></thead>
                         <tbody id="customersTableTbody">
                             <tr><td colspan="5" style="text-align: center;">Loading data from Firebase...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div id="page-web-submissions" class="page-content">
+             <div class="card">
+                <h2>Incoming Customer Submissions</h2>
+                <p style="color: #666; font-size: 0.9rem; margin-bottom: 15px;">Review items submitted by customers via the web form. Click "Create Shipment" to load their data directly into a new shipment draft.</p>
+                <div class="table-container">
+                    <table class="styled-table">
+                        <thead><tr><th>Date</th><th>Sender Name</th><th>Phone</th><th>Total Items</th><th>Actions</th></tr></thead>
+                        <tbody id="webSubmissionsTbody">
+                            <tr><td colspan="5" style="text-align: center;">Loading submissions...</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -1131,6 +1108,7 @@
             let local_shipments_cache = []; 
             let local_batches_cache = {}; 
             let local_expenses_cache = {}; // NEW: Expenses
+            let local_web_submissions_cache = []; // NEW: Web Submissions
             let currentEditItemId = null;
             let currentEditShipmentId = null; 
             let wizardCurrentStep = 1;
@@ -1139,45 +1117,7 @@
             // --- NEW: DRAFT / AUTO-SAVE CONFIG ---
             const DRAFT_KEY = 'bee26_new_shipment_draft';
 
-            // --- AUTHENTICATION LOGIC ---
-            const loginScreen = document.getElementById('login-screen');
-            const loginForm = document.getElementById('loginForm');
-            const logoutBtn = document.getElementById('logoutBtn');
-            const loginError = document.getElementById('loginError');
-            
-            // 1. Check Auth State (BYPASSED)
-            loginScreen.style.display = 'none'; 
-            listenForData(); 
-            /* window.authOnStateChanged(window.auth, (user) => {
-               ... (keep original code commented out)
-            });
-            */
-
-            // 2. Login Handler
-            loginForm.addEventListener('submit', (e) => {
-                e.preventDefault();
-                const email = document.getElementById('loginEmail').value;
-                const password = document.getElementById('loginPassword').value;
-                loginError.style.display = 'none';
-                document.getElementById('loginBtn').textContent = "Verifying...";
-                
-                window.authSignIn(window.auth, email, password)
-                    .then(() => {
-                        document.getElementById('loginBtn').textContent = "Secure Login";
-                    })
-                    .catch((error) => {
-                        console.error(error);
-                        document.getElementById('loginBtn').textContent = "Secure Login";
-                        loginError.style.display = 'block';
-                    });
-            });
-
-            // 3. Logout Handler
-            logoutBtn.addEventListener('click', () => {
-                if(confirm("Log out of Admin Dashboard?")) {
-                    window.authSignOut(window.auth);
-                }
-            });
+            // --- AUTHENTICATION LOGIC REMOVED ---
 
             // --- BACKUP & RESTORE LOGIC ---
             document.getElementById('backupDataBtn').addEventListener('click', async () => {
@@ -1282,6 +1222,7 @@
                  'page-dashboard': { title: 'Dashboard', subtitle: "Welcome back, here's an overview of your business.", actionText: '+ Create New Shipment', actionPage: 'page-new-shipment' },
                 'page-new-shipment': { title: 'New Shipment', subtitle: 'Create a new shipment using the steps below.', actionText: null },
                 'page-all-shipments': { title: 'All Shipments', subtitle: 'Search, filter, and manage all shipments.', actionText: '+ Create New Shipment', actionPage: 'page-new-shipment' },
+                'page-web-submissions': { title: 'Web Submissions', subtitle: 'Pending items submitted by customers.', actionText: null },
                 'page-customers': { title: 'Customers', subtitle: 'Manage your list of senders and receivers.', actionText: '+ Add New Customer', actionPage: 'page-new-shipment' }, 
                 'page-payments': { title: 'Payments', subtitle: 'Track all pending and completed payments.', actionText: null },
                 'page-settings': { title: 'Settings', subtitle: 'Manage Data Backups.', actionText: null }
@@ -1774,7 +1715,10 @@
                     itemTableTbody.innerHTML = '<tr><td colspan="9" style="text-align: center;">No items added yet.</td></tr>';
                 } else {
                     local_items.forEach((item, index) => {
-                        const totalVal = (item.qty * item.value).toFixed(2);
+                        // Safely parse the strings to numbers before doing math to prevent crashes
+                        const qty = parseFloat(item.qty) || 0;
+                        const val = parseFloat(item.value) || 0;
+                        const totalVal = (qty * val).toFixed(2);
                         const imgHtml = item.image ? `<img src="${item.image}" alt="item" style="width: 40px; height: 40px; object-fit: cover; border-radius: 4px; border: 1px solid #eee;">` : '<span style="color:#ccc;">No img</span>';
 
                         const row = document.createElement('tr');
@@ -1783,8 +1727,8 @@
                             <td>${item.desc}<br><small>${item.brand||''}</small></td>
                             <td>${item.condition || '--'}</td>
                             <td>${item.brand || '--'}</td>
-                            <td>${item.qty}</td>
-                            <td>$${item.value.toFixed(2)}</td>
+                            <td>${qty}</td>
+                            <td>$${val.toFixed(2)}</td>
                             <td>$${totalVal}</td>
                             <td class="table-actions">
                                 <button class="btn btn-secondary btn-small edit-item-btn" data-index="${index}">Edit</button>
@@ -2482,6 +2426,92 @@
                         </tr>`;
                 });
             }
+
+            function renderWebSubmissionsTable() {
+                const tbody = document.getElementById('webSubmissionsTbody');
+                tbody.innerHTML = '';
+                if (local_web_submissions_cache.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="5" style="text-align: center;">No pending submissions.</td></tr>';
+                    return;
+                }
+                
+                // Sort by date descending
+                const sorted = [...local_web_submissions_cache].sort((a, b) => new Date(b.date) - new Date(a.date));
+                
+                sorted.forEach(sub => {
+                    const dateStr = sub.date ? new Date(sub.date).toLocaleString() : '--';
+                    const itemCount = sub.items ? sub.items.length : 0;
+                    
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${dateStr}</td>
+                        <td><strong>${sub.senderName || 'N/A'}</strong></td>
+                        <td>${sub.senderPhone || '--'}</td>
+                        <td><span style="background: var(--blue-light); color: var(--blue); padding: 4px 8px; border-radius: 12px; font-weight: bold;">${itemCount} Items</span></td>
+                        <td class="table-actions">
+                            <button class="btn btn-primary btn-small" onclick="window.convertSubmission('${sub.id}')">Create Shipment</button>
+                            <button class="btn btn-danger btn-small" onclick="window.deleteSubmission('${sub.id}')">Drop</button>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            }
+
+            window.convertSubmission = function(id) {
+                const sub = local_web_submissions_cache.find(s => s.id === id);
+                if (!sub) return;
+
+                // Clear the wizard to start fresh
+                clearWizard();
+
+                // Populate the form fields with the customer's data
+                document.getElementById('senderName').value = sub.senderName || '';
+                document.getElementById('senderPhone').value = sub.senderPhone || '';
+                document.getElementById('senderAddress').value = sub.senderAddress || '';
+                document.getElementById('senderNic').value = sub.senderNic || '';
+
+                document.getElementById('receiverName').value = sub.receiverName || '';
+                document.getElementById('receiverPhone').value = sub.receiverPhone || '';
+                document.getElementById('receiverAddress').value = sub.receiverAddress || '';
+                document.getElementById('customerRemarks').value = sub.customerRemarks || '';
+
+                // Handle objects vs arrays safely to prevent items from missing
+                let safeItems = [];
+                if (sub.items) {
+                    safeItems = Array.isArray(sub.items) ? sub.items : Object.values(sub.items);
+                }
+                // Filter out any nulls that might have snuck in
+                local_items = safeItems.filter(item => item && typeof item === 'object');
+
+                // Update the table UI inside the wizard
+                renderItemTable();
+
+                // Move user to New Shipment Page Step 1
+                navigateToPage('page-new-shipment');
+                
+                // Force update UI and save draft
+                updateWizard(1);
+                saveDraft();
+                
+                window.showToast("Customer data loaded successfully!", "success");
+
+                // Offer to clear it from the queue
+                setTimeout(() => {
+                    if(confirm("Submission successfully loaded into the New Shipment draft. Would you like to clear this submission from your pending queue now?")) {
+                        window.deleteSubmission(id, false);
+                    }
+                }, 500);
+            };
+
+            window.deleteSubmission = async function(id, ask = true) {
+                if(ask && !confirm("Are you sure you want to permanently delete this customer submission?")) return;
+                try {
+                    await dbRemove(dbRef(db, 'web_submissions/' + id));
+                    if(ask) window.showToast("Submission removed", "info");
+                } catch(e) {
+                    console.error("Error removing submission:", e);
+                }
+            };
 
             function updateDashboardStats() { 
                 let pending = 0, transit = 0, delivered = 0, due = 0;
@@ -4250,7 +4280,20 @@ async function generateThermalLabel() {
                 const shipmentsRef = dbRef(db, 'shipments');
                 const batchesRef = dbRef(db, 'batches');
                 const expensesRef = dbRef(db, 'expenses');
+                const webSubmissionsRef = dbRef(db, 'web_submissions'); // NEW LISTENER
                 
+                // Web Submissions Listener
+                dbOnValue(webSubmissionsRef, (snapshot) => {
+                    local_web_submissions_cache = [];
+                    if (snapshot.exists()) {
+                        const data = snapshot.val();
+                        for (const key in data) {
+                            local_web_submissions_cache.push({ id: key, ...data[key] });
+                        }
+                    }
+                    renderWebSubmissionsTable();
+                });
+
                 // Expenses Listener
                 dbOnValue(expensesRef, (snapshot) => {
                     local_expenses_cache = snapshot.exists() ? snapshot.val() : {};
