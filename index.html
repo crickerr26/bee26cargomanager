@@ -4380,7 +4380,7 @@ async function generateThermalLabel() {
                     
                     document.getElementById('recvModalTitle').textContent = 'Receiving Details: ' + (shipment.invoiceNumber || 'N/A');
                     
-                    let contentHtml = '<table class="styled-table" style="width:100%; font-size: 0.8rem;"><thead><tr><th style="padding: 6px 4px; text-align: center;">Img</th><th style="padding: 6px 4px;">Item Details</th><th style="padding: 6px 4px; text-align: center;">Exp</th><th style="padding: 6px 4px; text-align: center;">Rec</th><th style="padding: 6px 4px; text-align: center;">Mis</th></tr></thead><tbody>';
+                    let contentHtml = '<table class="styled-table" style="width:100%; font-size: 0.8rem; border-collapse: collapse;"><thead><tr><th style="padding: 6px 4px; text-align: center;">Img</th><th style="padding: 6px 4px;">Item Details</th><th style="padding: 6px 4px; text-align: center;">Exp</th><th style="padding: 6px 4px; text-align: center;">Rec</th><th style="padding: 6px 4px; text-align: center;">Mis</th></tr></thead><tbody>';
                     
                     let safeItems = [];
                     if (shipment.items) {
@@ -4391,6 +4391,13 @@ async function generateThermalLabel() {
                     if (validItems.length === 0) {
                         contentHtml += '<tr><td colspan="5" style="text-align:center; padding:15px;">No items found.</td></tr>';
                     } else {
+                        let notReceivedHtml = '';
+                        let missingHtml = '';
+                        let receivedHtml = '';
+                        let notReceivedCount = 0;
+                        let missingCount = 0;
+                        let receivedCount = 0;
+
                         validItems.forEach(item => {
                             const expected = parseFloat(item.qty) || 0;
                             let received = item.receivedQty !== undefined ? parseFloat(item.receivedQty) : 0;
@@ -4401,14 +4408,31 @@ async function generateThermalLabel() {
                             }
                             
                             const missing = expected - received;
-                            const missingColor = missing > 0 ? 'color: #ff3b30; font-weight: bold;' : 'color: #28a745;';
+                            
+                            let rowBg = '';
+                            let missingColor = '';
+                            let receivedColor = '';
+
+                            if (received === 0) {
+                                rowBg = 'background-color: #fff0f0;';
+                                missingColor = 'color: #ff3b30; font-weight: bold;';
+                                receivedColor = 'color: #ff3b30; font-weight: bold;';
+                            } else if (received < expected) {
+                                rowBg = 'background-color: #fff9f0;';
+                                missingColor = 'color: #ff9500; font-weight: bold;';
+                                receivedColor = 'color: #ff9500; font-weight: bold;';
+                            } else {
+                                rowBg = 'background-color: #e9f7eb;';
+                                missingColor = 'color: #28a745; font-weight: bold;';
+                                receivedColor = 'color: #28a745; font-weight: bold;';
+                            }
                             
                             const imgHtml = item.image ? `<img src="${item.image}" onclick="window.openAdminImageModal('${item.image}')" style="width: 45px; height: 45px; border-radius: 6px; object-fit: cover; border: 1px solid #ddd; cursor: pointer;">` : '<span style="color:#aaa; font-size: 0.7rem;">No Img</span>';
 
-                            contentHtml += `
-                                <tr>
-                                    <td style="text-align:center; vertical-align:middle; padding: 6px 4px;">${imgHtml}</td>
-                                    <td style="white-space: normal; vertical-align:middle; padding: 6px 4px;">
+                            const rowHtml = `
+                                <tr style="${rowBg}">
+                                    <td style="text-align:center; vertical-align:middle; padding: 6px 4px; border-bottom: 1px solid #ddd;">${imgHtml}</td>
+                                    <td style="white-space: normal; vertical-align:middle; padding: 6px 4px; border-bottom: 1px solid #ddd;">
                                         <div style="font-weight: 600; font-size: 0.85rem; color: #262626; margin-bottom: 2px; line-height: 1.2;">${item.desc || 'Unknown Item'}</div>
                                         <div style="font-size: 0.75rem; color: #737373; line-height: 1.3;">
                                             <strong>BC:</strong> ${item.barcode || '--'} <br>
@@ -4416,12 +4440,33 @@ async function generateThermalLabel() {
                                             <strong>Note:</strong> ${item.note || '--'}
                                         </div>
                                     </td>
-                                    <td style="text-align:center; vertical-align:middle; font-size: 0.9rem; padding: 6px 4px;">${expected}</td>
-                                    <td style="text-align:center; vertical-align:middle; font-size: 0.9rem; font-weight: bold; color: var(--blue); padding: 6px 4px;">${received}</td>
-                                    <td style="text-align:center; vertical-align:middle; font-size: 0.9rem; padding: 6px 4px; ${missingColor}">${missing > 0 ? missing : '0'}</td>
+                                    <td style="text-align:center; vertical-align:middle; font-size: 0.9rem; padding: 6px 4px; border-bottom: 1px solid #ddd;">${expected}</td>
+                                    <td style="text-align:center; vertical-align:middle; font-size: 0.9rem; font-weight: bold; padding: 6px 4px; border-bottom: 1px solid #ddd; ${receivedColor}">${received}</td>
+                                    <td style="text-align:center; vertical-align:middle; font-size: 0.9rem; padding: 6px 4px; border-bottom: 1px solid #ddd; ${missingColor}">${missing > 0 ? missing : '0'}</td>
                                 </tr>
                             `;
+
+                            if (received === 0) {
+                                notReceivedHtml += rowHtml;
+                                notReceivedCount++;
+                            } else if (received < expected) {
+                                missingHtml += rowHtml;
+                                missingCount++;
+                            } else {
+                                receivedHtml += rowHtml;
+                                receivedCount++;
+                            }
                         });
+
+                        if (notReceivedCount > 0) {
+                            contentHtml += `<tr><td colspan="5" style="background-color: #ff3b30; color: white; font-weight: bold; text-align: center; padding: 6px; font-size: 0.85rem;">Not Received (${notReceivedCount})</td></tr>` + notReceivedHtml;
+                        }
+                        if (missingCount > 0) {
+                            contentHtml += `<tr><td colspan="5" style="background-color: #ff9500; color: white; font-weight: bold; text-align: center; padding: 6px; font-size: 0.85rem;">Partially Received / Missing (${missingCount})</td></tr>` + missingHtml;
+                        }
+                        if (receivedCount > 0) {
+                            contentHtml += `<tr><td colspan="5" style="background-color: #28a745; color: white; font-weight: bold; text-align: center; padding: 6px; font-size: 0.85rem;">Fully Received (${receivedCount})</td></tr>` + receivedHtml;
+                        }
                     }
                     contentHtml += '</tbody></table>';
                     
