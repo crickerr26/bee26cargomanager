@@ -54,65 +54,78 @@
             background-color: var(--grey-light);
             color: var(--text-primary);
             margin: 0;
-            padding: 20px;
+            padding: 10px; /* Tighter padding for mobile */
             display: flex;
             justify-content: center;
+            font-size: 14px; /* Instagram base font size */
         }
 
         .container {
             width: 100%;
-            max-width: 600px; /* Perfect for mobile and tablet */
+            max-width: 600px;
         }
 
         .card {
             background-color: var(--bg-white);
             border-radius: var(--border-radius);
-            padding: 2rem;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-            margin-bottom: 1.5rem;
+            padding: 15px; /* Tighter padding */
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            margin-bottom: 1rem;
         }
 
-        h1, h2 { margin-top: 0; color: var(--blue); }
-        p { color: var(--text-secondary); line-height: 1.5; }
+        h1, h2 { margin-top: 0; color: var(--blue); font-size: 1.2rem; }
+        h3 { margin-top: 0; font-size: 1rem; color: var(--text-primary); }
+        p { color: var(--text-secondary); line-height: 1.4; font-size: 0.85rem; margin-top: 5px; margin-bottom: 5px; }
+        
+        .shipment-info-grid {
+            display: grid;
+            grid-template-columns: 80px 1fr;
+            gap: 4px 10px;
+            font-size: 0.85rem;
+            margin-top: 10px;
+        }
+        .shipment-info-grid strong { color: var(--text-secondary); text-align: right; }
 
         .input-group {
             display: flex;
             flex-direction: column;
-            gap: 0.5rem;
-            margin-bottom: 1rem;
+            gap: 0.4rem;
+            margin-bottom: 0.8rem;
         }
 
-        .input-group label { font-weight: 600; font-size: 0.9rem; }
+        .input-group label { font-weight: 600; font-size: 0.85rem; }
         .input-group input {
-            padding: 12px;
-            font-size: 1rem;
+            padding: 10px;
+            font-size: 0.9rem;
             border: 1px solid var(--grey-mid);
             border-radius: 8px;
         }
 
         .btn {
             width: 100%;
-            padding: 14px;
-            font-size: 1rem;
-            font-weight: 700;
+            padding: 12px;
+            font-size: 0.9rem;
+            font-weight: 600;
             border: none;
             border-radius: 8px;
             cursor: pointer;
             transition: background-color 0.2s ease;
         }
+        .btn-small { width: auto; padding: 6px 12px; font-size: 0.8rem; border-radius: 6px; }
+        
         .btn-primary { background-color: var(--blue); color: white; }
         .btn-success { background-color: var(--green); color: white; }
-        .btn-outline { background-color: transparent; border: 2px solid var(--blue); color: var(--blue); margin-bottom: 1rem;}
+        .btn-outline { background-color: transparent; border: 1px solid var(--blue); color: var(--blue); margin-bottom: 0.5rem;}
         
         /* Mobile friendly item cards instead of tables */
         .item-card {
             border: 1px solid var(--grey-mid);
             border-radius: 8px;
-            padding: 12px;
-            margin-bottom: 12px;
+            padding: 10px;
+            margin-bottom: 10px;
             display: flex;
             flex-direction: column;
-            gap: 8px;
+            gap: 6px;
             background: #fafafa;
         }
 
@@ -121,31 +134,45 @@
             justify-content: space-between;
             align-items: flex-start;
             border-bottom: 1px solid #eee;
-            padding-bottom: 8px;
+            padding-bottom: 6px;
         }
 
         /* Adjusted fonts to mimic Instagram/modern mobile app scale */
-        .item-title { font-weight: 600; font-size: 0.95rem; line-height: 1.2; color: #262626; }
-        .item-expected { color: #737373; font-size: 0.8rem; }
+        .item-title { font-weight: 600; font-size: 0.9rem; line-height: 1.2; color: #262626; }
+        .item-expected { color: #737373; font-size: 0.75rem; margin-top: 3px; line-height: 1.3;}
 
         .item-action {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            background: var(--blue-light);
-            padding: 8px 10px;
+            background: transparent;
+            padding: 4px 0 0 0;
             border-radius: 8px;
         }
 
-        .item-action label { font-weight: 600; color: var(--blue); font-size: 0.85rem; }
+        .item-action label { font-weight: 600; color: var(--blue); font-size: 0.8rem; }
         .item-action select {
-            width: 80px;
-            padding: 8px;
+            width: 70px;
+            padding: 6px;
             text-align: center;
             font-weight: bold;
             border: 1px solid var(--blue);
             border-radius: 6px;
+            font-size: 0.85rem;
         }
+        
+        .category-header {
+            font-size: 0.9rem;
+            font-weight: bold;
+            padding: 6px 10px;
+            border-radius: 6px;
+            margin: 15px 0 10px 0;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .header-red { background-color: #fff0f0; color: #ff3b30; border: 1px solid #ff3b30; }
+        .header-orange { background-color: #fff9f0; color: #ff9500; border: 1px solid #ff9500; }
+        .header-green { background-color: #e9f7eb; color: #28a745; border: 1px solid #28a745; }
 
         #shipment-details { display: none; } /* Hidden until selected */
         
@@ -212,11 +239,15 @@
         </div>
 
         <div class="card" id="invoice-list-section">
-            <h2>All Shipments</h2>
-            <p>Click on an invoice below to view the packing list and mark items as received.</p>
+            <h2 style="margin-bottom: 5px;">All Shipments</h2>
+            <p style="margin-top: 0;">Click on an invoice below to view the packing list and mark items as received.</p>
             <div id="loading-invoices" style="text-align: center; padding: 20px; color: var(--text-secondary);">Loading invoices...</div>
-            <div id="invoices-container">
-                </div>
+            
+            <h3 style="margin-top: 15px; border-bottom: 1px solid #eee; padding-bottom: 5px; color: var(--orange);">Pending Receiving</h3>
+            <div id="invoices-pending-container"></div>
+
+            <h3 style="margin-top: 20px; border-bottom: 1px solid #eee; padding-bottom: 5px; color: var(--green);">Fully Delivered</h3>
+            <div id="invoices-delivered-container"></div>
         </div>
 
         <div id="imageModal" class="image-modal">
@@ -225,27 +256,33 @@
         </div>
 
         <div id="shipment-details">
-            <button class="btn btn-outline" id="btn-back" style="margin-bottom: 1rem;">← Back to All Invoices</button>
-            <div class="card">
-                <h2>Shipment Info</h2>
-                <p><strong>Invoice:</strong> <span id="display-invoice"></span></p>
-                <p><strong>Sender:</strong> <span id="display-sender"></span></p>
-                <p><strong>Receiver Name:</strong> <span id="display-receiver"></span></p>
-                <p><strong>Receiver Phone:</strong> <span id="display-receiver-phone"></span></p>
-                <p><strong>Receiver Address:</strong> <span id="display-receiver-address"></span></p>
-                <p><strong>Total Packages:</strong> <span id="display-packages"></span></p>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                <button class="btn btn-outline btn-small" id="btn-back" style="margin: 0;">← Back</button>
+                <h2 style="margin: 0; font-size: 1.1rem;">Invoice: <span id="display-invoice"></span></h2>
+            </div>
+            
+            <div class="card" style="padding: 12px;">
+                <h2 style="font-size: 0.95rem; margin-bottom: 5px; border-bottom: 1px solid #eee; padding-bottom: 5px;">Shipment Info</h2>
+                <div class="shipment-info-grid">
+                    <strong>Sender:</strong> <span id="display-sender"></span>
+                    <strong>Receiver:</strong> <span id="display-receiver"></span>
+                    <strong>Phone:</strong> <span id="display-receiver-phone"></span>
+                    <strong>Address:</strong> <span id="display-receiver-address"></span>
+                    <strong>Packages:</strong> <span id="display-packages"></span>
+                </div>
             </div>
 
-            <div class="card">
-                <h2>Packing List</h2>
-                <p>Verify the quantities you have received. You can adjust the numbers if an item is missing.</p>
+            <div class="card" style="padding: 12px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                    <h2 style="margin: 0; font-size: 0.95rem;">Packing List</h2>
+                    <button class="btn btn-outline btn-small" id="btn-receive-all" style="margin: 0; padding: 4px 8px; font-size: 0.75rem;">✓ Mark All Rcvd</button>
+                </div>
                 
-                <button class="btn btn-outline" id="btn-receive-all">✓ Mark All as Fully Received</button>
-                
-                <div id="items-container">
-                    </div>
+                <div id="items-not-received-container"></div>
+                <div id="items-missing-container"></div>
+                <div id="items-received-container"></div>
 
-                <button class="btn btn-success" id="btn-submit-receipt">Submit Receiving Report</button>
+                <button class="btn btn-success" id="btn-submit-receipt" style="margin-top: 15px;">Submit Receiving Report</button>
             </div>
         </div>
 
@@ -266,10 +303,10 @@
 
                 // DOM Elements
                 const invoiceListSection = document.getElementById('invoice-list-section');
-                const invoicesContainer = document.getElementById('invoices-container');
+                const invoicesPendingContainer = document.getElementById('invoices-pending-container');
+                const invoicesDeliveredContainer = document.getElementById('invoices-delivered-container');
                 const loadingInvoices = document.getElementById('loading-invoices');
                 const detailsSection = document.getElementById('shipment-details');
-                const itemsContainer = document.getElementById('items-container');
                 const btnBack = document.getElementById('btn-back');
 
                 let allShipments = {};
@@ -281,7 +318,8 @@
                         const snapshot = await window.dbGet(shipmentsRef);
                         
                         loadingInvoices.style.display = 'none';
-                        invoicesContainer.innerHTML = '';
+                        invoicesPendingContainer.innerHTML = '';
+                        invoicesDeliveredContainer.innerHTML = '';
 
                         if (snapshot.exists()) {
                             allShipments = snapshot.val();
@@ -292,25 +330,41 @@
                                 ...allShipments[key]
                             })).reverse(); 
 
+                            let pendingCount = 0;
+                            let deliveredCount = 0;
+
                             shipmentsArray.forEach(shipment => {
-                                const statusBg = shipment.deliveryStatus === 'Delivered' ? 'var(--green)' : 'var(--blue-light)';
-                                const statusColor = shipment.deliveryStatus === 'Delivered' ? 'white' : 'var(--blue)';
+                                const isDelivered = shipment.deliveryStatus === 'Delivered';
+                                const statusBg = isDelivered ? 'var(--green)' : 'var(--orange-light)';
+                                const statusColor = isDelivered ? 'white' : 'var(--orange)';
                                 
                                 const itemHtml = `
                                     <div class="invoice-list-item" onclick="openShipment('${shipment.id}')">
                                         <div>
-                                            <strong style="font-size: 1.1rem;">${shipment.invoiceNumber || 'No Invoice #'}</strong>
-                                            <div style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 4px;">To: ${shipment.receiverName || 'Unknown'}</div>
+                                            <strong style="font-size: 1rem;">${shipment.invoiceNumber || 'No Invoice #'}</strong>
+                                            <div style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 2px;">To: ${shipment.receiverName || 'Unknown'}</div>
                                         </div>
                                         <div class="invoice-status" style="background: ${statusBg}; color: ${statusColor};">
                                             ${shipment.deliveryStatus || 'Pending'}
                                         </div>
                                     </div>
                                 `;
-                                invoicesContainer.insertAdjacentHTML('beforeend', itemHtml);
+                                
+                                if (isDelivered) {
+                                    invoicesDeliveredContainer.insertAdjacentHTML('beforeend', itemHtml);
+                                    deliveredCount++;
+                                } else {
+                                    invoicesPendingContainer.insertAdjacentHTML('beforeend', itemHtml);
+                                    pendingCount++;
+                                }
                             });
+                            
+                            if (pendingCount === 0) invoicesPendingContainer.innerHTML = '<p style="text-align:center; font-size:0.85rem;">No pending shipments.</p>';
+                            if (deliveredCount === 0) invoicesDeliveredContainer.innerHTML = '<p style="text-align:center; font-size:0.85rem;">No delivered shipments.</p>';
+
                         } else {
-                            invoicesContainer.innerHTML = '<p style="text-align:center;">No shipments found in the database.</p>';
+                            invoicesPendingContainer.innerHTML = '<p style="text-align:center;">No shipments found.</p>';
+                            invoicesDeliveredContainer.innerHTML = '<p style="text-align:center;">No shipments found.</p>';
                         }
                     } catch (error) {
                         console.error(error);
@@ -364,59 +418,54 @@
                     imageModal.style.display = "flex";
                 };
 
-                // --- QTY CHANGE HANDLER (Dynamic Highlighting) ---
+                // --- QTY CHANGE HANDLER (Update Model & Re-render) ---
                 window.handleQtyChange = function(elem, index) {
                     const val = parseInt(elem.value);
-                    const expected = parseInt(elem.dataset.expected);
-                    const card = document.getElementById('item-card-' + index);
-                    const label = document.getElementById('item-label-' + index);
-                    
-                    if (val === 0) {
-                        card.style.borderColor = '#ff3b30'; // iOS Red
-                        card.style.backgroundColor = '#fff0f0';
-                        label.textContent = 'Item Not Received:';
-                        label.style.color = '#ff3b30';
-                    } else if (val < expected) {
-                        const missing = expected - val;
-                        card.style.borderColor = '#ff9500'; // iOS Orange
-                        card.style.backgroundColor = '#fff9f0';
-                        label.textContent = `${missing} item(s) missing:`;
-                        label.style.color = '#ff9500';
-                    } else {
-                        card.style.borderColor = 'var(--grey-mid)';
-                        card.style.backgroundColor = '#fafafa';
-                        label.textContent = 'Quantity Received:';
-                        label.style.color = 'var(--blue)';
+                    if (currentItems[index]) {
+                        currentItems[index].receivedQty = val;
+                        renderItems(); // Re-render to move to correct category instantly
                     }
                 };
 
-                // --- 2. RENDER ITEMS ---
+                // --- 2. RENDER ITEMS (Categorized) ---
                 function renderItems() {
-                    itemsContainer.innerHTML = '';
+                    const notReceivedContainer = document.getElementById('items-not-received-container');
+                    const missingContainer = document.getElementById('items-missing-container');
+                    const receivedContainer = document.getElementById('items-received-container');
                     
+                    notReceivedContainer.innerHTML = '';
+                    missingContainer.innerHTML = '';
+                    receivedContainer.innerHTML = '';
+                    
+                    let notReceivedHtml = '';
+                    let missingHtml = '';
+                    let receivedHtml = '';
+                    let notReceivedCount = 0;
+                    let missingCount = 0;
+                    let receivedCount = 0;
+
                     if (currentItems.length === 0) {
-                        itemsContainer.innerHTML = '<p>No items found in this shipment.</p>';
+                        notReceivedContainer.innerHTML = '<p>No items found in this shipment.</p>';
                         return;
                     }
 
                     currentItems.forEach((item, index) => {
-                        // Handle potential nulls in the array
                         if(!item) return; 
 
                         const expectedQty = parseFloat(item.qty) || 0;
                         const unitVal = parseFloat(item.value) || 0;
                         const totalVal = expectedQty * unitVal;
                         
-                        // If they already submitted previously, show that. Otherwise default to 0.
+                        // Default to 0 if undefined
                         const receivedQty = item.receivedQty !== undefined ? item.receivedQty : 0;
 
-                        // Create select dropdown options strictly up to expectedQty
+                        // Create select dropdown options
                         let optionsHtml = '';
                         for (let i = 0; i <= expectedQty; i++) {
                             optionsHtml += `<option value="${i}" ${i === receivedQty ? 'selected' : ''}>${i}</option>`;
                         }
 
-                        // Determine initial styles based on receivedQty
+                        // Determine styles
                         let cardStyle = "";
                         let labelText = "";
                         let labelStyle = "";
@@ -428,50 +477,68 @@
                         } else if (receivedQty < expectedQty) {
                             const missing = expectedQty - receivedQty;
                             cardStyle = "border-color: #ff9500; background-color: #fff9f0;";
-                            labelText = `${missing} item(s) missing:`;
+                            labelText = `${missing} missing:`;
                             labelStyle = "color: #ff9500;";
                         } else {
-                            cardStyle = "border-color: var(--grey-mid); background-color: #fafafa;";
-                            labelText = "Quantity Received:";
-                            labelStyle = "color: var(--blue);";
+                            cardStyle = "border-color: #28a745; background-color: #e9f7eb;";
+                            labelText = "Fully Received:";
+                            labelStyle = "color: #28a745;";
                         }
 
                         const itemHtml = `
-                            <div class="item-card" id="item-card-${index}" style="transition: all 0.3s ease; ${cardStyle}">
+                            <div class="item-card" id="item-card-${index}" style="${cardStyle}">
                                 <div class="item-header">
                                     <div style="flex-grow: 1; padding-right: 10px;">
                                         <div class="item-title">#${index + 1} - ${item.desc || 'Unknown Item'}</div>
-                                        <div class="item-expected" style="margin-top: 5px; line-height: 1.4;">
-                                            <strong>HS Code:</strong> ${item.hsCode || '--'} <br>
-                                            <strong>Barcode:</strong> ${item.barcode || '--'} <br>
-                                            <strong>Brand:</strong> ${item.brand || '--'} <br>
+                                        <div class="item-expected">
+                                            <strong>BC:</strong> ${item.barcode || '--'} | <strong>Br:</strong> ${item.brand || '--'} <br>
                                             <strong>Note:</strong> ${item.note || '--'} <br>
-                                            <strong>Qty:</strong> ${expectedQty} <br>
-                                            <strong>Unit Val:</strong> $${unitVal.toFixed(2)} <br>
-                                            <strong>Total:</strong> $${totalVal.toFixed(2)}
+                                            <strong>Expected Qty:</strong> ${expectedQty}
                                         </div>
                                     </div>
-                                    ${item.image ? `<img src="${item.image}" onclick="window.openImageModal('${item.image}')" style="width: 70px; height: 70px; border-radius: 8px; object-fit: cover; cursor: pointer; border: 1px solid #ddd;">` : ''}
+                                    ${item.image ? `<img src="${item.image}" onclick="window.openImageModal('${item.image}')" style="width: 55px; height: 55px; border-radius: 6px; object-fit: cover; cursor: pointer; border: 1px solid #ddd;">` : ''}
                                 </div>
-                                <div class="item-action" style="background: transparent;">
-                                    <label id="item-label-${index}" style="transition: color 0.3s ease; ${labelStyle}">${labelText}</label>
-                                    <select class="qty-input" data-index="${index}" data-expected="${expectedQty}" onchange="window.handleQtyChange(this, ${index})" style="width: 80px; padding: 8px; text-align: center; font-weight: bold; border: 1px solid var(--blue); border-radius: 6px; background-color: white; cursor: pointer;">
+                                <div class="item-action">
+                                    <label id="item-label-${index}" style="${labelStyle}">${labelText}</label>
+                                    <select class="qty-input" data-index="${index}" data-expected="${expectedQty}" onchange="window.handleQtyChange(this, ${index})">
                                         ${optionsHtml}
                                     </select>
                                 </div>
                             </div>
                         `;
-                        itemsContainer.insertAdjacentHTML('beforeend', itemHtml);
+
+                        // Group them
+                        if (receivedQty === 0) {
+                            notReceivedHtml += itemHtml;
+                            notReceivedCount++;
+                        } else if (receivedQty < expectedQty) {
+                            missingHtml += itemHtml;
+                            missingCount++;
+                        } else {
+                            receivedHtml += itemHtml;
+                            receivedCount++;
+                        }
                     });
+
+                    if (notReceivedCount > 0) {
+                        notReceivedContainer.innerHTML = `<div class="category-header header-red">Not Received (${notReceivedCount})</div>` + notReceivedHtml;
+                    }
+                    if (missingCount > 0) {
+                        missingContainer.innerHTML = `<div class="category-header header-orange">Partially Received (${missingCount})</div>` + missingHtml;
+                    }
+                    if (receivedCount > 0) {
+                        receivedContainer.innerHTML = `<div class="category-header header-green">Fully Received (${receivedCount})</div>` + receivedHtml;
+                    }
                 }
 
                 // --- 3. MARK ALL AS RECEIVED ---
                 document.getElementById('btn-receive-all').addEventListener('click', () => {
-                    const inputs = document.querySelectorAll('.qty-input');
-                    inputs.forEach(input => {
-                        input.value = input.dataset.expected; // Set input value to the expected qty
-                        window.handleQtyChange(input, input.dataset.index); // Trigger visual update
+                    currentItems.forEach(item => {
+                        if (item) {
+                            item.receivedQty = parseFloat(item.qty) || 0;
+                        }
                     });
+                    renderItems(); // Re-render to move all to Fully Received
                 });
 
                 // --- 4. SUBMIT TO FIREBASE ---
@@ -484,13 +551,11 @@
                     const updates = {};
                     let allFullyReceived = true;
 
-                    const inputs = document.querySelectorAll('.qty-input');
-                    inputs.forEach(input => {
-                        const index = input.dataset.index;
-                        const received = parseFloat(input.value) || 0;
-                        const expected = parseFloat(input.dataset.expected) || 0;
+                    currentItems.forEach((item, index) => {
+                        if (!item) return;
+                        const received = item.receivedQty !== undefined ? parseFloat(item.receivedQty) : 0;
+                        const expected = parseFloat(item.qty) || 0;
 
-                        // Update the exact item in the items array
                         updates[`items/${index}/receivedQty`] = received;
 
                         if (received < expected) {
