@@ -4345,13 +4345,28 @@ async function generateThermalLabel() {
                 });
 
                 // --- NEW: RECEIVING DETAILS MODAL LOGIC ---
+                // Add Image Enlarge Modal for Admin
+                if (!document.getElementById('adminImageModal')) {
+                    const imgModalHTML = `
+                    <div id="adminImageModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:3000; align-items:center; justify-content:center;">
+                        <span onclick="document.getElementById('adminImageModal').style.display='none'" style="position:absolute; top:20px; right:30px; color:white; font-size:40px; font-weight:bold; cursor:pointer;">&times;</span>
+                        <img id="adminEnlargedImage" src="" style="max-width:95%; max-height:95%; border-radius:8px; object-fit:contain;">
+                    </div>`;
+                    document.body.insertAdjacentHTML('beforeend', imgModalHTML);
+                    
+                    window.openAdminImageModal = function(src) {
+                        document.getElementById('adminEnlargedImage').src = src;
+                        document.getElementById('adminImageModal').style.display = 'flex';
+                    };
+                }
+
                 if (!document.getElementById('receivingDetailsModal')) {
                     const modalHTML = `
-                    <div id="receivingDetailsModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:2000; align-items:center; justify-content:center;">
-                        <div style="background:white; padding:20px; border-radius:12px; width:95%; max-width:800px; box-shadow:0 10px 25px rgba(0,0,0,0.2); max-height: 80vh; overflow-y: auto;">
-                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 1px solid #eee; padding-bottom: 10px;">
-                                <h3 style="margin:0; color:var(--blue);" id="recvModalTitle">Receiving Details</h3>
-                                <button onclick="document.getElementById('receivingDetailsModal').style.display='none'" style="background:none; border:none; font-size:1.5rem; cursor:pointer;">&times;</button>
+                    <div id="receivingDetailsModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:2000; align-items:center; justify-content:center; padding:10px; box-sizing:border-box;">
+                        <div style="background:white; padding:15px; border-radius:12px; width:100%; max-width:800px; box-shadow:0 10px 25px rgba(0,0,0,0.2); max-height: 85vh; overflow-y: auto;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; border-bottom: 1px solid #eee; padding-bottom: 10px;">
+                                <h3 style="margin:0; color:var(--blue); font-size: 1.1rem;" id="recvModalTitle">Receiving Details</h3>
+                                <button onclick="document.getElementById('receivingDetailsModal').style.display='none'" style="background:none; border:none; font-size:1.5rem; cursor:pointer; padding:0; line-height:1;">&times;</button>
                             </div>
                             <div id="recvModalContent"></div>
                         </div>
@@ -4365,7 +4380,7 @@ async function generateThermalLabel() {
                     
                     document.getElementById('recvModalTitle').textContent = 'Receiving Details: ' + (shipment.invoiceNumber || 'N/A');
                     
-                    let contentHtml = '<table class="styled-table" style="width:100%;"><thead><tr><th>Image</th><th>Item Details</th><th>Expected</th><th>Received</th><th>Missing</th></tr></thead><tbody>';
+                    let contentHtml = '<table class="styled-table" style="width:100%; font-size: 0.8rem;"><thead><tr><th style="padding: 6px 4px; text-align: center;">Img</th><th style="padding: 6px 4px;">Item Details</th><th style="padding: 6px 4px; text-align: center;">Exp</th><th style="padding: 6px 4px; text-align: center;">Rec</th><th style="padding: 6px 4px; text-align: center;">Mis</th></tr></thead><tbody>';
                     
                     let safeItems = [];
                     if (shipment.items) {
@@ -4374,7 +4389,7 @@ async function generateThermalLabel() {
                     const validItems = safeItems.filter(item => item && typeof item === 'object');
                     
                     if (validItems.length === 0) {
-                        contentHtml += '<tr><td colspan="5" style="text-align:center;">No items found.</td></tr>';
+                        contentHtml += '<tr><td colspan="5" style="text-align:center; padding:15px;">No items found.</td></tr>';
                     } else {
                         validItems.forEach(item => {
                             const expected = parseFloat(item.qty) || 0;
@@ -4386,24 +4401,24 @@ async function generateThermalLabel() {
                             }
                             
                             const missing = expected - received;
-                            const missingColor = missing > 0 ? 'color: red; font-weight: bold;' : 'color: green;';
+                            const missingColor = missing > 0 ? 'color: #ff3b30; font-weight: bold;' : 'color: #28a745;';
                             
-                            const imgHtml = item.image ? `<img src="${item.image}" style="width: 60px; height: 60px; border-radius: 6px; object-fit: cover; border: 1px solid #ddd;">` : '<span style="color:#aaa; font-size: 0.8rem;">No Image</span>';
+                            const imgHtml = item.image ? `<img src="${item.image}" onclick="window.openAdminImageModal('${item.image}')" style="width: 45px; height: 45px; border-radius: 6px; object-fit: cover; border: 1px solid #ddd; cursor: pointer;">` : '<span style="color:#aaa; font-size: 0.7rem;">No Img</span>';
 
                             contentHtml += `
                                 <tr>
-                                    <td style="text-align:center; vertical-align:middle;">${imgHtml}</td>
-                                    <td style="white-space: normal; vertical-align:middle;">
-                                        <div style="font-weight: bold; font-size: 1rem; color: #333; margin-bottom: 4px;">${item.desc || 'Unknown Item'}</div>
-                                        <div style="font-size: 0.85rem; color: #666; line-height: 1.4;">
-                                            <strong>Barcode:</strong> ${item.barcode || '--'} <br>
-                                            <strong>Brand:</strong> ${item.brand || '--'} <br>
+                                    <td style="text-align:center; vertical-align:middle; padding: 6px 4px;">${imgHtml}</td>
+                                    <td style="white-space: normal; vertical-align:middle; padding: 6px 4px;">
+                                        <div style="font-weight: 600; font-size: 0.85rem; color: #262626; margin-bottom: 2px; line-height: 1.2;">${item.desc || 'Unknown Item'}</div>
+                                        <div style="font-size: 0.75rem; color: #737373; line-height: 1.3;">
+                                            <strong>BC:</strong> ${item.barcode || '--'} <br>
+                                            <strong>Br:</strong> ${item.brand || '--'} <br>
                                             <strong>Note:</strong> ${item.note || '--'}
                                         </div>
                                     </td>
-                                    <td style="text-align:center; vertical-align:middle; font-size: 1rem;">${expected}</td>
-                                    <td style="text-align:center; vertical-align:middle; font-size: 1rem; font-weight: bold; color: var(--blue);">${received}</td>
-                                    <td style="text-align:center; vertical-align:middle; font-size: 1rem; ${missingColor}">${missing > 0 ? missing : '0'}</td>
+                                    <td style="text-align:center; vertical-align:middle; font-size: 0.9rem; padding: 6px 4px;">${expected}</td>
+                                    <td style="text-align:center; vertical-align:middle; font-size: 0.9rem; font-weight: bold; color: var(--blue); padding: 6px 4px;">${received}</td>
+                                    <td style="text-align:center; vertical-align:middle; font-size: 0.9rem; padding: 6px 4px; ${missingColor}">${missing > 0 ? missing : '0'}</td>
                                 </tr>
                             `;
                         });
