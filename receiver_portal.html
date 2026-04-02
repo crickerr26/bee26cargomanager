@@ -563,9 +563,11 @@
                         }
                     });
 
-                    // Optional: If everything is received, you can update the overall shipment status
+                    // Update the overall shipment status based on receiving completeness
                     if (allFullyReceived) {
                         updates['deliveryStatus'] = 'Delivered';
+                    } else {
+                        updates['deliveryStatus'] = 'Pending';
                     }
 
                     try {
