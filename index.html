@@ -1052,7 +1052,7 @@
             const modalImagePreview = document.getElementById('modalImagePreview');
             let tempItemCompressedImage = null; // Stores the data URL ready for saving
 
-            // Helper: Compress Image (Updated to WebP to support Transparency)
+            // Helper: Compress Image
             function compressImage(file, callback) {
                 const maxWidth = 800; // Max dimension
                 const quality = 0.6;  // 60% quality
@@ -1075,53 +1075,24 @@
                         canvas.height = height;
                         const ctx = canvas.getContext('2d');
                         ctx.drawImage(img, 0, 0, width, height);
-                        // Compress using webp to keep transparency (JPEG turns transparent backgrounds black)
-                        const dataUrl = canvas.toDataURL('image/webp', quality);
+                        // Compress
+                        const dataUrl = canvas.toDataURL('image/jpeg', quality);
                         callback(dataUrl);
                     };
                 };
                 reader.onerror = error => console.log(error);
             }
 
-            // Listener for File Selection with AI Background Removal
+            // Listener for File Selection
             if(modalItemImageInput) {
-                modalItemImageInput.addEventListener('change', async function(e) {
+                modalItemImageInput.addEventListener('change', function(e) {
                     const file = e.target.files[0];
                     if (file) {
-                        // Show loading state while AI runs
-                        modalImagePreviewContainer.style.display = 'block';
-                        modalImagePreview.src = 'https://i.gifer.com/ZKZg.gif'; 
-                        modalImagePreview.style.opacity = '0.5';
-                        if (window.showToast) window.showToast("AI is removing background... Please wait.", "info");
-
-                        try {
-                            // Dynamically import the ImgLy Background Removal library
-                            const imglyRemoveBackground = (await import('https://unpkg.com/@imgly/background-removal@1.4.5/dist/browser/background-removal.js')).default;
-                            
-                            // Process the image
-                            const bgRemovedBlob = await imglyRemoveBackground(file, {
-                                publicPath: "https://unpkg.com/@imgly/background-removal@1.4.5/dist/assets/"
-                            });
-                            
-                            // Compress the resulting image and display it
-                            compressImage(bgRemovedBlob, (compressedDataUrl) => {
-                                tempItemCompressedImage = compressedDataUrl;
-                                modalImagePreview.src = compressedDataUrl;
-                                modalImagePreview.style.opacity = '1';
-                                if (window.showToast) window.showToast("Background removed successfully!", "success");
-                            });
-
-                        } catch (err) {
-                            console.error("Background removal failed:", err);
-                            if (window.showToast) window.showToast("Background removal failed. Using original photo.", "error");
-                            
-                            // Fallback to normal compression if AI fails
-                            compressImage(file, (compressedDataUrl) => {
-                                tempItemCompressedImage = compressedDataUrl;
-                                modalImagePreview.src = compressedDataUrl;
-                                modalImagePreview.style.opacity = '1';
-                            });
-                        }
+                        compressImage(file, (compressedDataUrl) => {
+                            tempItemCompressedImage = compressedDataUrl;
+                            modalImagePreview.src = compressedDataUrl;
+                            modalImagePreviewContainer.style.display = 'block';
+                        });
                     } else {
                         tempItemCompressedImage = null;
                         modalImagePreview.src = '';
