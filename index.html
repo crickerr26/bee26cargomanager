@@ -2390,7 +2390,7 @@
                         const shipment = local_shipments_cache.find(s => s.id === shipmentId);
                         if (shipment) {
                             const baseUrl = window.location.href.substring(0, window.location.href.lastIndexOf('/')) + '/receiver_portal.html';
-                            const message = `Hello! Please click the link below to view your packing list and confirm the receipt of your shipment.\n\nLink: ${baseUrl}\nInvoice: ${shipment.invoiceNumber}\n\nThank you!`;
+                            const message = `Please click the link below to view your packing list and confirm the receipt of the shipment.\n\nReceiver Portal (Invoice ${shipment.invoiceNumber}):\n${baseUrl}`;
                             const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
                             window.open(whatsappUrl, '_blank');
                         }
