@@ -491,6 +491,7 @@
             <li><a class="nav-link" data-page="page-web-submissions"><span class="nav-icon">📥</span><span class="nav-text">Web Subm.</span></a></li>
             <li><a class="nav-link" data-page="page-customers"><span class="nav-icon">👥</span><span class="nav-text">Customers</span></a></li>
             <li><a class="nav-link" data-page="page-payments"><span class="nav-icon">💳</span><span class="nav-text">Payments & Exp.</span></a></li>
+            <li><a class="nav-link" data-page="page-receiving"><span class="nav-icon">✅</span><span class="nav-text">Receiving</span></a></li>
         </ul>
         <div class="sidebar-bottom">
             <ul class="sidebar-nav" style="margin: 0;">
@@ -865,6 +866,25 @@
             </div>
         </div>
 
+        <div id="page-receiving" class="page-content">
+            <div class="card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 10px;">
+                    <h2 style="margin: 0;">Receiving Progress</h2>
+                    <input type="text" id="receivingSearch" placeholder="🔍 Search Invoice or Name..." 
+                           style="padding: 10px; border: 1px solid var(--grey-mid); border-radius: 8px; width: 100%; max-width: 300px; font-size: 0.9rem;">
+                </div>
+                <p style="color: #666; font-size: 0.9rem; margin-bottom: 15px;">Live updates from the receiver portal. See which shipments have missing or fully received items.</p>
+                <div class="table-container">
+                    <table class="styled-table">
+                        <thead><tr><th>Invoice #</th><th>Sender</th><th>Total Items</th><th>Received</th><th>Missing</th><th>Status</th><th>Actions</th></tr></thead>
+                        <tbody id="receivingTableTbody">
+                            <tr><td colspan="7" style="text-align: center;">Loading receiving data...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
         <div id="page-settings" class="page-content">
             <div class="card">
                 <h2>Data Management (Backup & Restore)</h2>
@@ -1223,6 +1243,7 @@
                 'page-web-submissions': { title: 'Web Submissions', subtitle: 'Pending items submitted by customers.', actionText: null },
                 'page-customers': { title: 'Customers', subtitle: 'Manage your list of senders and receivers.', actionText: '+ Add New Customer', actionPage: 'page-new-shipment' }, 
                 'page-payments': { title: 'Payments', subtitle: 'Track all pending and completed payments.', actionText: null },
+                'page-receiving': { title: 'Receiving Progress', subtitle: 'Monitor items received by your destination warehouse.', actionText: null },
                 'page-settings': { title: 'Settings', subtitle: 'Manage Data Backups.', actionText: null }
             };
 
@@ -1259,6 +1280,9 @@
 
                  if (pageId === 'page-payments') {
                     renderPaymentsTable(); 
+                }
+                 if (pageId === 'page-receiving') {
+                    if(typeof window.renderReceivingTable === 'function') window.renderReceivingTable();
                 }
             }
 
@@ -1976,7 +2000,7 @@
                 updateWizard(1); 
             }
 
-            function loadShipmentForView(shipmentId) {
+            window.loadShipmentForView = function(shipmentId) {
                  const shipment = local_shipments_cache.find(s => s.id === shipmentId);
                  if (!_populateWizardWithData(shipment)) {
                      alert("Error: Could not find shipment to load for viewing."); return;
@@ -1994,7 +2018,7 @@
                  headerActionBtn.style.display = 'none'; 
 
                  updateWizard(4); 
-            }
+            };
 
 
             // --- 5. Data Table Rendering & Batch Logic ---
@@ -2159,6 +2183,7 @@
                     actionsTd.innerHTML = `
                         <button class="btn btn-primary btn-small edit-shipment-btn" data-id="${safeId}">Edit</button>
                         <button class="btn btn-success btn-small download-shipment-btn" style="background-color: #28a745; color: white;" data-id="${safeId}">Download</button>
+                        <button class="btn btn-secondary btn-small share-recv-btn" style="background-color: #17a2b8; color: white;" data-id="${safeId}">Share</button>
                         <button class="btn btn-danger btn-small delete-shipment-btn" data-id="${safeId}">Delete</button>
                     `;
                     row.appendChild(actionsTd);
@@ -2360,6 +2385,15 @@
                                 generateConcernForm(); // Opens PDF in new tab (Mobile friendly)
                             }
                         };
+                    }
+                    else if (btn.classList.contains('share-recv-btn')) {
+                        const shipment = local_shipments_cache.find(s => s.id === shipmentId);
+                        if (shipment) {
+                            const baseUrl = window.location.href.substring(0, window.location.href.lastIndexOf('/')) + '/receiver_portal.html';
+                            const message = `Hello! Please click the link below to view your packing list and confirm the receipt of your shipment.\n\nLink: ${baseUrl}\nInvoice: ${shipment.invoiceNumber}\n\nThank you!`;
+                            const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
+                            window.open(whatsappUrl, '_blank');
+                        }
                     }
                     else if (btn.classList.contains('delete-shipment-btn')) {
                         const shipment = local_shipments_cache.find(s => s.id === shipmentId);
@@ -4310,6 +4344,161 @@ async function generateThermalLabel() {
                     calculateOverallBatchStats();
                 });
 
+                // --- NEW: RECEIVING DETAILS MODAL LOGIC ---
+                if (!document.getElementById('receivingDetailsModal')) {
+                    const modalHTML = `
+                    <div id="receivingDetailsModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:2000; align-items:center; justify-content:center;">
+                        <div style="background:white; padding:20px; border-radius:12px; width:95%; max-width:800px; box-shadow:0 10px 25px rgba(0,0,0,0.2); max-height: 80vh; overflow-y: auto;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 1px solid #eee; padding-bottom: 10px;">
+                                <h3 style="margin:0; color:var(--blue);" id="recvModalTitle">Receiving Details</h3>
+                                <button onclick="document.getElementById('receivingDetailsModal').style.display='none'" style="background:none; border:none; font-size:1.5rem; cursor:pointer;">&times;</button>
+                            </div>
+                            <div id="recvModalContent"></div>
+                        </div>
+                    </div>`;
+                    document.body.insertAdjacentHTML('beforeend', modalHTML);
+                }
+
+                window.viewReceivingDetails = function(shipmentId) {
+                    const shipment = local_shipments_cache.find(s => s.id === shipmentId);
+                    if (!shipment) return;
+                    
+                    document.getElementById('recvModalTitle').textContent = 'Receiving Details: ' + (shipment.invoiceNumber || 'N/A');
+                    
+                    let contentHtml = '<table class="styled-table" style="width:100%;"><thead><tr><th>Image</th><th>Item Details</th><th>Expected</th><th>Received</th><th>Missing</th></tr></thead><tbody>';
+                    
+                    let safeItems = [];
+                    if (shipment.items) {
+                        safeItems = Array.isArray(shipment.items) ? shipment.items : Object.values(shipment.items);
+                    }
+                    const validItems = safeItems.filter(item => item && typeof item === 'object');
+                    
+                    if (validItems.length === 0) {
+                        contentHtml += '<tr><td colspan="5" style="text-align:center;">No items found.</td></tr>';
+                    } else {
+                        validItems.forEach(item => {
+                            const expected = parseFloat(item.qty) || 0;
+                            let received = item.receivedQty !== undefined ? parseFloat(item.receivedQty) : 0;
+                            
+                            // Backward compatibility for delivered
+                            if (shipment.deliveryStatus === 'Delivered' && received === 0 && expected > 0) {
+                                received = expected;
+                            }
+                            
+                            const missing = expected - received;
+                            const missingColor = missing > 0 ? 'color: red; font-weight: bold;' : 'color: green;';
+                            
+                            const imgHtml = item.image ? `<img src="${item.image}" style="width: 60px; height: 60px; border-radius: 6px; object-fit: cover; border: 1px solid #ddd;">` : '<span style="color:#aaa; font-size: 0.8rem;">No Image</span>';
+
+                            contentHtml += `
+                                <tr>
+                                    <td style="text-align:center; vertical-align:middle;">${imgHtml}</td>
+                                    <td style="white-space: normal; vertical-align:middle;">
+                                        <div style="font-weight: bold; font-size: 1rem; color: #333; margin-bottom: 4px;">${item.desc || 'Unknown Item'}</div>
+                                        <div style="font-size: 0.85rem; color: #666; line-height: 1.4;">
+                                            <strong>Barcode:</strong> ${item.barcode || '--'} <br>
+                                            <strong>Brand:</strong> ${item.brand || '--'} <br>
+                                            <strong>Note:</strong> ${item.note || '--'}
+                                        </div>
+                                    </td>
+                                    <td style="text-align:center; vertical-align:middle; font-size: 1rem;">${expected}</td>
+                                    <td style="text-align:center; vertical-align:middle; font-size: 1rem; font-weight: bold; color: var(--blue);">${received}</td>
+                                    <td style="text-align:center; vertical-align:middle; font-size: 1rem; ${missingColor}">${missing > 0 ? missing : '0'}</td>
+                                </tr>
+                            `;
+                        });
+                    }
+                    contentHtml += '</tbody></table>';
+                    
+                    document.getElementById('recvModalContent').innerHTML = contentHtml;
+                    document.getElementById('receivingDetailsModal').style.display = 'flex';
+                };
+
+                // --- NEW: RECEIVING PROGRESS RENDERER ---
+                window.renderReceivingTable = function() {
+                    const tbody = document.getElementById('receivingTableTbody');
+                    if (!tbody) return;
+                    tbody.innerHTML = '';
+                    
+                    const searchInput = document.getElementById('receivingSearch');
+                    const searchTerm = searchInput ? searchInput.value.toLowerCase().trim() : '';
+
+                    let filteredShipments = [...local_shipments_cache].sort((a, b) => new Date(b.invoiceDate) - new Date(a.invoiceDate));
+                    
+                    if (searchTerm) {
+                        filteredShipments = filteredShipments.filter(s => 
+                            (s.invoiceNumber || '').toLowerCase().includes(searchTerm) || 
+                            (s.senderName || '').toLowerCase().includes(searchTerm)
+                        );
+                    }
+
+                    if (filteredShipments.length === 0) {
+                        tbody.innerHTML = '<tr><td colspan="7" style="text-align: center;">No shipments match your criteria.</td></tr>';
+                        return;
+                    }
+
+                    filteredShipments.forEach(shipment => {
+                        let totalExpected = 0;
+                        let totalReceived = 0;
+                        let totalMissing = 0;
+                        
+                        let safeItems = [];
+                        if (shipment.items) {
+                            safeItems = Array.isArray(shipment.items) ? shipment.items : Object.values(shipment.items);
+                        }
+                        const validItems = safeItems.filter(item => item && typeof item === 'object');
+
+                        validItems.forEach(item => {
+                            const expected = parseFloat(item.qty) || 0;
+                            const received = item.receivedQty !== undefined ? parseFloat(item.receivedQty) : 0;
+                            totalExpected += expected;
+                            totalReceived += received;
+                        });
+                        
+                        // Handle backward compatibility for older shipments marked as delivered
+                        if (shipment.deliveryStatus === 'Delivered' && totalReceived === 0 && totalExpected > 0) {
+                            totalReceived = totalExpected;
+                        }
+
+                        totalMissing = totalExpected - totalReceived;
+
+                        // Calculate Status Badge
+                        let statusHtml = '';
+                        if (shipment.deliveryStatus === 'Delivered') {
+                            statusHtml = '<span style="background:var(--green-light); color:var(--green); padding:4px 8px; border-radius:12px; font-size:0.75rem; font-weight:bold;">Delivered</span>';
+                        } else if (totalExpected === 0) {
+                            statusHtml = '<span style="color:#999; font-size:0.8rem;">No Items</span>';
+                        } else if (totalReceived === 0) {
+                            statusHtml = '<span style="background:var(--grey-mid); color:var(--text-secondary); padding:4px 8px; border-radius:12px; font-size:0.75rem; font-weight:bold;">Awaiting Receiving</span>';
+                        } else if (totalMissing > 0) {
+                            statusHtml = '<span style="background:#fff9f0; color:#ff9500; padding:4px 8px; border-radius:12px; font-size:0.75rem; font-weight:bold;">Partially Received</span>';
+                        } else {
+                            statusHtml = '<span style="background:var(--green-light); color:var(--green); padding:4px 8px; border-radius:12px; font-size:0.75rem; font-weight:bold;">Fully Received</span>';
+                        }
+
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = `
+                            <td><strong>${shipment.invoiceNumber || '--'}</strong></td>
+                            <td>${shipment.senderName || '--'}</td>
+                            <td>${totalExpected}</td>
+                            <td style="color:var(--blue); font-weight:bold;">${totalReceived}</td>
+                            <td style="color:${totalMissing > 0 ? '#ff3b30' : '#28a745'}; font-weight:bold;">${totalMissing}</td>
+                            <td>${statusHtml}</td>
+                            <td class="table-actions">
+                                <button class="btn btn-secondary btn-small" onclick="window.viewReceivingDetails('${shipment.id}')">View Details</button>
+                            </td>
+                        `;
+                        tbody.appendChild(tr);
+                    });
+                };
+
+                // Attach search listener for Receiving
+                document.addEventListener('input', (e) => {
+                    if (e.target.id === 'receivingSearch') {
+                        window.renderReceivingTable();
+                    }
+                });
+
                 // Shipments Listener
                 dbOnValue(shipmentsRef, (snapshot) => {
                     local_shipments_cache = []; 
@@ -4328,6 +4517,7 @@ async function generateThermalLabel() {
                     renderCustomersTable();
                     renderPaymentsTable(); 
                     updateDashboardStats();
+                    if(typeof window.renderReceivingTable === 'function') window.renderReceivingTable();
                     
                     // Trigger Batch Stats Calc
                     calculateOverallBatchStats();
