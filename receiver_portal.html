@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Bee26 - Receive Shipment</title>
+    
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
+        import { getDatabase, ref, get, query, orderByChild, equalTo, update } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-database.js";
+        
+        // Use the exact same Firebase config from your main app
+        const firebaseConfig = {
+            apiKey: "AIzaSyAMZHYef6CXhkfJNdewMQ8M2gifGgS07k",
+            authDomain: "bee26cargoservices-2651f.firebaseapp.com",
+            projectId: "bee26cargoservices-2651f",
+            storageBucket: "bee26cargoservices-2651f.appspot.com", 
+            messagingSenderId: "508829616627",
+            appId: "1:508829616627:web:062d3f033cad60a9089686",
+            measurementId: "G-YSB8DJ5PE6",
+            databaseURL: "https://bee26cargoservices-2651f-default-rtdb.firebaseio.com" 
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        // Expose to window for our script to use
+        window.db = db;
+        window.dbRef = ref;
+        window.dbGet = get;
+        window.dbQuery = query;
+        window.dbOrderByChild = orderByChild;
+        window.dbEqualTo = equalTo;
+        window.dbUpdate = update;
+    </script>
+
+    <style>
+        /* Reusing your beautiful Bee26 color palette */
+        :root {
+            --blue: #007aff;
+            --blue-light: #e6f2ff;
+            --green: #28a745;
+            --grey-light: #f0f0f5;
+            --grey-mid: #e5e5ea;
+            --text-primary: #1c1c1e;
+            --text-secondary: #636366;
+            --bg-white: #ffffff;
+            --border-radius: 12px;
+            --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            font-family: var(--font-family);
+            background-color: var(--grey-light);
+            color: var(--text-primary);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 600px; /* Perfect for mobile and tablet */
+        }
+
+        .card {
+            background-color: var(--bg-white);
+            border-radius: var(--border-radius);
+            padding: 2rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            margin-bottom: 1.5rem;
+        }
+
+        h1, h2 { margin-top: 0; color: var(--blue); }
+        p { color: var(--text-secondary); line-height: 1.5; }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .input-group label { font-weight: 600; font-size: 0.9rem; }
+        .input-group input {
+            padding: 12px;
+            font-size: 1rem;
+            border: 1px solid var(--grey-mid);
+            border-radius: 8px;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 14px;
+            font-size: 1rem;
+            font-weight: 700;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+        .btn-primary { background-color: var(--blue); color: white; }
+        .btn-success { background-color: var(--green); color: white; }
+        .btn-outline { background-color: transparent; border: 2px solid var(--blue); color: var(--blue); margin-bottom: 1rem;}
+        
+        /* Mobile friendly item cards instead of tables */
+        .item-card {
+            border: 1px solid var(--grey-mid);
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            background: #fafafa;
+        }
+
+        .item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 8px;
+        }
+
+        /* Adjusted fonts to mimic Instagram/modern mobile app scale */
+        .item-title { font-weight: 600; font-size: 0.95rem; line-height: 1.2; color: #262626; }
+        .item-expected { color: #737373; font-size: 0.8rem; }
+
+        .item-action {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: var(--blue-light);
+            padding: 8px 10px;
+            border-radius: 8px;
+        }
+
+        .item-action label { font-weight: 600; color: var(--blue); font-size: 0.85rem; }
+        .item-action select {
+            width: 80px;
+            padding: 8px;
+            text-align: center;
+            font-weight: bold;
+            border: 1px solid var(--blue);
+            border-radius: 6px;
+        }
+
+        #shipment-details { display: none; } /* Hidden until selected */
+        
+        .invoice-list-item {
+            padding: 15px;
+            border: 1px solid var(--grey-mid);
+            border-radius: 8px;
+            margin-bottom: 10px;
+            background: #fafafa;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.2s ease;
+        }
+        
+        .invoice-list-item:hover {
+            border-color: var(--blue);
+            background: var(--blue-light);
+            transform: translateY(-2px);
+        }
+        
+        .invoice-status {
+            font-size: 0.8rem;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-weight: bold;
+        }
+
+        /* Image Modal Styles */
+        .image-modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.9);
+            justify-content: center;
+            align-items: center;
+        }
+        .image-modal img {
+            max-width: 90%;
+            max-height: 90%;
+            border-radius: 8px;
+        }
+        .image-modal-close {
+            position: absolute;
+            top: 20px;
+            right: 30px;
+            color: white;
+            font-size: 40px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div style="text-align: center; margin-bottom: 20px;">
+            <img src="https://raw.githubusercontent.com/crickerr26/bee26cargomanager/main/BEE26.png" alt="Bee26 Cargo Logo" style="height: 50px;">
+        </div>
+
+        <div class="card" id="invoice-list-section">
+            <h2>All Shipments</h2>
+            <p>Click on an invoice below to view the packing list and mark items as received.</p>
+            <div id="loading-invoices" style="text-align: center; padding: 20px; color: var(--text-secondary);">Loading invoices...</div>
+            <div id="invoices-container">
+                </div>
+        </div>
+
+        <div id="imageModal" class="image-modal">
+            <span class="image-modal-close" id="closeImageModal">&times;</span>
+            <img id="enlargedImage" src="">
+        </div>
+
+        <div id="shipment-details">
+            <button class="btn btn-outline" id="btn-back" style="margin-bottom: 1rem;">← Back to All Invoices</button>
+            <div class="card">
+                <h2>Shipment Info</h2>
+                <p><strong>Invoice:</strong> <span id="display-invoice"></span></p>
+                <p><strong>Sender:</strong> <span id="display-sender"></span></p>
+                <p><strong>Receiver Name:</strong> <span id="display-receiver"></span></p>
+                <p><strong>Receiver Phone:</strong> <span id="display-receiver-phone"></span></p>
+                <p><strong>Receiver Address:</strong> <span id="display-receiver-address"></span></p>
+                <p><strong>Total Packages:</strong> <span id="display-packages"></span></p>
+            </div>
+
+            <div class="card">
+                <h2>Packing List</h2>
+                <p>Verify the quantities you have received. You can adjust the numbers if an item is missing.</p>
+                
+                <button class="btn btn-outline" id="btn-receive-all">✓ Mark All as Fully Received</button>
+                
+                <div id="items-container">
+                    </div>
+
+                <button class="btn btn-success" id="btn-submit-receipt">Submit Receiving Report</button>
+            </div>
+        </div>
+
+    </div>
+
+    <script type="text/javascript">
+        document.addEventListener('DOMContentLoaded', () => {
+            // Wait for Firebase to initialize
+            setTimeout(() => {
+                const db = window.db;
+                if (!db) {
+                    alert("System loading error. Please refresh the page.");
+                    return;
+                }
+
+                let currentShipmentId = null;
+                let currentItems = [];
+
+                // DOM Elements
+                const invoiceListSection = document.getElementById('invoice-list-section');
+                const invoicesContainer = document.getElementById('invoices-container');
+                const loadingInvoices = document.getElementById('loading-invoices');
+                const detailsSection = document.getElementById('shipment-details');
+                const itemsContainer = document.getElementById('items-container');
+                const btnBack = document.getElementById('btn-back');
+
+                let allShipments = {};
+
+                // --- 1. LOAD ALL INVOICES ---
+                async function loadAllInvoices() {
+                    try {
+                        const shipmentsRef = window.dbRef(db, 'shipments');
+                        const snapshot = await window.dbGet(shipmentsRef);
+                        
+                        loadingInvoices.style.display = 'none';
+                        invoicesContainer.innerHTML = '';
+
+                        if (snapshot.exists()) {
+                            allShipments = snapshot.val();
+                            
+                            // Convert to array to sort by newest first
+                            const shipmentsArray = Object.keys(allShipments).map(key => ({
+                                id: key,
+                                ...allShipments[key]
+                            })).reverse(); 
+
+                            shipmentsArray.forEach(shipment => {
+                                const statusBg = shipment.deliveryStatus === 'Delivered' ? 'var(--green)' : 'var(--blue-light)';
+                                const statusColor = shipment.deliveryStatus === 'Delivered' ? 'white' : 'var(--blue)';
+                                
+                                const itemHtml = `
+                                    <div class="invoice-list-item" onclick="openShipment('${shipment.id}')">
+                                        <div>
+                                            <strong style="font-size: 1.1rem;">${shipment.invoiceNumber || 'No Invoice #'}</strong>
+                                            <div style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 4px;">To: ${shipment.receiverName || 'Unknown'}</div>
+                                        </div>
+                                        <div class="invoice-status" style="background: ${statusBg}; color: ${statusColor};">
+                                            ${shipment.deliveryStatus || 'Pending'}
+                                        </div>
+                                    </div>
+                                `;
+                                invoicesContainer.insertAdjacentHTML('beforeend', itemHtml);
+                            });
+                        } else {
+                            invoicesContainer.innerHTML = '<p style="text-align:center;">No shipments found in the database.</p>';
+                        }
+                    } catch (error) {
+                        console.error(error);
+                        loadingInvoices.innerHTML = '<span style="color: red;">Error loading invoices. Please check your connection.</span>';
+                    }
+                }
+
+                // Call the function immediately to load data
+                loadAllInvoices();
+
+                // --- 2. OPEN SHIPMENT DETAILS ---
+                window.openShipment = function(shipmentId) {
+                    const shipment = allShipments[shipmentId];
+                    if (!shipment) return;
+
+                    currentShipmentId = shipmentId;
+                    currentItems = shipment.items || [];
+                    
+                    // Populate UI
+                    document.getElementById('display-invoice').textContent = shipment.invoiceNumber || 'N/A';
+                    document.getElementById('display-sender').textContent = shipment.senderName || 'N/A';
+                    document.getElementById('display-receiver').textContent = shipment.receiverName || 'N/A';
+                    document.getElementById('display-receiver-phone').textContent = shipment.receiverPhone || 'N/A';
+                    document.getElementById('display-receiver-address').textContent = shipment.receiverAddress || 'N/A';
+                    document.getElementById('display-packages').textContent = shipment.totalPackages || '0';
+                    
+                    renderItems();
+                    
+                    invoiceListSection.style.display = "none";
+                    detailsSection.style.display = "block";
+                };
+
+                // --- BACK BUTTON ---
+                btnBack.addEventListener('click', () => {
+                    detailsSection.style.display = "none";
+                    invoiceListSection.style.display = "block";
+                    loadAllInvoices(); // Refresh the list to catch any updates
+                });
+
+                // --- MODAL LOGIC FOR IMAGES ---
+                const imageModal = document.getElementById('imageModal');
+                const enlargedImage = document.getElementById('enlargedImage');
+                const closeImageModal = document.getElementById('closeImageModal');
+
+                closeImageModal.addEventListener('click', () => {
+                    imageModal.style.display = "none";
+                });
+                
+                window.openImageModal = function(src) {
+                    enlargedImage.src = src;
+                    imageModal.style.display = "flex";
+                };
+
+                // --- QTY CHANGE HANDLER (Dynamic Highlighting) ---
+                window.handleQtyChange = function(elem, index) {
+                    const val = parseInt(elem.value);
+                    const expected = parseInt(elem.dataset.expected);
+                    const card = document.getElementById('item-card-' + index);
+                    const label = document.getElementById('item-label-' + index);
+                    
+                    if (val === 0) {
+                        card.style.borderColor = '#ff3b30'; // iOS Red
+                        card.style.backgroundColor = '#fff0f0';
+                        label.textContent = 'Item Not Received:';
+                        label.style.color = '#ff3b30';
+                    } else if (val < expected) {
+                        const missing = expected - val;
+                        card.style.borderColor = '#ff9500'; // iOS Orange
+                        card.style.backgroundColor = '#fff9f0';
+                        label.textContent = `${missing} item(s) missing:`;
+                        label.style.color = '#ff9500';
+                    } else {
+                        card.style.borderColor = 'var(--grey-mid)';
+                        card.style.backgroundColor = '#fafafa';
+                        label.textContent = 'Quantity Received:';
+                        label.style.color = 'var(--blue)';
+                    }
+                };
+
+                // --- 2. RENDER ITEMS ---
+                function renderItems() {
+                    itemsContainer.innerHTML = '';
+                    
+                    if (currentItems.length === 0) {
+                        itemsContainer.innerHTML = '<p>No items found in this shipment.</p>';
+                        return;
+                    }
+
+                    currentItems.forEach((item, index) => {
+                        // Handle potential nulls in the array
+                        if(!item) return; 
+
+                        const expectedQty = parseFloat(item.qty) || 0;
+                        const unitVal = parseFloat(item.value) || 0;
+                        const totalVal = expectedQty * unitVal;
+                        
+                        // If they already submitted previously, show that. Otherwise default to 0.
+                        const receivedQty = item.receivedQty !== undefined ? item.receivedQty : 0;
+
+                        // Create select dropdown options strictly up to expectedQty
+                        let optionsHtml = '';
+                        for (let i = 0; i <= expectedQty; i++) {
+                            optionsHtml += `<option value="${i}" ${i === receivedQty ? 'selected' : ''}>${i}</option>`;
+                        }
+
+                        // Determine initial styles based on receivedQty
+                        let cardStyle = "";
+                        let labelText = "";
+                        let labelStyle = "";
+
+                        if (receivedQty === 0) {
+                            cardStyle = "border-color: #ff3b30; background-color: #fff0f0;";
+                            labelText = "Item Not Received:";
+                            labelStyle = "color: #ff3b30;";
+                        } else if (receivedQty < expectedQty) {
+                            const missing = expectedQty - receivedQty;
+                            cardStyle = "border-color: #ff9500; background-color: #fff9f0;";
+                            labelText = `${missing} item(s) missing:`;
+                            labelStyle = "color: #ff9500;";
+                        } else {
+                            cardStyle = "border-color: var(--grey-mid); background-color: #fafafa;";
+                            labelText = "Quantity Received:";
+                            labelStyle = "color: var(--blue);";
+                        }
+
+                        const itemHtml = `
+                            <div class="item-card" id="item-card-${index}" style="transition: all 0.3s ease; ${cardStyle}">
+                                <div class="item-header">
+                                    <div style="flex-grow: 1; padding-right: 10px;">
+                                        <div class="item-title">#${index + 1} - ${item.desc || 'Unknown Item'}</div>
+                                        <div class="item-expected" style="margin-top: 5px; line-height: 1.4;">
+                                            <strong>HS Code:</strong> ${item.hsCode || '--'} <br>
+                                            <strong>Barcode:</strong> ${item.barcode || '--'} <br>
+                                            <strong>Brand:</strong> ${item.brand || '--'} <br>
+                                            <strong>Note:</strong> ${item.note || '--'} <br>
+                                            <strong>Qty:</strong> ${expectedQty} <br>
+                                            <strong>Unit Val:</strong> $${unitVal.toFixed(2)} <br>
+                                            <strong>Total:</strong> $${totalVal.toFixed(2)}
+                                        </div>
+                                    </div>
+                                    ${item.image ? `<img src="${item.image}" onclick="window.openImageModal('${item.image}')" style="width: 70px; height: 70px; border-radius: 8px; object-fit: cover; cursor: pointer; border: 1px solid #ddd;">` : ''}
+                                </div>
+                                <div class="item-action" style="background: transparent;">
+                                    <label id="item-label-${index}" style="transition: color 0.3s ease; ${labelStyle}">${labelText}</label>
+                                    <select class="qty-input" data-index="${index}" data-expected="${expectedQty}" onchange="window.handleQtyChange(this, ${index})" style="width: 80px; padding: 8px; text-align: center; font-weight: bold; border: 1px solid var(--blue); border-radius: 6px; background-color: white; cursor: pointer;">
+                                        ${optionsHtml}
+                                    </select>
+                                </div>
+                            </div>
+                        `;
+                        itemsContainer.insertAdjacentHTML('beforeend', itemHtml);
+                    });
+                }
+
+                // --- 3. MARK ALL AS RECEIVED ---
+                document.getElementById('btn-receive-all').addEventListener('click', () => {
+                    const inputs = document.querySelectorAll('.qty-input');
+                    inputs.forEach(input => {
+                        input.value = input.dataset.expected; // Set input value to the expected qty
+                        window.handleQtyChange(input, input.dataset.index); // Trigger visual update
+                    });
+                });
+
+                // --- 4. SUBMIT TO FIREBASE ---
+                document.getElementById('btn-submit-receipt').addEventListener('click', async () => {
+                    const submitBtn = document.getElementById('btn-submit-receipt');
+                    submitBtn.textContent = "Updating System...";
+                    submitBtn.disabled = true;
+
+                    // Build the update object for Firebase
+                    const updates = {};
+                    let allFullyReceived = true;
+
+                    const inputs = document.querySelectorAll('.qty-input');
+                    inputs.forEach(input => {
+                        const index = input.dataset.index;
+                        const received = parseFloat(input.value) || 0;
+                        const expected = parseFloat(input.dataset.expected) || 0;
+
+                        // Update the exact item in the items array
+                        updates[`items/${index}/receivedQty`] = received;
+
+                        if (received < expected) {
+                            allFullyReceived = false;
+                        }
+                    });
+
+                    // Optional: If everything is received, you can update the overall shipment status
+                    if (allFullyReceived) {
+                        updates['deliveryStatus'] = 'Delivered';
+                    }
+
+                    try {
+                        const shipmentRef = window.dbRef(db, 'shipments/' + currentShipmentId);
+                        await window.dbUpdate(shipmentRef, updates);
+                        
+                        alert("Thank you! Your receipt has been logged successfully.");
+                        // Return to list view
+                        submitBtn.textContent = "Submit Receiving Report";
+                        submitBtn.disabled = false;
+                        document.getElementById('shipment-details').style.display = "none";
+                        document.getElementById('invoice-list-section').style.display = "block";
+                        loadAllInvoices();
+                    } catch (error) {
+                        console.error("Error updating receipt: ", error);
+                        alert("Failed to save. Please try again.");
+                        submitBtn.textContent = "Submit Receiving Report";
+                        submitBtn.disabled = false;
+                    }
+                });
+
+            }, 500); // Give Firebase scripts a half-second to load
+        });
+    </script>
+</body>
+</html>
