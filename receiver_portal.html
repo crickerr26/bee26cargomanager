@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Bee26 - Receive Shipment</title>
     
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
         import { getDatabase, ref, get, query, orderByChild, equalTo, update } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-database.js";
@@ -256,9 +259,10 @@
         </div>
 
         <div id="shipment-details">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; gap: 10px; flex-wrap: wrap;">
                 <button class="btn btn-outline btn-small" id="btn-back" style="margin: 0;">← Back</button>
-                <h2 style="margin: 0; font-size: 1.1rem;">Invoice: <span id="display-invoice"></span></h2>
+                <h2 style="margin: 0; font-size: 1.1rem; flex-grow: 1; text-align: center;">Invoice: <span id="display-invoice"></span></h2>
+                <button class="btn btn-primary btn-small" id="btn-download-pdf" style="margin: 0; background-color: #5856d6; color: white; border: none;">📄 PDF Report</button>
             </div>
             
             <div class="card" style="padding: 12px;">
@@ -587,6 +591,124 @@
                         submitBtn.textContent = "Submit Receiving Report";
                         submitBtn.disabled = false;
                     }
+                });
+
+                // --- 5. DOWNLOAD PDF REPORT ---
+                document.getElementById('btn-download-pdf').addEventListener('click', () => {
+                    if (!currentShipmentId || !allShipments[currentShipmentId]) {
+                        alert("No shipment data available to download.");
+                        return;
+                    }
+
+                    const { jsPDF } = window.jspdf;
+                    if (!jsPDF) {
+                        alert("PDF library is still loading. Please try again in a moment.");
+                        return;
+                    }
+
+                    const doc = new jsPDF('p', 'pt', 'a4');
+                    const shipment = allShipments[currentShipmentId];
+                    const invoiceNo = shipment.invoiceNumber || 'N/A';
+                    
+                    // Header
+                    doc.setFontSize(18);
+                    doc.setTextColor(0, 122, 255); // var(--blue)
+                    doc.text("Receiving Report", 40, 40);
+                    
+                    doc.setFontSize(10);
+                    doc.setTextColor(100, 100, 100);
+                    doc.text(`Generated on: ${new Date().toLocaleString()}`, 40, 55);
+
+                    // Shipment Info
+                    doc.setFontSize(12);
+                    doc.setTextColor(0, 0, 0);
+                    doc.text("Shipment Information", 40, 80);
+                    
+                    doc.setFontSize(10);
+                    doc.text(`Invoice: ${invoiceNo}`, 40, 100);
+                    doc.text(`Sender: ${shipment.senderName || 'N/A'}`, 40, 115);
+                    doc.text(`Receiver: ${shipment.receiverName || 'N/A'}`, 280, 100);
+                    doc.text(`Receiver Phone: ${shipment.receiverPhone || 'N/A'}`, 280, 115);
+                    doc.text(`Total Packages: ${shipment.totalPackages || '0'}`, 40, 130);
+                    doc.text(`Delivery Status: ${shipment.deliveryStatus || 'Pending'}`, 280, 130);
+
+                    // Items Table
+                    const tableHead = [['#', 'Image', 'Item Description', 'Brand/Barcode', 'Expected', 'Received', 'Missing']];
+                    const tableBody = [];
+                    
+                    let totalExpected = 0;
+                    let totalReceived = 0;
+                    let totalMissing = 0;
+
+                    currentItems.forEach((item, index) => {
+                        if (!item) return;
+                        
+                        const expected = parseFloat(item.qty) || 0;
+                        const received = item.receivedQty !== undefined ? parseFloat(item.receivedQty) : 0;
+                        const missing = expected - received > 0 ? expected - received : 0;
+                        
+                        totalExpected += expected;
+                        totalReceived += received;
+                        totalMissing += missing;
+
+                        const descText = `${item.desc || 'Unknown'}\nNote: ${item.note || '--'}`;
+                        const brandText = `Brand: ${item.brand || '--'}\nBC: ${item.barcode || '--'}`;
+
+                        tableBody.push([
+                            index + 1,
+                            { content: '', image: item.image }, // Placeholder for image hook
+                            descText,
+                            brandText,
+                            expected,
+                            received,
+                            missing
+                        ]);
+                    });
+
+                    doc.autoTable({
+                        startY: 150,
+                        head: tableHead,
+                        body: tableBody,
+                        theme: 'grid',
+                        headStyles: { fillColor: [0, 122, 255], textColor: 255, fontStyle: 'bold', halign: 'center' },
+                        styles: { fontSize: 8, cellPadding: 4, valign: 'middle', minCellHeight: 40 },
+                        columnStyles: {
+                            0: { cellWidth: 20, halign: 'center' },
+                            1: { cellWidth: 40, halign: 'center' },
+                            2: { cellWidth: 'auto' },
+                            3: { cellWidth: 90 },
+                            4: { cellWidth: 40, halign: 'center' },
+                            5: { cellWidth: 40, halign: 'center', fontStyle: 'bold', textColor: [0, 122, 255] },
+                            6: { cellWidth: 40, halign: 'center', fontStyle: 'bold', textColor: [255, 59, 48] }
+                        },
+                        didDrawCell: function(data) {
+                            // Inject Images into the PDF table
+                            if (data.column.index === 1 && data.cell.section === 'body' && data.cell.raw && data.cell.raw.image) {
+                                try {
+                                    const imgData = data.cell.raw.image;
+                                    const dim = 30; 
+                                    const x = data.cell.x + (data.cell.width - dim) / 2;
+                                    const y = data.cell.y + (data.cell.height - dim) / 2;
+                                    doc.addImage(imgData, 'JPEG', x, y, dim, dim);
+                                } catch(err) { /* ignore image error */ }
+                            }
+                        }
+                    });
+
+                    // Summary Totals
+                    const finalY = doc.lastAutoTable.finalY + 20;
+                    doc.setFontSize(12);
+                    doc.setTextColor(0, 0, 0);
+                    doc.text("Receiving Summary", 40, finalY);
+                    
+                    doc.setFontSize(10);
+                    doc.text(`Total Expected Items: ${totalExpected}`, 40, finalY + 20);
+                    doc.setTextColor(0, 122, 255);
+                    doc.text(`Total Received Items: ${totalReceived}`, 40, finalY + 35);
+                    doc.setTextColor(255, 59, 48);
+                    doc.text(`Total Missing Items: ${totalMissing}`, 40, finalY + 50);
+
+                    doc.save(`Receiving_Report_${invoiceNo}.pdf`);
                 });
 
             }, 500); // Give Firebase scripts a half-second to load
