@@ -249,8 +249,16 @@
             <h3 style="margin-top: 15px; border-bottom: 1px solid #eee; padding-bottom: 5px; color: var(--orange);">Pending Receiving</h3>
             <div id="invoices-pending-container"></div>
 
-            <h3 style="margin-top: 20px; border-bottom: 1px solid #eee; padding-bottom: 5px; color: var(--green);">Fully Delivered</h3>
-            <div id="invoices-delivered-container"></div>
+            <div id="delivered-section-wrapper" style="display: none;">
+                <h3 style="margin-top: 20px; border-bottom: 1px solid #eee; padding-bottom: 5px; color: var(--green); display: flex; justify-content: space-between; align-items: center;">
+                    Fully Delivered
+                    <button id="btn-show-delivered" class="btn btn-outline btn-small" style="margin: 0; padding: 4px 10px;">Show Completed</button>
+                </h3>
+                <div id="invoices-delivered-container" style="display: none;"></div>
+                <div style="text-align: center; margin-top: 10px;">
+                    <button id="btn-load-more" class="btn btn-outline" style="display: none; width: 100%;">Load More (6)</button>
+                </div>
+            </div>
         </div>
 
         <div id="imageModal" class="image-modal">
@@ -312,8 +320,64 @@
                 const loadingInvoices = document.getElementById('loading-invoices');
                 const detailsSection = document.getElementById('shipment-details');
                 const btnBack = document.getElementById('btn-back');
+                
+                // New DOM Elements for Delivered Pagination
+                const deliveredSectionWrapper = document.getElementById('delivered-section-wrapper');
+                const btnShowDelivered = document.getElementById('btn-show-delivered');
+                const btnLoadMore = document.getElementById('btn-load-more');
 
                 let allShipments = {};
+                let deliveredShipmentsArray = [];
+                let deliveredDisplayCount = 0;
+
+                // Helper to render delivered items 6 by 6
+                function renderDeliveredItems(startIndex, count) {
+                    const endIndex = Math.min(startIndex + count, deliveredShipmentsArray.length);
+                    for (let i = startIndex; i < endIndex; i++) {
+                        const shipment = deliveredShipmentsArray[i];
+                        const itemHtml = `
+                            <div class="invoice-list-item" onclick="openShipment('${shipment.id}')">
+                                <div>
+                                    <strong style="font-size: 1rem;">${shipment.invoiceNumber || 'No Invoice #'}</strong>
+                                    <div style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 2px;">To: ${shipment.receiverName || 'Unknown'}</div>
+                                </div>
+                                <div class="invoice-status" style="background: var(--green); color: white;">
+                                    ${shipment.deliveryStatus || 'Delivered'}
+                                </div>
+                            </div>
+                        `;
+                        invoicesDeliveredContainer.insertAdjacentHTML('beforeend', itemHtml);
+                    }
+                    deliveredDisplayCount = endIndex;
+
+                    // Show or hide the Load More button
+                    if (deliveredDisplayCount >= deliveredShipmentsArray.length) {
+                        btnLoadMore.style.display = 'none';
+                    } else {
+                        btnLoadMore.style.display = 'block';
+                    }
+                }
+
+                // Button Event Listeners for completed deliveries
+                btnShowDelivered.addEventListener('click', () => {
+                    if (invoicesDeliveredContainer.style.display === 'none') {
+                        invoicesDeliveredContainer.style.display = 'block';
+                        btnShowDelivered.textContent = 'Hide Completed';
+                        if (deliveredDisplayCount === 0) {
+                            renderDeliveredItems(0, 6);
+                        } else if (deliveredDisplayCount < deliveredShipmentsArray.length) {
+                            btnLoadMore.style.display = 'block';
+                        }
+                    } else {
+                        invoicesDeliveredContainer.style.display = 'none';
+                        btnShowDelivered.textContent = 'Show Completed';
+                        btnLoadMore.style.display = 'none';
+                    }
+                });
+
+                btnLoadMore.addEventListener('click', () => {
+                    renderDeliveredItems(deliveredDisplayCount, 6);
+                });
 
                 // --- 1. LOAD ALL INVOICES ---
                 async function loadAllInvoices() {
@@ -324,6 +388,14 @@
                         loadingInvoices.style.display = 'none';
                         invoicesPendingContainer.innerHTML = '';
                         invoicesDeliveredContainer.innerHTML = '';
+                        
+                        // Reset pagination states
+                        deliveredShipmentsArray = [];
+                        deliveredDisplayCount = 0;
+                        deliveredSectionWrapper.style.display = 'none';
+                        btnLoadMore.style.display = 'none';
+                        btnShowDelivered.textContent = 'Show Completed';
+                        invoicesDeliveredContainer.style.display = 'none';
 
                         if (snapshot.exists()) {
                             allShipments = snapshot.val();
@@ -335,44 +407,45 @@
                             })).reverse(); 
 
                             let pendingCount = 0;
-                            let deliveredCount = 0;
 
                             shipmentsArray.forEach(shipment => {
-                                const isDelivered = shipment.deliveryStatus === 'Delivered';
-                                const statusBg = isDelivered ? 'var(--green)' : 'var(--orange-light)';
-                                const statusColor = isDelivered ? 'white' : 'var(--orange)';
-                                
-                                const itemHtml = `
-                                    <div class="invoice-list-item" onclick="openShipment('${shipment.id}')">
-                                        <div>
-                                            <strong style="font-size: 1rem;">${shipment.invoiceNumber || 'No Invoice #'}</strong>
-                                            <div style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 2px;">To: ${shipment.receiverName || 'Unknown'}</div>
-                                        </div>
-                                        <div class="invoice-status" style="background: ${statusBg}; color: ${statusColor};">
-                                            ${shipment.deliveryStatus || 'Pending'}
-                                        </div>
-                                    </div>
-                                `;
-                                
-                                if (isDelivered) {
-                                    invoicesDeliveredContainer.insertAdjacentHTML('beforeend', itemHtml);
-                                    deliveredCount++;
+                                if (shipment.deliveryStatus === 'Delivered') {
+                                    // Save delivered to array for lazy loading later
+                                    deliveredShipmentsArray.push(shipment);
                                 } else {
+                                    // Instantly render Pending shipments
+                                    const statusBg = 'var(--orange-light)';
+                                    const statusColor = 'var(--orange)';
+                                    const itemHtml = `
+                                        <div class="invoice-list-item" onclick="openShipment('${shipment.id}')">
+                                            <div>
+                                                <strong style="font-size: 1rem;">${shipment.invoiceNumber || 'No Invoice #'}</strong>
+                                                <div style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 2px;">To: ${shipment.receiverName || 'Unknown'}</div>
+                                            </div>
+                                            <div class="invoice-status" style="background: ${statusBg}; color: ${statusColor};">
+                                                ${shipment.deliveryStatus || 'Pending'}
+                                            </div>
+                                        </div>
+                                    `;
                                     invoicesPendingContainer.insertAdjacentHTML('beforeend', itemHtml);
                                     pendingCount++;
                                 }
                             });
                             
                             if (pendingCount === 0) invoicesPendingContainer.innerHTML = '<p style="text-align:center; font-size:0.85rem;">No pending shipments.</p>';
-                            if (deliveredCount === 0) invoicesDeliveredContainer.innerHTML = '<p style="text-align:center; font-size:0.85rem;">No delivered shipments.</p>';
+                            
+                            if (deliveredShipmentsArray.length > 0) {
+                                deliveredSectionWrapper.style.display = 'block';
+                            }
 
                         } else {
                             invoicesPendingContainer.innerHTML = '<p style="text-align:center;">No shipments found.</p>';
-                            invoicesDeliveredContainer.innerHTML = '<p style="text-align:center;">No shipments found.</p>';
                         }
                     } catch (error) {
                         console.error(error);
-                        loadingInvoices.innerHTML = '<span style="color: red;">Error loading invoices. Please check your connection.</span>';
+                        loadingInvoices.innerHTML = '<span style="color: red;">Network timeout. Retrying connection...</span>';
+                        // Automatically retry loading after 3 seconds if the internet connection is poor
+                        setTimeout(loadAllInvoices, 3000);
                     }
                 }
 
