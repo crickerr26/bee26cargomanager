@@ -311,8 +311,8 @@
                 }
                 clearInterval(firebaseLoader);
 
-                let currentShipmentId = null;
-                let currentItems = [];
+                let currentBoxKey = null;
+                let currentBoxItems = [];
 
                 // DOM Elements
                 const invoiceListSection = document.getElementById('invoice-list-section');
@@ -328,35 +328,34 @@
                 const btnLoadMore = document.getElementById('btn-load-more');
 
                 let allShipments = {};
-                let deliveredShipmentsArray = [];
-                let deliveredDisplayCount = 0;
+                let allBoxes = {};
+                let deliveredBoxesArray = [];
 
-                // Helper to render delivered items 6 by 6
-                function renderDeliveredItems(startIndex, count) {
-                    const endIndex = Math.min(startIndex + count, deliveredShipmentsArray.length);
-                    for (let i = startIndex; i < endIndex; i++) {
-                        const shipment = deliveredShipmentsArray[i];
+                // Helper to render delivered items grouped
+                function renderDeliveredItems() {
+                    invoicesDeliveredContainer.innerHTML = '';
+                    
+                    if (deliveredBoxesArray.length === 0) {
+                        invoicesDeliveredContainer.innerHTML = '<p style="text-align:center; font-size:0.85rem;">No completed boxes.</p>';
+                        return;
+                    }
+
+                    deliveredBoxesArray.forEach(box => {
                         const itemHtml = `
-                            <div class="invoice-list-item" onclick="openShipment('${shipment.id}')">
+                            <div class="invoice-list-item" onclick="openBox('${box.key}')">
                                 <div>
-                                    <strong style="font-size: 1rem;">Batch: ${shipment.batchNo || 'N/A'} | Box: ${shipment.boxNo || 'N/A'}</strong>
-                                    <div style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 2px;">To: ${shipment.receiverName || 'Unknown'}</div>
+                                    <strong style="font-size: 1.1rem; color: var(--green);">✅ Batch: ${box.batchNo} | ${box.boxNo}</strong>
+                                    <div style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 4px;">Total Items in Box: ${box.items.length}</div>
                                 </div>
                                 <div class="invoice-status" style="background: var(--green); color: white;">
-                                    ${shipment.deliveryStatus || 'Delivered'}
+                                    Delivered
                                 </div>
                             </div>
                         `;
                         invoicesDeliveredContainer.insertAdjacentHTML('beforeend', itemHtml);
-                    }
-                    deliveredDisplayCount = endIndex;
-
-                    // Show or hide the Load More button
-                    if (deliveredDisplayCount >= deliveredShipmentsArray.length) {
-                        btnLoadMore.style.display = 'none';
-                    } else {
-                        btnLoadMore.style.display = 'block';
-                    }
+                    });
+                    
+                    btnLoadMore.style.display = 'none';
                 }
 
                 // Button Event Listeners for completed deliveries
@@ -364,23 +363,17 @@
                     if (invoicesDeliveredContainer.style.display === 'none') {
                         invoicesDeliveredContainer.style.display = 'block';
                         btnShowDelivered.textContent = 'Hide Completed';
-                        if (deliveredDisplayCount === 0) {
-                            renderDeliveredItems(0, 6);
-                        } else if (deliveredDisplayCount < deliveredShipmentsArray.length) {
-                            btnLoadMore.style.display = 'block';
-                        }
+                        renderDeliveredItems();
                     } else {
                         invoicesDeliveredContainer.style.display = 'none';
                         btnShowDelivered.textContent = 'Show Completed';
-                        btnLoadMore.style.display = 'none';
                     }
                 });
 
-                btnLoadMore.addEventListener('click', () => {
-                    renderDeliveredItems(deliveredDisplayCount, 6);
-                });
+                // Remove btnLoadMore functionality as we show all grouped
+                btnLoadMore.style.display = 'none';
 
-                // --- 1. LOAD ALL INVOICES ---
+                // --- 1. LOAD ALL BOXES ---
                 async function loadAllInvoices() {
                     try {
                         loadingInvoices.style.display = 'block';
@@ -391,9 +384,9 @@
                         invoicesPendingContainer.innerHTML = '';
                         invoicesDeliveredContainer.innerHTML = '';
                         
-                        // Reset pagination states
-                        deliveredShipmentsArray = [];
-                        deliveredDisplayCount = 0;
+                        // Reset states
+                        allBoxes = {};
+                        deliveredBoxesArray = [];
                         deliveredSectionWrapper.style.display = 'none';
                         btnLoadMore.style.display = 'none';
                         btnShowDelivered.textContent = 'Show Completed';
@@ -401,31 +394,64 @@
 
                         if (snapshot.exists()) {
                             allShipments = snapshot.val();
-                            
-                            // Convert to array to sort by newest first
-                            const shipmentsArray = Object.keys(allShipments).map(key => ({
-                                id: key,
-                                ...allShipments[key]
-                            })).reverse(); 
+
+                            // Aggregate Items into physical Boxes
+                            Object.keys(allShipments).forEach(shipmentId => {
+                                const shipment = allShipments[shipmentId];
+                                const batchNo = shipment.batchNo || 'Unassigned Batch';
+                                
+                                if (shipment.items) {
+                                    shipment.items.forEach((item, index) => {
+                                        if (!item) return;
+                                        const boxNo = item.boxNo || 'Unassigned Box';
+                                        const boxKey = `${batchNo}|||${boxNo}`;
+                                        
+                                        if (!allBoxes[boxKey]) {
+                                            allBoxes[boxKey] = {
+                                                batchNo: batchNo,
+                                                boxNo: boxNo,
+                                                key: boxKey,
+                                                items: [],
+                                                totalExpected: 0,
+                                                totalReceived: 0
+                                            };
+                                        }
+                                        
+                                        allBoxes[boxKey].items.push({
+                                            shipmentId: shipmentId,
+                                            itemIndex: index,
+                                            data: item,
+                                            invoiceNumber: shipment.invoiceNumber,
+                                            senderName: shipment.senderName || item.senderName || 'Unknown',
+                                            receiverName: shipment.receiverName || 'Unknown'
+                                        });
+                                        
+                                        allBoxes[boxKey].totalExpected += (parseFloat(item.qty) || 0);
+                                        allBoxes[boxKey].totalReceived += (item.receivedQty !== undefined ? parseFloat(item.receivedQty) : 0);
+                                    });
+                                }
+                            });
 
                             let pendingCount = 0;
+                            const sortedBoxKeys = Object.keys(allBoxes).sort();
 
-                            shipmentsArray.forEach(shipment => {
-                                if (shipment.deliveryStatus === 'Delivered') {
-                                    // Save delivered to array for lazy loading later
-                                    deliveredShipmentsArray.push(shipment);
+                            sortedBoxKeys.forEach(boxKey => {
+                                const box = allBoxes[boxKey];
+                                const isDelivered = box.totalReceived >= box.totalExpected && box.totalExpected > 0;
+                                
+                                if (isDelivered) {
+                                    deliveredBoxesArray.push(box);
                                 } else {
-                                    // Instantly render Pending shipments 
-                                    const statusBg = '#fff9f0'; // using direct hex codes to fix undefined css variables
+                                    const statusBg = '#fff9f0'; 
                                     const statusColor = '#ff9500';
                                     const itemHtml = `
-                                        <div class="invoice-list-item" onclick="openShipment('${shipment.id}')">
+                                        <div class="invoice-list-item" onclick="openBox('${boxKey}')">
                                             <div>
-                                                <strong style="font-size: 1rem;">Batch: ${shipment.batchNo || 'N/A'} | Box: ${shipment.boxNo || 'N/A'}</strong>
-                                                <div style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 2px;">To: ${shipment.receiverName || 'Unknown'}</div>
+                                                <strong style="font-size: 1.1rem; color: var(--purple);">📦 Batch: ${box.batchNo} | ${box.boxNo}</strong>
+                                                <div style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 4px;">Total Items in Box: ${box.items.length}</div>
                                             </div>
                                             <div class="invoice-status" style="background: ${statusBg}; color: ${statusColor};">
-                                                ${shipment.deliveryStatus || 'Pending'}
+                                                Pending
                                             </div>
                                         </div>
                                     `;
@@ -434,9 +460,9 @@
                                 }
                             });
                             
-                            if (pendingCount === 0) invoicesPendingContainer.innerHTML = '<p style="text-align:center; font-size:0.85rem;">No pending shipments.</p>';
+                            if (pendingCount === 0) invoicesPendingContainer.innerHTML = '<p style="text-align:center; font-size:0.85rem;">No pending boxes.</p>';
                             
-                            if (deliveredShipmentsArray.length > 0) {
+                            if (deliveredBoxesArray.length > 0) {
                                 deliveredSectionWrapper.style.display = 'block';
                             }
 
@@ -447,7 +473,6 @@
                         console.error("Firebase fetch error:", error);
                         loadingInvoices.style.display = 'block';
                         loadingInvoices.innerHTML = '<span style="color: red; font-weight: bold;">Network timeout. Retrying connection...</span>';
-                        // Automatically retry loading after 3 seconds if the internet connection is poor
                         setTimeout(loadAllInvoices, 3000);
                     }
                 }
@@ -455,21 +480,25 @@
                 // Call the function immediately to load data
                 loadAllInvoices();
 
-                // --- 2. OPEN SHIPMENT DETAILS ---
-                window.openShipment = function(shipmentId) {
-                    const shipment = allShipments[shipmentId];
-                    if (!shipment) return;
+                // --- 2. OPEN BOX DETAILS ---
+                window.openBox = function(boxKey) {
+                    const box = allBoxes[boxKey];
+                    if (!box) return;
 
-                    currentShipmentId = shipmentId;
-                    currentItems = shipment.items || [];
+                    currentBoxKey = boxKey;
+                    currentBoxItems = box.items; // Contains array of items from multiple shipments
                     
+                    // Extract unique senders and receivers
+                    const senders = [...new Set(currentBoxItems.map(i => i.senderName))];
+                    const receivers = [...new Set(currentBoxItems.map(i => i.receiverName))];
+
                     // Populate UI
-                    document.getElementById('display-invoice').textContent = `Batch: ${shipment.batchNo || 'N/A'} | Box: ${shipment.boxNo || 'N/A'}`;
-                    document.getElementById('display-sender').textContent = shipment.senderName || 'N/A';
-                    document.getElementById('display-receiver').textContent = shipment.receiverName || 'N/A';
-                    document.getElementById('display-receiver-phone').textContent = shipment.receiverPhone || 'N/A';
-                    document.getElementById('display-receiver-address').textContent = shipment.receiverAddress || 'N/A';
-                    document.getElementById('display-packages').textContent = shipment.totalPackages || '0';
+                    document.getElementById('display-invoice').textContent = `Batch: ${box.batchNo} | ${box.boxNo}`;
+                    document.getElementById('display-sender').textContent = senders.length > 1 ? 'Multiple Senders' : (senders[0] || 'N/A');
+                    document.getElementById('display-receiver').textContent = receivers.length > 1 ? 'Multiple Receivers' : (receivers[0] || 'N/A');
+                    document.getElementById('display-receiver-phone').textContent = '--';
+                    document.getElementById('display-receiver-address').textContent = '--';
+                    document.getElementById('display-packages').textContent = `${currentBoxItems.length} Items`;
                     
                     renderItems();
                     
@@ -501,13 +530,13 @@
                 // --- QTY CHANGE HANDLER (Update Model & Re-render) ---
                 window.handleQtyChange = function(elem, index) {
                     const val = parseInt(elem.value);
-                    if (currentItems[index]) {
-                        currentItems[index].receivedQty = val;
+                    if (currentBoxItems[index]) {
+                        currentBoxItems[index].data.receivedQty = val;
                         renderItems(); // Re-render to move to correct category instantly
                     }
                 };
 
-                // --- 2. RENDER ITEMS (Categorized) ---
+                // --- 2. RENDER ITEMS (Render all items for this Box) ---
                 function renderItems() {
                     const notReceivedContainer = document.getElementById('items-not-received-container');
                     const missingContainer = document.getElementById('items-missing-container');
@@ -516,7 +545,7 @@
                     notReceivedContainer.innerHTML = '';
                     missingContainer.innerHTML = '';
                     receivedContainer.innerHTML = '';
-                    
+
                     let notReceivedHtml = '';
                     let missingHtml = '';
                     let receivedHtml = '';
@@ -524,20 +553,17 @@
                     let missingCount = 0;
                     let receivedCount = 0;
 
-                    if (currentItems.length === 0) {
-                        notReceivedContainer.innerHTML = '<p>No items found in this shipment.</p>';
+                    if (currentBoxItems.length === 0) {
+                        notReceivedContainer.innerHTML = '<p>No items found in this box.</p>';
                         return;
                     }
 
-                    currentItems.forEach((item, index) => {
-                        if(!item) return; 
-
+                    currentBoxItems.forEach((boxItem, index) => {
+                        const item = boxItem.data;
                         const expectedQty = parseFloat(item.qty) || 0;
-                        const unitVal = parseFloat(item.value) || 0;
-                        const totalVal = expectedQty * unitVal;
                         
                         // Default to 0 if undefined
-                        const receivedQty = item.receivedQty !== undefined ? item.receivedQty : 0;
+                        const receivedQty = item.receivedQty !== undefined ? parseFloat(item.receivedQty) : 0;
 
                         // Create select dropdown options
                         let optionsHtml = '';
@@ -545,7 +571,7 @@
                             optionsHtml += `<option value="${i}" ${i === receivedQty ? 'selected' : ''}>${i}</option>`;
                         }
 
-                        // Determine styles
+                        // Determine styles based on receiving status
                         let cardStyle = "";
                         let labelText = "";
                         let labelStyle = "";
@@ -571,9 +597,9 @@
                                     <div style="flex-grow: 1; padding-right: 10px;">
                                         <div class="item-title">#${index + 1} - ${item.desc || 'Unknown Item'}</div>
                                         <div class="item-expected">
-                                            <strong>Sender:</strong> <span style="color: var(--blue); font-weight: 600;">${item.senderName || allShipments[currentShipmentId]?.senderName || 'Unknown'}</span> <br>
+                                            <strong>Invoice:</strong> <span style="color: var(--blue); font-weight: 600;">${boxItem.invoiceNumber}</span> <br>
+                                            <strong>Sender:</strong> ${boxItem.senderName} <br>
                                             <strong>BC:</strong> ${item.barcode || '--'} | <strong>Br:</strong> ${item.brand || '--'} <br>
-                                            <strong>Note:</strong> ${item.note || '--'} <br>
                                             <strong>Expected Qty:</strong> ${expectedQty}
                                         </div>
                                     </div>
@@ -601,62 +627,68 @@
                         }
                     });
 
-                    if (notReceivedCount > 0) {
-                        notReceivedContainer.innerHTML = `<div class="category-header header-red">Not Received (${notReceivedCount})</div>` + notReceivedHtml;
-                    }
-                    if (missingCount > 0) {
-                        missingContainer.innerHTML = `<div class="category-header header-orange">Partially Received (${missingCount})</div>` + missingHtml;
-                    }
-                    if (receivedCount > 0) {
-                        receivedContainer.innerHTML = `<div class="category-header header-green">Fully Received (${receivedCount})</div>` + receivedHtml;
-                    }
+                    if (notReceivedCount > 0) notReceivedContainer.innerHTML = `<div class="category-header header-red">Not Received (${notReceivedCount})</div>` + notReceivedHtml;
+                    if (missingCount > 0) missingContainer.innerHTML = `<div class="category-header header-orange">Partially Received (${missingCount})</div>` + missingHtml;
+                    if (receivedCount > 0) receivedContainer.innerHTML = `<div class="category-header header-green">Fully Received (${receivedCount})</div>` + receivedHtml;
                 }
 
                 // --- 3. MARK ALL AS RECEIVED ---
                 document.getElementById('btn-receive-all').addEventListener('click', () => {
-                    currentItems.forEach(item => {
-                        if (item) {
-                            item.receivedQty = parseFloat(item.qty) || 0;
+                    currentBoxItems.forEach(boxItem => {
+                        if (boxItem && boxItem.data) {
+                            boxItem.data.receivedQty = parseFloat(boxItem.data.qty) || 0;
                         }
                     });
                     renderItems(); // Re-render to move all to Fully Received
                 });
 
-                // --- 4. SUBMIT TO FIREBASE ---
+                // --- 4. CROSS-SHIPMENT SUBMIT TO FIREBASE ---
                 document.getElementById('btn-submit-receipt').addEventListener('click', async () => {
                     const submitBtn = document.getElementById('btn-submit-receipt');
                     submitBtn.textContent = "Updating System...";
                     submitBtn.disabled = true;
 
-                    // Build the update object for Firebase
                     const updates = {};
-                    let allFullyReceived = true;
+                    let shipmentsToRecheck = new Set();
 
-                    currentItems.forEach((item, index) => {
-                        if (!item) return;
-                        const received = item.receivedQty !== undefined ? parseFloat(item.receivedQty) : 0;
-                        const expected = parseFloat(item.qty) || 0;
-
-                        updates[`items/${index}/receivedQty`] = received;
-
-                        if (received < expected) {
-                            allFullyReceived = false;
-                        }
+                    // Step 1: Update specific items within their parent shipments
+                    currentBoxItems.forEach(boxItem => {
+                        const received = boxItem.data.receivedQty !== undefined ? parseFloat(boxItem.data.receivedQty) : 0;
+                        updates[`shipments/${boxItem.shipmentId}/items/${boxItem.itemIndex}/receivedQty`] = received;
+                        shipmentsToRecheck.add(boxItem.shipmentId);
                     });
 
-                    // Update the overall shipment status based on receiving completeness
-                    if (allFullyReceived) {
-                        updates['deliveryStatus'] = 'Delivered';
-                    } else {
-                        updates['deliveryStatus'] = 'Pending';
-                    }
+                    // Step 2: Check if any affected shipment is now fully delivered
+                    shipmentsToRecheck.forEach(shipmentId => {
+                        const shipment = allShipments[shipmentId];
+                        let allFullyReceived = true;
+
+                        shipment.items.forEach((item, index) => {
+                            if (!item) return;
+                            const expected = parseFloat(item.qty) || 0;
+                            let received = 0;
+
+                            // Check if this item is the one we just updated in the UI
+                            const updatedBoxItem = currentBoxItems.find(bi => bi.shipmentId === shipmentId && bi.itemIndex === index);
+                            if (updatedBoxItem) {
+                                received = updatedBoxItem.data.receivedQty !== undefined ? parseFloat(updatedBoxItem.data.receivedQty) : 0;
+                            } else {
+                                received = item.receivedQty !== undefined ? parseFloat(item.receivedQty) : 0;
+                            }
+
+                            if (received < expected) {
+                                allFullyReceived = false;
+                            }
+                        });
+
+                        // Set the overall status of the shipment based on ALL its items
+                        updates[`shipments/${shipmentId}/deliveryStatus`] = allFullyReceived ? 'Delivered' : 'Pending';
+                    });
 
                     try {
-                        const shipmentRef = window.dbRef(db, 'shipments/' + currentShipmentId);
-                        await window.dbUpdate(shipmentRef, updates);
+                        await window.dbUpdate(window.dbRef(db, '/'), updates);
                         
-                        alert("Thank you! Your receipt has been logged successfully.");
-                        // Return to list view
+                        alert("Thank you! The box receipt has been logged successfully.");
                         submitBtn.textContent = "Submit Receiving Report";
                         submitBtn.disabled = false;
                         document.getElementById('shipment-details').style.display = "none";
@@ -670,10 +702,10 @@
                     }
                 });
 
-                // --- 5. DOWNLOAD PDF REPORT ---
+                // --- 5. DOWNLOAD PDF REPORT (Box Specific) ---
                 document.getElementById('btn-download-pdf').addEventListener('click', () => {
-                    if (!currentShipmentId || !allShipments[currentShipmentId]) {
-                        alert("No shipment data available to download.");
+                    if (!currentBoxKey || currentBoxItems.length === 0) {
+                        alert("No box data available to download.");
                         return;
                     }
 
@@ -684,42 +716,37 @@
                     }
 
                     const doc = new jsPDF('p', 'pt', 'a4');
-                    const shipment = allShipments[currentShipmentId];
-                    const invoiceNo = shipment.invoiceNumber || 'N/A';
+                    const box = allBoxes[currentBoxKey];
                     
                     // Header
                     doc.setFontSize(18);
                     doc.setTextColor(0, 122, 255); // var(--blue)
-                    doc.text("Receiving Report", 40, 40);
+                    doc.text("Box Receiving Report", 40, 40);
                     
                     doc.setFontSize(10);
                     doc.setTextColor(100, 100, 100);
                     doc.text(`Generated on: ${new Date().toLocaleString()}`, 40, 55);
 
-                    // Shipment Info
+                    // Box Info
                     doc.setFontSize(12);
                     doc.setTextColor(0, 0, 0);
-                    doc.text("Shipment Information", 40, 80);
+                    doc.text("Box Information", 40, 80);
                     
                     doc.setFontSize(10);
-                    doc.text(`Invoice: ${invoiceNo}`, 40, 100);
-                    doc.text(`Sender: ${shipment.senderName || 'N/A'}`, 40, 115);
-                    doc.text(`Receiver: ${shipment.receiverName || 'N/A'}`, 280, 100);
-                    doc.text(`Receiver Phone: ${shipment.receiverPhone || 'N/A'}`, 280, 115);
-                    doc.text(`Total Packages: ${shipment.totalPackages || '0'}`, 40, 130);
-                    doc.text(`Delivery Status: ${shipment.deliveryStatus || 'Pending'}`, 280, 130);
+                    doc.text(`Batch No: ${box.batchNo}`, 40, 100);
+                    doc.text(`Box No: ${box.boxNo}`, 280, 100);
+                    doc.text(`Total Items: ${currentBoxItems.length}`, 40, 115);
 
                     // Items Table
-                    const tableHead = [['#', 'Image', 'Item Description', 'Brand/Barcode', 'Expected', 'Received', 'Missing']];
+                    const tableHead = [['#', 'Image', 'Item Description', 'Invoice / Sender', 'Expected', 'Received', 'Missing']];
                     const tableBody = [];
                     
                     let totalExpected = 0;
                     let totalReceived = 0;
                     let totalMissing = 0;
 
-                    currentItems.forEach((item, index) => {
-                        if (!item) return;
-                        
+                    currentBoxItems.forEach((boxItem, index) => {
+                        const item = boxItem.data;
                         const expected = parseFloat(item.qty) || 0;
                         const received = item.receivedQty !== undefined ? parseFloat(item.receivedQty) : 0;
                         const missing = expected - received > 0 ? expected - received : 0;
@@ -728,14 +755,14 @@
                         totalReceived += received;
                         totalMissing += missing;
 
-                        const descText = `${item.desc || 'Unknown'}\nNote: ${item.note || '--'}`;
-                        const brandText = `Brand: ${item.brand || '--'}\nBC: ${item.barcode || '--'}`;
+                        const descText = `${item.desc || 'Unknown'}\nBC: ${item.barcode || '--'} | Br: ${item.brand || '--'}`;
+                        const senderText = `${boxItem.invoiceNumber}\n${boxItem.senderName}`;
 
                         tableBody.push([
                             index + 1,
-                            { content: '', image: item.image }, // Placeholder for image hook
+                            { content: '', image: item.image }, 
                             descText,
-                            brandText,
+                            senderText,
                             expected,
                             received,
                             missing
@@ -743,7 +770,7 @@
                     });
 
                     doc.autoTable({
-                        startY: 150,
+                        startY: 130,
                         head: tableHead,
                         body: tableBody,
                         theme: 'grid',
@@ -759,7 +786,6 @@
                             6: { cellWidth: 40, halign: 'center', fontStyle: 'bold', textColor: [255, 59, 48] }
                         },
                         didDrawCell: function(data) {
-                            // Inject Images into the PDF table
                             if (data.column.index === 1 && data.cell.section === 'body' && data.cell.raw && data.cell.raw.image) {
                                 try {
                                     const imgData = data.cell.raw.image;
@@ -767,7 +793,7 @@
                                     const x = data.cell.x + (data.cell.width - dim) / 2;
                                     const y = data.cell.y + (data.cell.height - dim) / 2;
                                     doc.addImage(imgData, 'JPEG', x, y, dim, dim);
-                                } catch(err) { /* ignore image error */ }
+                                } catch(err) { }
                             }
                         }
                     });
@@ -785,7 +811,7 @@
                     doc.setTextColor(255, 59, 48);
                     doc.text(`Total Missing Items: ${totalMissing}`, 40, finalY + 50);
 
-                    doc.save(`Receiving_Report_${invoiceNo}.pdf`);
+                    doc.save(`Box_Report_${box.batchNo}_${box.boxNo}.pdf`);
                 });
 
             }, 100); // Check every 100ms until Firebase loads properly
