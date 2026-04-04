@@ -722,9 +722,15 @@
                         <div class="batch-summary-value" id="batchNetProfit" style="color: var(--grey-dark);">$0.00</div>
                     </div>
                 </div>
-                <p style="font-size: 0.9rem; color: var(--text-secondary); margin-top: 0.5rem;">
-                    * Select a Batch No above to filter the table and see calculations.
-                </p>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 0.5rem; flex-wrap: wrap; gap: 10px;">
+                    <p style="font-size: 0.9rem; color: var(--text-secondary); margin: 0;">
+                        * Select a Batch No above to filter the table and see calculations.
+                    </p>
+                    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                        <button class="btn btn-secondary" id="openBoxAssignmentBtn" style="background-color: var(--purple); color: white; border: none;">📦 Assign Items to Boxes</button>
+                        <button class="btn btn-primary" id="printMasterPackingListBtn" style="background-color: var(--orange); border: none;">🖨️ Print Master Packing List</button>
+                    </div>
+                </div>
             </div>
             <div class="card">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 10px;">
@@ -2033,25 +2039,68 @@
             const batchTotalCollections = document.getElementById('batchTotalCollections');
             const batchNetProfit = document.getElementById('batchNetProfit');
 
-            // POPULATE BATCH DROPDOWN (1 to 50)
+            // HELPER: Get Dynamic Max Batch Number
+            function getDynamicMaxBatch() {
+                let maxBatch = 0;
+                if (typeof local_shipments_cache !== 'undefined') {
+                    local_shipments_cache.forEach(s => {
+                        if(s.batchNo && s.batchNo.startsWith('Batch - ')) {
+                            const num = parseInt(s.batchNo.replace('Batch - ', ''), 10);
+                            if(!isNaN(num) && num > maxBatch) maxBatch = num;
+                        }
+                    });
+                }
+                if (typeof local_batches_cache !== 'undefined') {
+                    for (let key in local_batches_cache) {
+                        let num = 0;
+                        if(key.startsWith('Batch_-_')) num = parseInt(key.replace('Batch_-_', ''), 10);
+                        else if(key.startsWith('Batch - ')) num = parseInt(key.replace('Batch - ', ''), 10);
+                        if(!isNaN(num) && num > maxBatch) maxBatch = num;
+                    }
+                }
+                return maxBatch;
+            }
+
+            // POPULATE BATCH DROPDOWN (Dynamic Descending)
             function populateBatchDropdowns() {
+                const batchSelector = document.getElementById('batchSelector');
+                if (!batchSelector) return;
+                const currentVal = batchSelector.value;
+                batchSelector.innerHTML = '<option value="">View All Shipments</option>';
+                
+                let maxBatch = getDynamicMaxBatch();
+                if (maxBatch === 0) maxBatch = 1;
+
                 const frag = document.createDocumentFragment();
-                for(let i=1; i<=50; i++) {
+                for(let i = maxBatch; i >= 1; i--) {
                     const num = i.toString().padStart(2, '0');
+                    const val = `Batch - ${num}`;
                     const option = document.createElement('option');
-                    option.value = `Batch - ${num}`;
-                    option.textContent = `Batch - ${num}`;
+                    option.value = val;
+                    
+                    let isDelivered = false;
+                    if (typeof local_shipments_cache !== 'undefined') {
+                        const shipmentsInBatch = local_shipments_cache.filter(s => s.batchNo === val);
+                        if (shipmentsInBatch.length > 0) {
+                            isDelivered = shipmentsInBatch.every(s => s.deliveryStatus === 'Delivered');
+                        }
+                    }
+                    
+                    option.textContent = isDelivered ? `Batch - ${num} (Delivered)` : `Batch - ${num}`;
+                    if (currentVal === val) option.selected = true;
                     frag.appendChild(option);
                 }
-                // Append to Filter Selector
                 batchSelector.appendChild(frag);
             }
             populateBatchDropdowns();
 
             // HELPER: Generate Select HTML for Table Row
             function generateBatchSelectHTML(currentBatchValue) {
+                let maxBatch = getDynamicMaxBatch();
+                const limit = maxBatch + 1; // Allow assigning to the next new batch
+                
                 let options = `<option value="">--</option>`;
-                for(let i=1; i<=50; i++) {
+                for(let i = limit; i >= 1; i--) {
                     const num = i.toString().padStart(2, '0');
                     const val = `Batch - ${num}`;      // Database Value (Full)
                     const display = `B-${num}`;        // Display Value (Short)
@@ -2062,10 +2111,12 @@
             }
 
             function renderShipmentsTable() {
-                // Ensure Header has Batch No (Reduced width for B-01 style)
+                populateBatchDropdowns(); // Ensure dropdown is dynamically updated
+
+                // Ensure Header has Batch No
                 const tableHeader = document.querySelector('#page-all-shipments .styled-table thead tr');
                 if (tableHeader) {
-                    tableHeader.innerHTML = '<th>Invoice #</th><th style="width:80px;">Batch</th><th>Date</th><th>Sender</th><th>Receiver</th><th>Weight</th><th>Total Amt</th><th>Status</th><th>Payment</th><th>Actions</th>';
+                    tableHeader.innerHTML = '<th>Invoice #</th><th style="width:140px;">Batch No</th><th>Date</th><th>Sender</th><th>Receiver</th><th>Weight</th><th>Total Amt</th><th>Status</th><th>Payment</th><th>Actions</th>';
                 }
 
                  shipmentsTableTbody.innerHTML = '';
@@ -4240,6 +4291,429 @@ async function generateThermalLabel() {
             // New Listener for Concern Form
             const btnConcern = document.getElementById('printConcernFormBtn');
             if(btnConcern) btnConcern.addEventListener('click', generateConcernForm);
+
+            // --- NEW: ITEM LEVEL BOX ASSIGNMENT MODAL & LOGIC ---
+            if (!document.getElementById('itemBoxAssignmentModal')) {
+                const modalHTML = `
+                <div id="itemBoxAssignmentModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:2000; align-items:center; justify-content:center; padding:10px; box-sizing:border-box;">
+                    <div style="background:white; padding:20px; border-radius:12px; width:100%; max-width:900px; box-shadow:0 10px 25px rgba(0,0,0,0.2); height: 90vh; display:flex; flex-direction:column;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 1px solid #eee; padding-bottom: 10px;">
+                            <h3 style="margin:0; color:var(--purple); font-size: 1.2rem;">📦 Assign Items to Boxes</h3>
+                            <button onclick="document.getElementById('itemBoxAssignmentModal').style.display='none'" style="background:none; border:none; font-size:1.8rem; cursor:pointer; padding:0; line-height:1;">&times;</button>
+                        </div>
+                        
+                        <div style="margin-bottom: 15px; display:flex; justify-content: space-between; flex-wrap: wrap; gap:10px; align-items:center;">
+                            <div style="display:flex; gap:10px; align-items:center; flex-grow:1;">
+                                <label style="font-weight:bold;">Select Batch:</label>
+                                <select id="modalBatchSelector" style="padding: 8px; border-radius: 6px; border: 1px solid #ccc; flex-grow:1; max-width: 300px;">
+                                    <option value="">-- Choose a Batch --</option>
+                                </select>
+                            </div>
+                            <button class="btn btn-primary" id="modalPrintMasterPackingListBtn" style="background-color: var(--orange); border: none;">🖨️ Print Box-by-Box Packing List</button>
+                        </div>
+
+                        <div id="itemBoxModalContent" style="flex-grow:1; overflow-y:auto; border: 1px solid #eee; border-radius: 8px; background: #fcfcfc;">
+                            <div style="text-align:center; padding: 40px; color: #888;">Select a batch to load items.</div>
+                        </div>
+                    </div>
+                </div>`;
+                document.body.insertAdjacentHTML('beforeend', modalHTML);
+            }
+
+            const openBoxAssignmentBtn = document.getElementById('openBoxAssignmentBtn');
+            const itemBoxAssignmentModal = document.getElementById('itemBoxAssignmentModal');
+            const modalBatchSelector = document.getElementById('modalBatchSelector');
+            const itemBoxModalContent = document.getElementById('itemBoxModalContent');
+
+            if (openBoxAssignmentBtn) {
+                openBoxAssignmentBtn.addEventListener('click', () => {
+                    // Populate modal batch selector with dynamic descending batches
+                    modalBatchSelector.innerHTML = '<option value="">-- Choose a Batch --</option>';
+                    let maxBatch = getDynamicMaxBatch();
+                    if (maxBatch === 0) maxBatch = 1;
+
+                    for(let i = maxBatch; i >= 1; i--) {
+                        const num = i.toString().padStart(2, '0');
+                        const val = `Batch - ${num}`;
+                        const option = document.createElement('option');
+                        option.value = val;
+                        
+                        let isDelivered = false;
+                        if (typeof local_shipments_cache !== 'undefined') {
+                            const shipmentsInBatch = local_shipments_cache.filter(s => s.batchNo === val);
+                            if (shipmentsInBatch.length > 0) {
+                                isDelivered = shipmentsInBatch.every(s => s.deliveryStatus === 'Delivered');
+                            }
+                        }
+                        
+                        option.textContent = isDelivered ? `Batch - ${num} (Delivered)` : `Batch - ${num}`;
+                        modalBatchSelector.appendChild(option);
+                    }
+                    
+                    // Pre-select if a batch is already selected on the main page
+                    const mainBatchValue = document.getElementById('batchSelector').value;
+                    if (mainBatchValue) {
+                        modalBatchSelector.value = mainBatchValue;
+                        renderBoxAssignmentItems(mainBatchValue);
+                    } else {
+                        itemBoxModalContent.innerHTML = '<div style="text-align:center; padding: 40px; color: #888;">Select a batch to load items.</div>';
+                    }
+
+                    itemBoxAssignmentModal.style.display = 'flex';
+                });
+            }
+
+            if (modalBatchSelector) {
+                modalBatchSelector.addEventListener('change', (e) => {
+                    renderBoxAssignmentItems(e.target.value);
+                });
+            }
+
+            function generateBoxOptions(currentBox) {
+                let options = `<option value="">-- Unassigned --</option>`;
+                for(let i=1; i<=5; i++) {
+                    const val = `Box ${i}`;
+                    const selected = currentBox === val ? 'selected' : '';
+                    options += `<option value="${val}" ${selected}>${val}</option>`;
+                }
+                return options;
+            }
+
+            function renderBoxAssignmentItems(batchNo) {
+                if (!batchNo) {
+                    itemBoxModalContent.innerHTML = '<div style="text-align:center; padding: 40px; color: #888;">Select a batch to load items.</div>';
+                    return;
+                }
+
+                const shipmentsInBatch = local_shipments_cache.filter(s => s.batchNo === batchNo);
+                if (shipmentsInBatch.length === 0) {
+                    itemBoxModalContent.innerHTML = '<div style="text-align:center; padding: 40px; color: #888;">No shipments found in this batch.</div>';
+                    return;
+                }
+
+                // Group by Customer Name
+                const groupedByCustomer = {};
+                shipmentsInBatch.forEach(shipment => {
+                    const custName = shipment.senderName || 'Unknown Customer';
+                    if (!groupedByCustomer[custName]) groupedByCustomer[custName] = [];
+                    groupedByCustomer[custName].push(shipment);
+                });
+
+                let html = '';
+                for (const [customerName, shipments] of Object.entries(groupedByCustomer)) {
+                    html += `<div style="background: var(--blue-light); padding: 10px 15px; margin-top: 10px; font-weight: bold; color: var(--blue); position: sticky; top: 0; z-index: 10; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">👤 ${customerName}</div>`;
+                    
+                    html += `<div style="overflow-x: auto;"><table class="styled-table" style="margin-bottom: 20px; width: 100%;">
+                                <thead>
+                                    <tr>
+                                        <th style="width: 30px; text-align:center;">#</th>
+                                        <th style="width: 50px; text-align:center; position: sticky; left: 0; background: #f4f7f6; z-index: 2; box-shadow: 2px 0 4px rgba(0,0,0,0.1);">Image</th>
+                                        <th>HS Code</th>
+                                        <th>Barcode</th>
+                                        <th>Description</th>
+                                        <th>Brand</th>
+                                        <th>Note</th>
+                                        <th style="width: 50px; text-align:center;">Qty</th>
+                                        <th style="text-align:right;">Unit Val</th>
+                                        <th style="text-align:right;">Total</th>
+                                        <th style="width: 140px; text-align:right;">Assign Box</th>
+                                    </tr>
+                                </thead>
+                                <tbody>`;
+                    
+                    let itemCounter = 1;
+                    shipments.forEach(shipment => {
+                        let safeItems = [];
+                        if (shipment.items) {
+                            safeItems = Array.isArray(shipment.items) ? shipment.items : Object.values(shipment.items);
+                        }
+                        
+                        safeItems.forEach((item, index) => {
+                            if (!item || typeof item !== 'object') return;
+                            
+                            const imgHtml = item.image ? `<img src="${item.image}" style="width: 40px; height: 40px; object-fit: cover; border-radius: 4px; border: 1px solid #ccc;">` : '<span style="font-size:0.7rem; color:#999;">No Img</span>';
+                            const currentBox = item.boxNo || '';
+                            const qty = parseFloat(item.qty) || 0;
+                            const val = parseFloat(item.value) || 0;
+                            const total = (qty * val).toFixed(2);
+                            
+                            html += `
+                                <tr>
+                                    <td style="text-align:center; vertical-align:middle;">${itemCounter++}</td>
+                                    <td style="text-align:center; vertical-align:middle; position: sticky; left: 0; background: #fff; z-index: 1; box-shadow: 2px 0 4px rgba(0,0,0,0.1);">${imgHtml}</td>
+                                    <td style="vertical-align:middle;">${item.hsCode || '--'}</td>
+                                    <td style="vertical-align:middle;">${item.barcode || '--'}</td>
+                                    <td style="font-weight: 500; vertical-align:middle;">${item.desc || 'Unknown Item'}</td>
+                                    <td style="vertical-align:middle;">${item.brand || '--'}</td>
+                                    <td style="vertical-align:middle;">${item.note || '--'}</td>
+                                    <td style="text-align:center; vertical-align:middle;">${qty}</td>
+                                    <td style="text-align:right; vertical-align:middle;">$${val.toFixed(2)}</td>
+                                    <td style="text-align:right; vertical-align:middle; font-weight:bold;">$${total}</td>
+                                    <td style="text-align:right; vertical-align:middle;">
+                                        <select class="item-box-select" data-shipment-id="${shipment.id}" data-item-index="${index}" style="width: 100%; max-width:120px; padding: 6px; border-radius: 4px; border: 1px solid var(--purple); font-weight: bold; color: var(--purple);">
+                                            ${generateBoxOptions(currentBox)}
+                                        </select>
+                                    </td>
+                                </tr>
+                            `;
+                        });
+                    });
+                    
+                    html += `</tbody></table></div>`;
+                }
+                
+                itemBoxModalContent.innerHTML = html;
+            }
+
+            // Listen for box changes in the modal and update Firebase immediately
+            itemBoxModalContent.addEventListener('change', async (e) => {
+                if (e.target.classList.contains('item-box-select')) {
+                    const shipmentId = e.target.dataset.shipmentId;
+                    const itemIndex = e.target.dataset.itemIndex;
+                    const newBox = e.target.value;
+
+                    if (!shipmentId || itemIndex === undefined) return;
+
+                    try {
+                        // Update the specific item index directly in Firebase Realtime Database
+                        const boxPath = `shipments/${shipmentId}/items/${itemIndex}/boxNo`;
+                        const updateData = {};
+                        updateData[boxPath] = newBox;
+                        await dbUpdate(dbRef(db, '/'), updateData);
+                        
+                        // Show quick confirmation visually
+                        e.target.style.backgroundColor = '#e9f7eb';
+                        setTimeout(() => e.target.style.backgroundColor = '', 500);
+                        
+                    } catch (error) {
+                        console.error("Error updating item box:", error);
+                        alert("Failed to save box assignment.");
+                    }
+                }
+            });
+
+
+            
+            // --- NEW: MASTER PACKING LIST GENERATOR (Landscape & Detailed) ---
+            async function generateMasterPackingListPDF(selectedBatch) {
+                if(!selectedBatch) {
+                    alert("Please select a Batch No first to generate the Master Packing List.");
+                    return;
+                }
+
+                const shipmentsInBatch = local_shipments_cache.filter(s => s.batchNo === selectedBatch);
+                if(shipmentsInBatch.length === 0) {
+                    alert("No shipments found for this batch.");
+                    return;
+                }
+
+                // 1. Extract and Group Items by Item-level Box No
+                const groupedItems = {};
+                let totalMasterQty = 0;
+                let totalMasterValue = 0;
+
+                shipmentsInBatch.forEach(shipment => {
+                    let safeItems = [];
+                    if (shipment.items) {
+                        safeItems = Array.isArray(shipment.items) ? shipment.items : Object.values(shipment.items);
+                    }
+                    const validItems = safeItems.filter(item => item && typeof item === 'object');
+
+                    validItems.forEach(item => {
+                        // Group by item-level boxNo instead of shipment level
+                        const boxKey = item.boxNo && item.boxNo.trim() !== '' ? item.boxNo.trim().toUpperCase() : 'UNASSIGNED BOX';
+                        if(!groupedItems[boxKey]) {
+                            groupedItems[boxKey] = [];
+                        }
+
+                        // Attach shipment info for reference
+                        const itemCopy = { ...item };
+                        itemCopy.refInvoice = shipment.invoiceNumber || 'N/A';
+                        itemCopy.refSender = shipment.senderName || 'N/A';
+                        
+                        groupedItems[boxKey].push(itemCopy);
+                        
+                        totalMasterQty += parseFloat(item.qty) || 0;
+                        totalMasterValue += (parseFloat(item.qty) || 0) * (parseFloat(item.value) || 0);
+                    });
+                });
+
+                // 2. Generate PDF
+                try {
+                    const { jsPDF } = window.jspdf;
+                    const doc = new jsPDF('l', 'pt', 'a4'); // 'l' is for Landscape Mode to fit everything perfectly
+                    const logoBase64Data = await fetchLogoAsBase64();
+                    const sealBase64Data = await fetchSealAsBase64();
+                    const pageWidth = doc.internal.pageSize.width;
+                    let currentY = 40;
+                    const leftMargin = 30;
+
+                    // Header
+                    if (logoBase64Data) {
+                        try {
+                            doc.addImage(logoBase64Data, 'PNG', leftMargin, currentY, 107, 40);
+                        } catch (e) { console.error(e); }
+                    }
+                    
+                    let senderBlockY = currentY + 50; 
+                    doc.setFontSize(9); doc.setFont("helvetica", "bold"); 
+                    doc.text("BEE26 CARGO SERVICES", leftMargin, senderBlockY); 
+                    senderBlockY += 10; 
+                    doc.setFont("helvetica", "normal");
+                    const addressLines = ["MOHAMED IMSAMAM MOHAMED RIZAN", "1001260111 - BIN", "614-2 MILEPOST PLACE, EAST YORK,", "ONTARIO, M4H 1C7", "+1 416 474 4994", "bee26cargoservices@gmail.com"];
+                    addressLines.forEach(line => { doc.text(line, leftMargin, senderBlockY); senderBlockY += 10; });
+
+                    doc.setFontSize(16); doc.setFont("helvetica", "bold");
+                    doc.text("BOX-BY-BOX MASTER PACKING LIST", pageWidth / 2, currentY + 20, { align: 'center' });
+                    
+                    doc.setFontSize(10); doc.setFont("helvetica", "normal");
+                    doc.text(`Batch: ${selectedBatch}`, pageWidth / 2, currentY + 35, { align: 'center' });
+                    doc.text(`Generated: ${new Date().toLocaleDateString()}`, pageWidth / 2, currentY + 48, { align: 'center' });
+                    
+                    currentY = Math.max(senderBlockY, currentY + 80) + 20;
+
+                    // Sort Box Keys (so Box 1 comes before Box 2, etc.)
+                    const boxKeys = Object.keys(groupedItems).sort();
+
+                    boxKeys.forEach(box => {
+                        const itemsInBox = groupedItems[box];
+                        let boxTotalQty = 0;
+                        let boxTotalValue = 0;
+
+                        // Sort items by category
+                        itemsInBox.sort((a, b) => (a.category || '').localeCompare(b.category || ''));
+
+                        const tableBody = [];
+                        let currentCategory = null;
+
+                        itemsInBox.forEach((item, index) => {
+                            const qty = parseFloat(item.qty) || 0;
+                            const val = parseFloat(item.value) || 0;
+                            const total = qty * val;
+                            boxTotalQty += qty;
+                            boxTotalValue += total;
+
+                            // Add Category Header Row if changed
+                            if (item.category !== currentCategory) {
+                                currentCategory = item.category || 'Uncategorized';
+                                tableBody.push([{ 
+                                    content: currentCategory.toUpperCase(), 
+                                    colSpan: 10, 
+                                    styles: { fillColor: [240, 240, 240], fontStyle: 'bold', textColor: 50, halign: 'center' } 
+                                }]);
+                            }
+
+                            tableBody.push([
+                                index + 1,
+                                { content: '', image: item.image }, // Image
+                                item.hsCode || '--',
+                                item.barcode || '--',
+                                item.desc || '',
+                                item.brand || '--',
+                                item.note || '--',
+                                item.qty,
+                                val.toFixed(2),
+                                total.toFixed(2)
+                            ]);
+                        });
+
+                        // Box Header
+                        doc.setFontSize(12); doc.setFont("helvetica", "bold");
+                        doc.setTextColor(212, 107, 8); // Orange
+                        doc.text(`${box} (Total Items: ${boxTotalQty})`, leftMargin, currentY);
+                        doc.setTextColor(0, 0, 0);
+                        currentY += 10;
+
+                        // Table
+                        doc.autoTable({
+                            startY: currentY,
+                            head: [['No.', 'Image', 'HS Code', 'Barcode', 'Description', 'Brand', 'Note', 'Qty', 'Unit Val', 'Total']],
+                            body: tableBody,
+                            theme: 'grid',
+                            headStyles: { fillColor: [240, 240, 240], textColor: 0, fontStyle: 'bold', fontSize: 8 },
+                            styles: { fontSize: 8, cellPadding: 3, overflow: 'linebreak', minCellHeight: 25, valign: 'middle' },
+                            columnStyles: {
+                                0: { cellWidth: 20, halign: 'center' },
+                                1: { cellWidth: 30, halign: 'center' }, // Image
+                                2: { cellWidth: 60, halign: 'center' }, // HS Code
+                                3: { cellWidth: 70, halign: 'center' }, // Barcode
+                                4: { cellWidth: 'auto' }, // Desc
+                                5: { cellWidth: 80 }, // Brand
+                                6: { cellWidth: 80 }, // Note
+                                7: { cellWidth: 30, halign: 'center' },
+                                8: { cellWidth: 45, halign: 'right' },
+                                9: { cellWidth: 50, halign: 'right' }
+                            },
+                            margin: { left: leftMargin, right: leftMargin },
+                            didDrawCell: function(data) {
+                                if (data.column.index === 1 && data.cell.section === 'body' && data.cell.raw && data.cell.raw.image) {
+                                    try {
+                                        const imgData = data.cell.raw.image;
+                                        const dim = 20; 
+                                        const x = data.cell.x + (data.cell.width - dim) / 2;
+                                        const y = data.cell.y + (data.cell.height - dim) / 2;
+                                        doc.addImage(imgData, 'JPEG', x, y, dim, dim);
+                                    } catch(err) {}
+                                }
+                            }
+                        });
+
+                        currentY = doc.lastAutoTable.finalY + 30;
+
+                        // Page break handling between boxes if needed
+                        if (currentY > doc.internal.pageSize.height - 100) {
+                            doc.addPage();
+                            currentY = 40;
+                        }
+                    });
+
+                    // Grand Total Footer
+                    doc.setLineWidth(1);
+                    doc.line(leftMargin, currentY - 10, pageWidth - leftMargin, currentY - 10);
+                    doc.setFontSize(12); doc.setFont("helvetica", "bold");
+                    doc.text(`GRAND TOTAL - Qty: ${totalMasterQty} | Value: $${totalMasterValue.toFixed(2)} CAD`, pageWidth - leftMargin, currentY + 10, { align: 'right' });
+
+                    currentY += 40;
+                    
+                    // Declaration & Seal
+                    if (currentY > doc.internal.pageSize.height - 120) { doc.addPage(); currentY = 40; }
+                    doc.setFontSize(9); doc.setFont("helvetica", "bold");
+                    doc.text("Declaration: Personal Use – Not for Resale", leftMargin, currentY);
+                    
+                    if (sealBase64Data) {
+                        try {
+                            const sealSize = 100;
+                            if (currentY + sealSize + 10 > doc.internal.pageSize.height - 40) { doc.addPage(); currentY = 40; }
+                            doc.addImage(sealBase64Data, 'PNG', leftMargin, currentY + 15, sealSize, sealSize);
+                        } catch (imgErr) { console.error("Failed to add seal image to PDF:", imgErr); }
+                    }
+
+                    // Open PDF
+                    window.open(doc.output('bloburl'), '_blank');
+
+                } catch (error) {
+                    console.error("Error generating Master Packing List:", error);
+                    alert("Error generating the Master Packing List. Please check console.");
+                }
+            }
+
+            // Main page print button listener
+            const printMasterPackingListBtn = document.getElementById('printMasterPackingListBtn');
+            if(printMasterPackingListBtn) {
+                printMasterPackingListBtn.addEventListener('click', () => {
+                    const selectedBatch = document.getElementById('batchSelector').value;
+                    generateMasterPackingListPDF(selectedBatch);
+                });
+            }
+
+            // Modal print button listener
+            const modalPrintMasterPackingListBtn = document.getElementById('modalPrintMasterPackingListBtn');
+            if(modalPrintMasterPackingListBtn) {
+                modalPrintMasterPackingListBtn.addEventListener('click', () => {
+                    const selectedBatch = document.getElementById('modalBatchSelector').value;
+                    generateMasterPackingListPDF(selectedBatch);
+                });
+            }
 
             // --- SHARE CUSTOMER SUBMISSION FORM ---
             const shareFormBtn = document.getElementById('shareCustomerFormBtn');
