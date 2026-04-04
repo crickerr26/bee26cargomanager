@@ -302,13 +302,14 @@
 
     <script type="text/javascript">
         document.addEventListener('DOMContentLoaded', () => {
-            // Wait for Firebase to initialize
-            setTimeout(() => {
+            // Use an interval instead of a fixed 500ms timeout to wait for Firebase to load.
+            // This reliably fixes the connection drop error on slower mobile networks.
+            const firebaseLoader = setInterval(() => {
                 const db = window.db;
-                if (!db) {
-                    alert("System loading error. Please refresh the page.");
-                    return;
+                if (!db || !window.dbGet || !window.dbRef) {
+                    return; // Wait patiently until it's actually ready
                 }
+                clearInterval(firebaseLoader);
 
                 let currentShipmentId = null;
                 let currentItems = [];
@@ -382,6 +383,7 @@
                 // --- 1. LOAD ALL INVOICES ---
                 async function loadAllInvoices() {
                     try {
+                        loadingInvoices.style.display = 'block';
                         const shipmentsRef = window.dbRef(db, 'shipments');
                         const snapshot = await window.dbGet(shipmentsRef);
                         
@@ -413,9 +415,9 @@
                                     // Save delivered to array for lazy loading later
                                     deliveredShipmentsArray.push(shipment);
                                 } else {
-                                    // Instantly render Pending shipments
-                                    const statusBg = 'var(--orange-light)';
-                                    const statusColor = 'var(--orange)';
+                                    // Instantly render Pending shipments 
+                                    const statusBg = '#fff9f0'; // using direct hex codes to fix undefined css variables
+                                    const statusColor = '#ff9500';
                                     const itemHtml = `
                                         <div class="invoice-list-item" onclick="openShipment('${shipment.id}')">
                                             <div>
@@ -442,8 +444,9 @@
                             invoicesPendingContainer.innerHTML = '<p style="text-align:center;">No shipments found.</p>';
                         }
                     } catch (error) {
-                        console.error(error);
-                        loadingInvoices.innerHTML = '<span style="color: red;">Network timeout. Retrying connection...</span>';
+                        console.error("Firebase fetch error:", error);
+                        loadingInvoices.style.display = 'block';
+                        loadingInvoices.innerHTML = '<span style="color: red; font-weight: bold;">Network timeout. Retrying connection...</span>';
                         // Automatically retry loading after 3 seconds if the internet connection is poor
                         setTimeout(loadAllInvoices, 3000);
                     }
@@ -784,7 +787,7 @@
                     doc.save(`Receiving_Report_${invoiceNo}.pdf`);
                 });
 
-            }, 500); // Give Firebase scripts a half-second to load
+            }, 100); // Check every 100ms until Firebase loads properly
         });
     </script>
 </body>
