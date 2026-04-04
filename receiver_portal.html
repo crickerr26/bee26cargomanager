@@ -339,7 +339,7 @@
                         const itemHtml = `
                             <div class="invoice-list-item" onclick="openShipment('${shipment.id}')">
                                 <div>
-                                    <strong style="font-size: 1rem;">${shipment.invoiceNumber || 'No Invoice #'}</strong>
+                                    <strong style="font-size: 1rem;">Batch: ${shipment.batchNo || 'N/A'} | Box: ${shipment.boxNo || 'N/A'}</strong>
                                     <div style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 2px;">To: ${shipment.receiverName || 'Unknown'}</div>
                                 </div>
                                 <div class="invoice-status" style="background: var(--green); color: white;">
@@ -421,7 +421,7 @@
                                     const itemHtml = `
                                         <div class="invoice-list-item" onclick="openShipment('${shipment.id}')">
                                             <div>
-                                                <strong style="font-size: 1rem;">${shipment.invoiceNumber || 'No Invoice #'}</strong>
+                                                <strong style="font-size: 1rem;">Batch: ${shipment.batchNo || 'N/A'} | Box: ${shipment.boxNo || 'N/A'}</strong>
                                                 <div style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 2px;">To: ${shipment.receiverName || 'Unknown'}</div>
                                             </div>
                                             <div class="invoice-status" style="background: ${statusBg}; color: ${statusColor};">
@@ -464,7 +464,7 @@
                     currentItems = shipment.items || [];
                     
                     // Populate UI
-                    document.getElementById('display-invoice').textContent = shipment.invoiceNumber || 'N/A';
+                    document.getElementById('display-invoice').textContent = `Batch: ${shipment.batchNo || 'N/A'} | Box: ${shipment.boxNo || 'N/A'}`;
                     document.getElementById('display-sender').textContent = shipment.senderName || 'N/A';
                     document.getElementById('display-receiver').textContent = shipment.receiverName || 'N/A';
                     document.getElementById('display-receiver-phone').textContent = shipment.receiverPhone || 'N/A';
@@ -571,6 +571,7 @@
                                     <div style="flex-grow: 1; padding-right: 10px;">
                                         <div class="item-title">#${index + 1} - ${item.desc || 'Unknown Item'}</div>
                                         <div class="item-expected">
+                                            <strong>Sender:</strong> <span style="color: var(--blue); font-weight: 600;">${item.senderName || allShipments[currentShipmentId]?.senderName || 'Unknown'}</span> <br>
                                             <strong>BC:</strong> ${item.barcode || '--'} | <strong>Br:</strong> ${item.brand || '--'} <br>
                                             <strong>Note:</strong> ${item.note || '--'} <br>
                                             <strong>Expected Qty:</strong> ${expectedQty}
