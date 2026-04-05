@@ -10,7 +10,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
-        import { getDatabase, ref, get, query, orderByChild, equalTo, update } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-database.js";
+        import { getDatabase, ref, get, query, orderByChild, equalTo, update, onValue } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-database.js";
         
         // Use the exact same Firebase config from your main app
         const firebaseConfig = {
@@ -35,6 +35,7 @@
         window.dbOrderByChild = orderByChild;
         window.dbEqualTo = equalTo;
         window.dbUpdate = update;
+        window.dbOnValue = onValue;
     </script>
 
     <style>
@@ -308,7 +309,7 @@
             // This reliably fixes the connection drop error on slower mobile networks.
             const firebaseLoader = setInterval(() => {
                 const db = window.db;
-                if (!db || !window.dbGet || !window.dbRef) {
+                if (!db || !window.dbGet || !window.dbRef || !window.dbOnValue) {
                     return; // Wait patiently until it's actually ready
                 }
                 clearInterval(firebaseLoader);
@@ -415,12 +416,16 @@
                 });
 
                 // --- 1. LOAD ALL BOXES ---
-                async function loadAllInvoices() {
-                    try {
-                        loadingInvoices.style.display = 'block';
-                        const shipmentsRef = window.dbRef(db, 'shipments');
-                        const snapshot = await window.dbGet(shipmentsRef);
-                        
+                let isListenerAttached = false;
+                function loadAllInvoices() {
+                    if (isListenerAttached) return; // Prevent duplicate listeners
+                    isListenerAttached = true;
+                    
+                    loadingInvoices.style.display = 'block';
+                    loadingInvoices.innerHTML = '<span style="color: var(--blue); font-weight: bold;">Connecting securely...</span>';
+                    const shipmentsRef = window.dbRef(db, 'shipments');
+                    
+                    window.dbOnValue(shipmentsRef, (snapshot) => {
                         loadingInvoices.style.display = 'none';
                         invoicesPendingContainer.innerHTML = '';
                         invoicesDeliveredContainer.innerHTML = '';
@@ -514,17 +519,20 @@
                             
                             if (deliveredBoxesArray.length > 0) {
                                 deliveredSectionWrapper.style.display = 'block';
+                                // Only render if currently viewing delivered items
+                                if (invoicesDeliveredContainer.style.display === 'block') {
+                                    renderDeliveredItems();
+                                }
                             }
 
                         } else {
                             invoicesPendingContainer.innerHTML = '<p style="text-align:center;">No shipments found.</p>';
                         }
-                    } catch (error) {
-                        console.error("Firebase fetch error:", error);
+                    }, (error) => {
+                        console.error("Firebase listener error:", error);
                         loadingInvoices.style.display = 'block';
-                        loadingInvoices.innerHTML = '<span style="color: red; font-weight: bold;">Network timeout. Retrying connection...</span>';
-                        setTimeout(loadAllInvoices, 3000);
-                    }
+                        loadingInvoices.innerHTML = '<span style="color: red; font-weight: bold;">Connection issue. Reconnecting...</span>';
+                    });
                 }
 
                 // Call the function immediately to load data
