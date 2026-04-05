@@ -5090,16 +5090,14 @@ async function generateThermalLabel() {
             if (btnOpenReceiverPortal) {
                 btnOpenReceiverPortal.addEventListener('click', () => {
                     const baseUrl = window.location.href.substring(0, window.location.href.lastIndexOf('/')) + '/receiver_portal.html';
-                    // Fallback URL if running locally or if name changes
-                    const fallbackUrl = "https://crickerr26.github.io/bee26cargomanager/4.html"; // Defaulting to your 4.html if it's the receiver page
-                    window.open(fallbackUrl, '_blank');
+                    window.open(baseUrl, '_blank');
                 });
             }
 
             if (btnShareReceiverPortal) {
                 btnShareReceiverPortal.addEventListener('click', () => {
-                    const fallbackUrl = "https://crickerr26.github.io/bee26cargomanager/4.html"; // Defaulting to your 4.html if it's the receiver page
-                    const message = `Hello! You can access the Bee26 Receiver Portal here:\n\n${fallbackUrl}`;
+                    const baseUrl = window.location.href.substring(0, window.location.href.lastIndexOf('/')) + '/receiver_portal.html';
+                    const message = `Hello! You can access the Bee26 Receiver Portal here:\n\n${baseUrl}`;
                     const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
                     window.open(whatsappUrl, '_blank');
                 });
