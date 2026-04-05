@@ -876,8 +876,12 @@
             <div class="card">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 10px;">
                     <h2 style="margin: 0;">Receiving Progress</h2>
-                    <input type="text" id="receivingSearch" placeholder="🔍 Search Invoice or Name..." 
-                           style="padding: 10px; border: 1px solid var(--grey-mid); border-radius: 8px; width: 100%; max-width: 300px; font-size: 0.9rem;">
+                    <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                        <input type="text" id="receivingSearch" placeholder="🔍 Search Invoice or Name..." 
+                               style="padding: 10px; border: 1px solid var(--grey-mid); border-radius: 8px; width: 100%; max-width: 300px; font-size: 0.9rem;">
+                        <button class="btn btn-primary btn-small" id="btn-open-receiver-portal" style="margin: 0;">🌐 Open Portal</button>
+                        <button class="btn btn-primary btn-small" id="btn-share-receiver-portal" style="background-color: #25D366; border: none; margin: 0;">Share Link 💬</button>
+                    </div>
                 </div>
                 <p style="color: #666; font-size: 0.9rem; margin-bottom: 15px;">Live updates from the receiver portal. See which shipments have missing or fully received items.</p>
                 <div class="table-container">
@@ -5079,6 +5083,28 @@ async function generateThermalLabel() {
             
             document.getElementById('invoiceDate').valueAsDate = new Date();
             
+            // --- RECEIVER PORTAL BUTTONS ---
+            const btnOpenReceiverPortal = document.getElementById('btn-open-receiver-portal');
+            const btnShareReceiverPortal = document.getElementById('btn-share-receiver-portal');
+
+            if (btnOpenReceiverPortal) {
+                btnOpenReceiverPortal.addEventListener('click', () => {
+                    const baseUrl = window.location.href.substring(0, window.location.href.lastIndexOf('/')) + '/receiver_portal.html';
+                    // Fallback URL if running locally or if name changes
+                    const fallbackUrl = "https://crickerr26.github.io/bee26cargomanager/4.html"; // Defaulting to your 4.html if it's the receiver page
+                    window.open(fallbackUrl, '_blank');
+                });
+            }
+
+            if (btnShareReceiverPortal) {
+                btnShareReceiverPortal.addEventListener('click', () => {
+                    const fallbackUrl = "https://crickerr26.github.io/bee26cargomanager/4.html"; // Defaulting to your 4.html if it's the receiver page
+                    const message = `Hello! You can access the Bee26 Receiver Portal here:\n\n${fallbackUrl}`;
+                    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
+                    window.open(whatsappUrl, '_blank');
+                });
+            }
+
             // --- RESTORE DRAFT ON LOAD ---
             listenForData();
             restoreDraft(); // Try restoring local draft immediately on load
