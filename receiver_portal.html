@@ -255,8 +255,10 @@
                     <button id="btn-show-delivered" class="btn btn-outline btn-small" style="margin: 0; padding: 4px 10px;">Show Completed</button>
                 </h3>
                 <div id="invoices-delivered-container" style="display: none;"></div>
-                <div style="text-align: center; margin-top: 10px;">
-                    <button id="btn-load-more" class="btn btn-outline" style="display: none; width: 100%;">Load More (6)</button>
+                <div id="pagination-controls" style="display: none; justify-content: space-between; margin-top: 15px; align-items: center;">
+                    <button id="btn-prev-page" class="btn btn-outline btn-small" style="margin: 0; padding: 6px 12px;">&larr; Prev</button>
+                    <span id="page-indicator" style="font-size: 0.85rem; font-weight: bold; color: var(--text-secondary);">Page 1</span>
+                    <button id="btn-next-page" class="btn btn-outline btn-small" style="margin: 0; padding: 6px 12px;">Next &rarr;</button>
                 </div>
             </div>
         </div>
@@ -325,11 +327,16 @@
                 // New DOM Elements for Delivered Pagination
                 const deliveredSectionWrapper = document.getElementById('delivered-section-wrapper');
                 const btnShowDelivered = document.getElementById('btn-show-delivered');
-                const btnLoadMore = document.getElementById('btn-load-more');
+                const paginationControls = document.getElementById('pagination-controls');
+                const btnPrevPage = document.getElementById('btn-prev-page');
+                const btnNextPage = document.getElementById('btn-next-page');
+                const pageIndicator = document.getElementById('page-indicator');
 
                 let allShipments = {};
                 let allBoxes = {};
                 let deliveredBoxesArray = [];
+                let currentDeliveredPage = 1;
+                const deliveredItemsPerPage = 5;
 
                 // Helper to render delivered items grouped
                 function renderDeliveredItems() {
@@ -337,10 +344,19 @@
                     
                     if (deliveredBoxesArray.length === 0) {
                         invoicesDeliveredContainer.innerHTML = '<p style="text-align:center; font-size:0.85rem;">No completed boxes.</p>';
+                        paginationControls.style.display = 'none';
                         return;
                     }
 
-                    deliveredBoxesArray.forEach(box => {
+                    const totalPages = Math.ceil(deliveredBoxesArray.length / deliveredItemsPerPage);
+                    if (currentDeliveredPage > totalPages) currentDeliveredPage = totalPages;
+                    if (currentDeliveredPage < 1) currentDeliveredPage = 1;
+
+                    const startIndex = (currentDeliveredPage - 1) * deliveredItemsPerPage;
+                    const endIndex = startIndex + deliveredItemsPerPage;
+                    const itemsToDisplay = deliveredBoxesArray.slice(startIndex, endIndex);
+
+                    itemsToDisplay.forEach(box => {
                         const itemHtml = `
                             <div class="invoice-list-item" onclick="openBox('${box.key}')">
                                 <div>
@@ -355,7 +371,18 @@
                         invoicesDeliveredContainer.insertAdjacentHTML('beforeend', itemHtml);
                     });
                     
-                    btnLoadMore.style.display = 'none';
+                    // Handle Pagination Controls
+                    if (totalPages > 1) {
+                        paginationControls.style.display = 'flex';
+                        pageIndicator.textContent = `Page ${currentDeliveredPage} of ${totalPages}`;
+                        btnPrevPage.disabled = currentDeliveredPage === 1;
+                        btnNextPage.disabled = currentDeliveredPage === totalPages;
+                        
+                        btnPrevPage.style.opacity = currentDeliveredPage === 1 ? '0.5' : '1';
+                        btnNextPage.style.opacity = currentDeliveredPage === totalPages ? '0.5' : '1';
+                    } else {
+                        paginationControls.style.display = 'none';
+                    }
                 }
 
                 // Button Event Listeners for completed deliveries
@@ -363,15 +390,29 @@
                     if (invoicesDeliveredContainer.style.display === 'none') {
                         invoicesDeliveredContainer.style.display = 'block';
                         btnShowDelivered.textContent = 'Hide Completed';
+                        currentDeliveredPage = 1; // reset to page 1 on open
                         renderDeliveredItems();
                     } else {
                         invoicesDeliveredContainer.style.display = 'none';
+                        paginationControls.style.display = 'none';
                         btnShowDelivered.textContent = 'Show Completed';
                     }
                 });
 
-                // Remove btnLoadMore functionality as we show all grouped
-                btnLoadMore.style.display = 'none';
+                btnPrevPage.addEventListener('click', () => {
+                    if (currentDeliveredPage > 1) {
+                        currentDeliveredPage--;
+                        renderDeliveredItems();
+                    }
+                });
+
+                btnNextPage.addEventListener('click', () => {
+                    const totalPages = Math.ceil(deliveredBoxesArray.length / deliveredItemsPerPage);
+                    if (currentDeliveredPage < totalPages) {
+                        currentDeliveredPage++;
+                        renderDeliveredItems();
+                    }
+                });
 
                 // --- 1. LOAD ALL BOXES ---
                 async function loadAllInvoices() {
@@ -388,7 +429,7 @@
                         allBoxes = {};
                         deliveredBoxesArray = [];
                         deliveredSectionWrapper.style.display = 'none';
-                        btnLoadMore.style.display = 'none';
+                        paginationControls.style.display = 'none';
                         btnShowDelivered.textContent = 'Show Completed';
                         invoicesDeliveredContainer.style.display = 'none';
 
@@ -417,6 +458,15 @@
                                             };
                                         }
                                         
+                                        let expected = parseFloat(item.qty) || 0;
+                                        let received = item.receivedQty !== undefined ? parseFloat(item.receivedQty) : 0;
+                                        
+                                        // Handle backward compatibility: If overall shipment is marked Delivered, mark items as fully received
+                                        if (shipment.deliveryStatus === 'Delivered' && received === 0 && expected > 0) {
+                                            received = expected;
+                                            item.receivedQty = received; // Update item so the UI shows it as received when the box is opened
+                                        }
+                                        
                                         allBoxes[boxKey].items.push({
                                             shipmentId: shipmentId,
                                             itemIndex: index,
@@ -426,8 +476,8 @@
                                             receiverName: shipment.receiverName || 'Unknown'
                                         });
                                         
-                                        allBoxes[boxKey].totalExpected += (parseFloat(item.qty) || 0);
-                                        allBoxes[boxKey].totalReceived += (item.receivedQty !== undefined ? parseFloat(item.receivedQty) : 0);
+                                        allBoxes[boxKey].totalExpected += expected;
+                                        allBoxes[boxKey].totalReceived += received;
                                     });
                                 }
                             });
