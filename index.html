@@ -4545,7 +4545,7 @@ async function generateThermalLabel() {
                 // 2. Generate PDF
                 try {
                     const { jsPDF } = window.jspdf;
-                    const doc = new jsPDF('l', 'pt', 'a4'); // 'l' is for Landscape Mode to fit everything perfectly
+                    const doc = new jsPDF('p', 'pt', 'a4'); // 'p' is for Portrait Mode
                     const logoBase64Data = await fetchLogoAsBase64();
                     const sealBase64Data = await fetchSealAsBase64();
                     const pageWidth = doc.internal.pageSize.width;
