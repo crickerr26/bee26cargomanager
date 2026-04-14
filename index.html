@@ -1420,9 +1420,9 @@
                 let maxInv = 0;
                 if (local_shipments_cache && local_shipments_cache.length > 0) {
                     local_shipments_cache.forEach(s => {
-                        if(s.invoiceNumber && s.invoiceNumber.toUpperCase().startsWith('BEE26-')) {
+                        if(s.invoiceNumber && String(s.invoiceNumber).toUpperCase().startsWith('BEE26-')) {
                             // Extract number part "020" from "BEE26-020"
-                            const numPart = s.invoiceNumber.split('-')[1];
+                            const numPart = String(s.invoiceNumber).split('-')[1];
                             const num = parseInt(numPart);
                             if(!isNaN(num) && num > maxInv) maxInv = num;
                         }
@@ -1493,7 +1493,11 @@
                     wizardStep: wizardCurrentStep
                 };
                 
-                localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
+                try {
+                    localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
+                } catch (e) {
+                    console.warn("Storage quota exceeded, draft could not be saved:", e);
+                }
             }
             
             function restoreDraft() {
@@ -1954,13 +1958,25 @@
                 // NEW FIELDS
                 document.getElementById('senderAddress').value = shipment.senderAddress || '';
                 document.getElementById('senderNic').value = shipment.senderNic || '';
+                document.getElementById('senderLat').value = shipment.senderLat || '';
+                document.getElementById('senderLon').value = shipment.senderLon || '';
 
                 document.getElementById('receiverName').value = shipment.receiverName || '';
                 document.getElementById('receiverPhone').value = shipment.receiverPhone || '';
+                document.getElementById('receiverEmail').value = shipment.receiverEmail || '';
                 document.getElementById('receiverAddress').value = shipment.receiverAddress || '';
+                document.getElementById('receiverLat').value = shipment.receiverLat || '';
+                document.getElementById('receiverLon').value = shipment.receiverLon || '';
+                
                 document.getElementById('customerRemarks').value = shipment.customerRemarks || '';
                 document.getElementById('totalPackages').value = shipment.totalPackages || '';
                 document.getElementById('totalWeight').value = shipment.totalWeight || '';
+                
+                document.getElementById('boxL').value = shipment.boxL || '';
+                document.getElementById('boxW').value = shipment.boxW || '';
+                document.getElementById('boxH').value = shipment.boxH || '';
+                if(typeof updateVolumetric === 'function') updateVolumetric();
+                
                 document.getElementById('invoiceNumber').value = shipment.invoiceNumber || '';
                 document.getElementById('invoiceDate').value = shipment.invoiceDate || '';
                 document.getElementById('deliveryStatus').value = shipment.deliveryStatus || 'Pending';
