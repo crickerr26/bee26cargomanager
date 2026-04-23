@@ -1763,6 +1763,9 @@
                 if (n < 1 || n > WIZ_TOTAL) return;
                 // Stop scanner if leaving step 1
                 if (wizItemStep === 1 && n !== 1) wizStopScanner();
+                // Sync numpad displays when entering step 6 or 7
+                if (n === 6) { qtyRawStr = qtyRawStr || ''; qtyDisplay(); }
+                if (n === 7) { valRawStr = valRawStr || ''; valDisplay(); }
                 wizItemStep = n;
                 wizShowStep(n);
             }
@@ -1799,18 +1802,15 @@
             }
 
             function wizStopScanner() {
+                const container = document.getElementById('wiz-scanner-container');
+                const ssb = document.getElementById('wiz-startScanBtn');
+                if (container) container.style.display = 'none';
+                if (ssb) ssb.style.display = 'block';
                 if (wiz_html5Scanner) {
-                    wiz_html5Scanner.stop().then(() => {
-                        document.getElementById('wiz-scanner-container').style.display = 'none';
-                        document.getElementById('wiz-startScanBtn').style.display = 'block';
-                    }).catch(() => {
-                        document.getElementById('wiz-scanner-container').style.display = 'none';
-                        document.getElementById('wiz-startScanBtn').style.display = 'block';
-                    });
-                } else {
-                    document.getElementById('wiz-scanner-container').style.display = 'none';
-                    const ssb = document.getElementById('wiz-startScanBtn');
-                    if(ssb) ssb.style.display = 'block';
+                    try {
+                        wiz_html5Scanner.stop().catch(() => {});
+                    } catch(e) {}
+                    wiz_html5Scanner = null;
                 }
             }
 
@@ -1873,16 +1873,19 @@
 
             function qtyDisplay() {
                 const n = parseInt(qtyRawStr || '0', 10);
-                document.getElementById('qty-display').textContent = n === 0 ? '0' : n.toString();
-                document.getElementById('modalItemQty').value = n === 0 ? '' : n.toString();
+                const display = document.getElementById('qty-display');
+                if (display) display.textContent = n === 0 ? '0' : n.toString();
+                const hidden = document.getElementById('modalItemQty');
+                if (hidden) hidden.value = n === 0 ? '' : n.toString();
             }
 
             function valDisplay() {
-                // Treat valRawStr as integer cents: e.g. "1234" → 12.34
                 const cents = parseInt(valRawStr || '0', 10);
                 const dollars = (cents / 100).toFixed(2);
-                document.getElementById('val-display').textContent = dollars;
-                document.getElementById('modalItemValue').value = dollars;
+                const display = document.getElementById('val-display');
+                if (display) display.textContent = dollars;
+                const hidden = document.getElementById('modalItemValue');
+                if (hidden) hidden.value = cents === 0 ? '' : dollars;
             }
 
             document.querySelectorAll('.apple-pad-btn').forEach(btn => {
@@ -1897,8 +1900,9 @@
                             return;
                         } else {
                             if (qtyRawStr.length >= 4) return; // max 9999
-                            if (qtyRawStr === '0') qtyRawStr = pad;
-                            else qtyRawStr += pad;
+                            qtyRawStr += pad;
+                            // Remove leading zeros
+                            qtyRawStr = String(parseInt(qtyRawStr, 10));
                         }
                         qtyDisplay();
                     }
@@ -1925,16 +1929,20 @@
                 const vd = document.getElementById('val-display');
                 if (qd) qd.textContent = '0';
                 if (vd) vd.textContent = '0.00';
+                const hq = document.getElementById('modalItemQty');
+                const hv = document.getElementById('modalItemValue');
+                if (hq) hq.value = '';
+                if (hv) hv.value = '';
             }
 
-            // Enter key advance for text/number steps
-            ['modalItemDesc', 'modalItemBrand', 'modalItemQty', 'modalItemValue'].forEach(id => {
+            // Enter key advance for text steps (qty and value now use hidden inputs — Enter handled on wiz-body)
+            ['modalItemDesc', 'modalItemBrand'].forEach(id => {
                 const el = document.getElementById(id);
                 if (!el) return;
                 el.addEventListener('keydown', (e) => {
                     if (e.key === 'Enter') {
                         e.preventDefault();
-                        const stepMap = { modalItemDesc: 4, modalItemBrand: 5, modalItemQty: 7, modalItemValue: 8 };
+                        const stepMap = { modalItemDesc: 4, modalItemBrand: 5 };
                         wizGoTo(stepMap[id]);
                     }
                 });
