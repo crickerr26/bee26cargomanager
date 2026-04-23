@@ -443,10 +443,10 @@
                 </table>
             </div>
 
-            <div id="itemWizardOverlay" style="display:none; position:fixed; inset:0; background:rgba(15,23,42,0.7); z-index:2000; overflow-y:auto; -webkit-overflow-scrolling:touch; backdrop-filter: blur(4px);">
-                <div id="itemWizardPanel" style="background:var(--bg-surface); border-radius:24px; width:92%; max-width:480px; margin:30px auto 60px; box-shadow:0 20px 60px rgba(0,0,0,0.3); overflow:hidden;">
+            <div id="itemWizardOverlay" style="display:none; position:fixed; inset:0; background:rgba(15,23,42,0.7); z-index:2000; overflow-y:auto; -webkit-overflow-scrolling:touch; backdrop-filter: blur(4px); align-items:center; justify-content:center;">
+                <div id="itemWizardPanel" style="background:var(--bg-surface); border-radius:24px; width:92%; max-width:480px; margin:auto; box-shadow:0 20px 60px rgba(0,0,0,0.3); overflow:hidden; display:flex; flex-direction:column; max-height:85vh;">
                     
-                    <div style="background:var(--brand-primary); padding:18px 20px 14px; position:relative;">
+                    <div style="background:var(--brand-primary); padding:18px 20px 14px; position:relative; flex-shrink:0;">
                         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
                             <span id="wiz-step-label" style="color:#fff; font-weight:700; font-size:16px;">Step 1 of 8</span>
                             <button id="wizCloseBtn" type="button" onclick="wizClose()" style="background:rgba(255,255,255,0.2); border:none; color:#fff; width:32px; height:32px; border-radius:50%; font-size:1.2rem; cursor:pointer; display:flex; align-items:center; justify-content:center; line-height:1;">&times;</button>
@@ -460,16 +460,16 @@
                         </div>
                     </div>
 
-                    <div id="wiz-body" style="padding:24px 20px 10px; min-height:260px;">
+                    <div id="wiz-body" style="padding:24px 20px 10px; min-height:260px; overflow-y:auto; flex:1;">
                         
                         <div id="wiz-s1" class="wiz-step-content">
                             <div style="text-align:center; margin-bottom:16px;">
                                 <div style="font-size:3rem; margin-bottom:8px;">📦</div>
                                 <p style="color:var(--text-muted); font-size:14px; margin:0;">Scan barcode or type manually</p>
                             </div>
-                            <div id="scanner-container" style="display: none; margin-bottom: 12px; border-radius: 12px; overflow: hidden; border: 2px solid var(--brand-accent);">
-                                <div id="reader" style="width: 100%;"></div>
-                                <button type="button" class="btn btn-secondary" onclick="stopScanner()" style="border-radius: 0; background:var(--danger); color:white; border:none;">🛑 Stop Camera</button>
+                            <div id="scanner-container" style="display: none; margin-bottom: 12px; border-radius: 12px; overflow: hidden; border: 2px solid var(--brand-accent); flex-direction: column;">
+                                <div id="reader" style="width: 100%; background: #000; max-height: 40vh; overflow: hidden;"></div>
+                                <button type="button" class="btn btn-secondary" onclick="stopScanner()" style="border-radius: 0; background:var(--danger); color:white; border:none; width: 100%; padding: 16px; font-size: 16px; font-weight: bold; z-index: 10;">🛑 Cancel Camera</button>
                             </div>
                             <div style="display:flex; gap:10px; margin-bottom:12px;">
                                 <button type="button" id="startScanBtn" class="btn btn-primary" onclick="startScanner()" style="flex:1;">📷 Scan Camera</button>
@@ -595,7 +595,7 @@
 
                     </div>
 
-                    <div style="padding:16px 20px 20px; display:flex; gap:12px; border-top:1px solid var(--border-light); background:#F8FAFC;">
+                    <div style="padding:16px 20px 20px; display:flex; gap:12px; border-top:1px solid var(--border-light); background:#F8FAFC; flex-shrink:0;">
                         <button type="button" id="wizBackBtn" class="btn btn-secondary" onclick="wizGoBack()" style="flex:1; display:none;">← Back</button>
                         <button type="button" id="wizNextBtn" class="btn btn-primary" onclick="wizGoNext()" style="flex:2;">Next →</button>
                     </div>
@@ -903,7 +903,7 @@
 
         // --- 2. Barcode Scanner & Auto-Fetch API Logic ---
         function startScanner() {
-            document.getElementById('scanner-container').style.display = 'block';
+            document.getElementById('scanner-container').style.display = 'flex';
             document.getElementById('startScanBtn').style.display = 'none';
             if (!html5QrcodeScanner) {
                 html5QrcodeScanner = new Html5Qrcode("reader");
@@ -951,6 +951,7 @@
                     statusEl.textContent = "✅ Product found via UPC Database!";
                     statusEl.style.color = "green";
                     calculateHSCode();
+                    setTimeout(() => { if(wizStep === 1) wizGoNext(); }, 1000);
                     return;
                 }
 
@@ -963,15 +964,18 @@
                     statusEl.textContent = "✅ Product found via OpenFoodFacts!";
                     statusEl.style.color = "green";
                     calculateHSCode();
+                    setTimeout(() => { if(wizStep === 1) wizGoNext(); }, 1000);
                     return;
                 }
 
                 statusEl.textContent = "⚠️ Barcode valid, but no public info found. Please enter manually.";
                 statusEl.style.color = "#d46b08";
+                setTimeout(() => { if(wizStep === 1) wizGoNext(); }, 1200);
             } catch(e) {
                 console.error("API Error", e);
                 statusEl.textContent = "⚠️ Error fetching data. Please enter manually.";
                 statusEl.style.color = "red";
+                setTimeout(() => { if(wizStep === 1) wizGoNext(); }, 1200);
             }
         }
 
@@ -996,6 +1000,9 @@
                     currentImageBase64 = canvas.toDataURL('image/jpeg', 0.6);
                     document.getElementById('imagePreview').src = currentImageBase64;
                     document.getElementById('imagePreview').style.display = 'block';
+                    
+                    // Auto-advance to next step after a brief delay
+                    setTimeout(() => { if(wizStep === 2) wizGoNext(); }, 600);
                 };
             };
         });
@@ -1004,6 +1011,9 @@
             document.querySelectorAll('.condition-btn').forEach(b => b.classList.remove('active-condition'));
             btn.classList.add('active-condition');
             selectedCondition = btn.dataset.val;
+            
+            // Auto-advance/Save item after selecting condition
+            setTimeout(() => { if(wizStep === 8) wizGoNext(); }, 400);
         }
 
         // --- WIZARD UI LOGIC ---
@@ -1030,7 +1040,22 @@
             document.getElementById('wiz-step-hint').textContent = WIZ_META[wizStep-1].hint;
             document.getElementById('wiz-progress-bar').style.width = ((wizStep / WIZ_TOTAL) * 100) + '%';
             
-            document.getElementById('wizBackBtn').style.display = (wizStep > 1) ? 'block' : 'none';
+            const backBtn = document.getElementById('wizBackBtn');
+            backBtn.style.display = 'block';
+            if (wizStep === 1) {
+                backBtn.textContent = 'Cancel';
+                backBtn.onclick = wizClose;
+                backBtn.style.backgroundColor = '#FEE2E2';
+                backBtn.style.color = '#DC2626';
+                backBtn.style.borderColor = '#FCA5A5';
+            } else {
+                backBtn.textContent = '← Back';
+                backBtn.onclick = wizGoBack;
+                backBtn.style.backgroundColor = '#F1F5F9';
+                backBtn.style.color = 'var(--text-heading)';
+                backBtn.style.borderColor = 'var(--border-light)';
+            }
+            
             document.getElementById('wizNextBtn').textContent = (wizStep === WIZ_TOTAL) ? '💾 Save Item' : 'Next →';
             
             if(wizStep !== 1 && typeof stopScanner === 'function') stopScanner();
