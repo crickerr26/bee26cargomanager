@@ -355,7 +355,7 @@
         <div class="form-section">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                 <h3 style="margin-bottom: 0; border: none; padding-bottom: 0;">Your Items List</h3>
-                <button type="button" class="btn btn-secondary" style="width: auto; padding: 10px 16px; font-size: 15px;" onclick="document.getElementById('itemFormContainer').style.display='block'">+ Add Item</button>
+                <button type="button" class="btn btn-secondary" style="width: auto; padding: 10px 16px; font-size: 15px;" onclick="wizOpen()">+ Add Item</button>
             </div>
             
             <div class="table-container">
@@ -367,104 +367,162 @@
                 </table>
             </div>
 
-            <div id="itemFormContainer">
-                <h3 style="color: var(--apple-blue); border-bottom: none; margin-bottom: 16px;">Add New Item</h3>
-
-                <div class="scanner-box">
-                    <label>1. Barcode (Optional)</label>
+            <div id="itemWizardOverlay" style="display:none; position:fixed; inset:0; background:rgba(15,23,42,0.7); z-index:2000; overflow-y:auto; -webkit-overflow-scrolling:touch; backdrop-filter: blur(4px);">
+                <div id="itemWizardPanel" style="background:var(--bg-surface); border-radius:24px; width:92%; max-width:480px; margin:30px auto 60px; box-shadow:0 20px 60px rgba(0,0,0,0.3); overflow:hidden;">
                     
-                    <div id="scanner-container" style="display: none; margin-bottom: 12px; border-radius: 12px; overflow: hidden;">
-                        <div id="reader" style="width: 100%;"></div>
-                        <button type="button" class="btn btn-secondary" onclick="stopScanner()" style="border-radius: 0;">🛑 Stop / Skip</button>
+                    <div style="background:var(--brand-primary); padding:18px 20px 14px; position:relative;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                            <span id="wiz-step-label" style="color:#fff; font-weight:700; font-size:16px;">Step 1 of 8</span>
+                            <button id="wizCloseBtn" type="button" onclick="wizClose()" style="background:rgba(255,255,255,0.2); border:none; color:#fff; width:32px; height:32px; border-radius:50%; font-size:1.2rem; cursor:pointer; display:flex; align-items:center; justify-content:center; line-height:1;">&times;</button>
+                        </div>
+                        <div style="background:rgba(255,255,255,0.25); border-radius:10px; height:6px; overflow:hidden;">
+                            <div id="wiz-progress-bar" style="background:var(--brand-accent); height:100%; border-radius:10px; transition:width 0.4s ease; width:12.5%;"></div>
+                        </div>
+                        <div style="display:flex; justify-content:space-between; margin-top:6px;">
+                            <span id="wiz-step-name" style="color:rgba(255,255,255,0.9); font-size:13px; font-weight:600;">Item Barcode</span>
+                            <span id="wiz-step-hint" style="color:rgba(255,255,255,0.65); font-size:12px;">Optional</span>
+                        </div>
                     </div>
 
-                    <div style="display: flex; gap: 10px;">
-                        <button type="button" class="btn btn-primary" id="startScanBtn" onclick="startScanner()" style="flex: 1;">📷 Scan Barcode</button>
-                        <input type="text" id="itemBarcode" placeholder="Or type..." style="font-weight: bold; flex: 1; text-align: center; background: white;" onchange="fetchBarcodeData(this.value)">
+                    <div id="wiz-body" style="padding:24px 20px 10px; min-height:260px;">
+                        
+                        <div id="wiz-s1" class="wiz-step-content">
+                            <div style="text-align:center; margin-bottom:16px;">
+                                <div style="font-size:3rem; margin-bottom:8px;">📦</div>
+                                <p style="color:var(--text-muted); font-size:14px; margin:0;">Scan barcode or type manually</p>
+                            </div>
+                            <div id="scanner-container" style="display: none; margin-bottom: 12px; border-radius: 12px; overflow: hidden; border: 2px solid var(--brand-accent);">
+                                <div id="reader" style="width: 100%;"></div>
+                                <button type="button" class="btn btn-secondary" onclick="stopScanner()" style="border-radius: 0; background:var(--danger); color:white; border:none;">🛑 Stop Camera</button>
+                            </div>
+                            <div style="display:flex; gap:10px; margin-bottom:12px;">
+                                <button type="button" id="startScanBtn" class="btn btn-primary" onclick="startScanner()" style="flex:1;">📷 Scan Camera</button>
+                            </div>
+                            <input type="text" id="itemBarcode" placeholder="Or type barcode here..." autocomplete="off" onchange="fetchBarcodeData(this.value)"
+                                style="width:100%; padding:14px; border:2px solid var(--border-light); border-radius:12px; font-size:16px; font-weight:700; text-align:center; box-sizing:border-box;">
+                            <small id="barcodeStatus" style="color: var(--brand-accent); margin-top: 8px; display: none; font-weight: 600; text-align:center;"></small>
+                        </div>
+
+                        <div id="wiz-s2" class="wiz-step-content" style="display:none;">
+                            <div style="text-align:center; margin-bottom:16px;">
+                                <div style="font-size:3rem; margin-bottom:8px;">📷</div>
+                                <p style="color:var(--text-muted); font-size:14px; margin:0;">Take a photo of the item</p>
+                            </div>
+                            <div style="text-align:center; margin-bottom:14px;">
+                                <img id="imagePreview" src="" alt="Preview" style="max-height:160px; border-radius:12px; border:2px solid var(--brand-accent); display:none; margin: 0 auto;">
+                            </div>
+                            <div class="input-group">
+                                <label style="background:var(--brand-accent); color:#fff; border-radius:12px; padding:16px; font-weight:700; font-size:16px; cursor:pointer; text-align:center; text-transform:none; letter-spacing:0;">
+                                    📸 Capture Photo
+                                    <input type="file" id="itemImage" accept="image/*" style="display:none;">
+                                </label>
+                            </div>
+                        </div>
+
+                        <div id="wiz-s3" class="wiz-step-content" style="display:none;">
+                            <div style="text-align:center; margin-bottom:16px;">
+                                <div style="font-size:3rem; margin-bottom:8px;">📝</div>
+                                <p style="color:var(--text-muted); font-size:14px; margin:0;">What is this item?</p>
+                            </div>
+                            <input type="text" id="itemDesc" placeholder="e.g. Men's Cotton T-Shirts" autocomplete="off"
+                                style="width:100%; padding:16px; border:2px solid var(--border-light); border-radius:12px; font-size:16px; box-sizing:border-box;">
+                        </div>
+
+                        <div id="wiz-s4" class="wiz-step-content" style="display:none;">
+                            <div style="text-align:center; margin-bottom:16px;">
+                                <div style="font-size:3rem; margin-bottom:8px;">🗂️</div>
+                                <p style="color:var(--text-muted); font-size:14px; margin:0;">Select a category</p>
+                            </div>
+                            <select id="itemCat" style="width:100%; padding:16px; border:2px solid var(--border-light); border-radius:12px; font-size:16px; box-sizing:border-box; background-color: white;">
+                                <option value="">Select category...</option>
+                                <optgroup label="Apparel & Personal">
+                                    <option value="Clothing">Clothing</option>
+                                    <option value="Footwear & Shoes">Footwear & Shoes</option>
+                                    <option value="Kids Clothing">Kids Clothing</option>
+                                    <option value="Men's Accessories">Men's Accessories</option>
+                                    <option value="Ladies' Accessories">Ladies' Accessories</option>
+                                    <option value="Fabrics & Textiles">Fabrics & Textiles</option>
+                                </optgroup>
+                                <optgroup label="Electronics & Media">
+                                    <option value="Computers & Laptops">Computers & Laptops</option>
+                                    <option value="Phones & Accessories">Phones & Accessories</option>
+                                    <option value="Cameras & Equipment">Cameras & Equipment</option>
+                                    <option value="Electronic Items">Electronic Items</option>
+                                </optgroup>
+                                <optgroup label="Food & Perishables">
+                                    <option value="Packaged Food (Non-Perishable)">Packaged Food (Non-Perishable)</option>
+                                    <option value="Perishables (Special Handling)">Perishables (Special Handling)</option>
+                                </optgroup>
+                                <optgroup label="Household & Others">
+                                    <option value="Kitchenware">Kitchenware</option>
+                                    <option value="Home Decor">Home Decor</option>
+                                    <option value="Toys & Hobbies">Toys & Hobbies</option>
+                                    <option value="Baby Items">Baby Items</option>
+                                    <option value="Cosmetics & Toiletries">Cosmetics & Toiletries</option>
+                                    <option value="Medicines & Vitamins">Medicines & Vitamins</option>
+                                    <option value="Books & Stationery">Books & Stationery</option>
+                                    <option value="Tools & Hardware">Tools & Hardware</option>
+                                    <option value="Automotive Parts">Automotive Parts</option>
+                                    <option value="General Merchandise">General Merchandise</option>
+                                    <option value="Other">Other</option>
+                                </optgroup>
+                            </select>
+                        </div>
+
+                        <div id="wiz-s5" class="wiz-step-content" style="display:none;">
+                            <div style="text-align:center; margin-bottom:16px;">
+                                <div style="font-size:3rem; margin-bottom:8px;">🔢</div>
+                                <p style="color:var(--text-muted); font-size:14px; margin:0;">How many are you sending?</p>
+                            </div>
+                            <input type="number" id="itemQty" placeholder="e.g. 2" min="1"
+                                style="width:100%; padding:16px; border:2px solid var(--border-light); border-radius:12px; font-size:24px; text-align:center; box-sizing:border-box;">
+                        </div>
+
+                        <div id="wiz-s6" class="wiz-step-content" style="display:none;">
+                            <div style="text-align:center; margin-bottom:16px;">
+                                <div style="font-size:3rem; margin-bottom:8px;">💲</div>
+                                <p style="color:var(--text-muted); font-size:14px; margin:0;">Estimated Value per unit (CAD)</p>
+                            </div>
+                            <div style="position:relative;">
+                                <span style="position:absolute; left:16px; top:50%; transform:translateY(-50%); font-size:20px; color:var(--text-muted);">$</span>
+                                <input type="number" id="itemValue" placeholder="15.00" step="0.01"
+                                    style="width:100%; padding:16px 16px 16px 40px; border:2px solid var(--border-light); border-radius:12px; font-size:24px; box-sizing:border-box;">
+                            </div>
+                        </div>
+
+                        <div id="wiz-s7" class="wiz-step-content" style="display:none;">
+                            <div style="text-align:center; margin-bottom:16px;">
+                                <div style="font-size:3rem; margin-bottom:8px;">🏷️</div>
+                                <p style="color:var(--text-muted); font-size:14px; margin:0;">Brand and specific details</p>
+                            </div>
+                            <input type="text" id="itemBrand" placeholder="Brand (e.g. Nike, Generic)" autocomplete="off"
+                                style="width:100%; padding:16px; border:2px solid var(--border-light); border-radius:12px; font-size:16px; box-sizing:border-box; margin-bottom:14px;">
+                            
+                            <input type="text" id="itemNote" placeholder="Note (e.g. Red color, Size M)" autocomplete="off"
+                                style="width:100%; padding:16px; border:2px solid var(--border-light); border-radius:12px; font-size:16px; box-sizing:border-box;">
+                        </div>
+
+                        <div id="wiz-s8" class="wiz-step-content" style="display:none;">
+                            <div style="text-align:center; margin-bottom:16px;">
+                                <div style="font-size:3rem; margin-bottom:8px;">✨</div>
+                                <p style="color:var(--text-muted); font-size:14px; margin:0;">Item Condition</p>
+                            </div>
+                            <div style="display:flex; gap:10px; margin-bottom:20px;">
+                                <button type="button" class="btn btn-secondary condition-btn" data-val="New" onclick="setCondition(this)" style="flex:1; font-size:18px; padding:20px;">✨ New</button>
+                                <button type="button" class="btn btn-secondary condition-btn" data-val="Used" onclick="setCondition(this)" style="flex:1; font-size:18px; padding:20px;">♻️ Used</button>
+                            </div>
+                            
+                            <div style="display:none;">
+                                <input type="text" id="itemHSCode" readonly>
+                            </div>
+                        </div>
+
                     </div>
-                    <small id="barcodeStatus" style="color: var(--apple-blue); margin-top: 8px; display: none; font-weight: 600;">Fetching product details...</small>
-                </div>
 
-                <div class="input-group">
-                    <label>2. Product Photo</label>
-                    <input type="file" id="itemImage" accept="image/*" style="background: transparent; padding: 4px;">
-                    <img id="imagePreview" src="" style="width: 120px; height: 120px; object-fit: cover; display: none; margin-top: 10px; border-radius: 12px; border: 1px solid #E5E5EA; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
-                </div>
-                
-                <div class="input-group">
-                    <label>3. Description</label>
-                    <input type="text" id="itemDesc" placeholder="e.g., Men's T-Shirts">
-                </div>
-
-                <div class="input-group">
-                    <label>4. Category</label>
-                    <select id="itemCat">
-                        <option value="">Select category...</option>
-                        <optgroup label="Apparel & Personal">
-                            <option value="Clothing">Clothing</option>
-                            <option value="Footwear & Shoes">Footwear & Shoes</option>
-                            <option value="Kids Clothing">Kids Clothing</option>
-                            <option value="Men's Accessories">Men's Accessories</option>
-                            <option value="Ladies' Accessories">Ladies' Accessories</option>
-                            <option value="Fabrics & Textiles">Fabrics & Textiles</option>
-                        </optgroup>
-                        <optgroup label="Electronics & Media">
-                            <option value="Computers & Laptops">Computers & Laptops</option>
-                            <option value="Phones & Accessories">Phones & Accessories</option>
-                            <option value="Cameras & Equipment">Cameras & Equipment</option>
-                            <option value="Electronic Items">Electronic Items</option>
-                        </optgroup>
-                        <optgroup label="Food & Perishables">
-                            <option value="Packaged Food (Non-Perishable)">Packaged Food (Non-Perishable)</option>
-                            <option value="Perishables (Special Handling)">Perishables (Special Handling)</option>
-                        </optgroup>
-                        <optgroup label="Household & Others">
-                            <option value="Kitchenware">Kitchenware</option>
-                            <option value="Home Decor">Home Decor</option>
-                            <option value="Toys & Hobbies">Toys & Hobbies</option>
-                            <option value="Baby Items">Baby Items</option>
-                            <option value="Cosmetics & Toiletries">Cosmetics & Toiletries</option>
-                            <option value="Medicines & Vitamins">Medicines & Vitamins</option>
-                            <option value="Books & Stationery">Books & Stationery</option>
-                            <option value="Tools & Hardware">Tools & Hardware</option>
-                            <option value="Automotive Parts">Automotive Parts</option>
-                            <option value="General Merchandise">General Merchandise</option>
-                            <option value="Other">Other</option>
-                        </optgroup>
-                    </select>
-                </div>
-
-                <div class="form-grid-two-col">
-                    <div class="input-group"><label>5. Quantity</label><input type="number" id="itemQty" placeholder="e.g. 2" min="1"></div>
-                    <div class="input-group"><label>6. Unit Value (CAD)</label><input type="number" id="itemValue" placeholder="15.00" step="0.01"></div>
-                </div>
-
-                <div class="input-group">
-                    <label>7. Condition</label>
-                    <div style="display: flex; gap: 10px;">
-                        <button type="button" class="btn btn-secondary condition-btn" data-val="New" onclick="setCondition(this)">✨ New</button>
-                        <button type="button" class="btn btn-secondary condition-btn" data-val="Used" onclick="setCondition(this)">♻️ Used</button>
+                    <div style="padding:16px 20px 20px; display:flex; gap:12px; border-top:1px solid var(--border-light); background:#F8FAFC;">
+                        <button type="button" id="wizBackBtn" class="btn btn-secondary" onclick="wizGoBack()" style="flex:1; display:none;">← Back</button>
+                        <button type="button" id="wizNextBtn" class="btn btn-primary" onclick="wizGoNext()" style="flex:2;">Next →</button>
                     </div>
-                </div>
-
-                <div class="input-group">
-                    <label>8. Brand Name</label>
-                    <input type="text" id="itemBrand" placeholder="e.g. Nike">
-                </div>
-
-                <div class="input-group">
-                    <label>9. Item Note</label>
-                    <input type="text" id="itemNote" placeholder="e.g. Serial Number / Color">
-                </div>
-
-                <div class="input-group" style="opacity: 0.6;">
-                    <label>HS Code (Auto-Generated)</label>
-                    <input type="text" id="itemHSCode" placeholder="e.g., 6109.10" readonly>
-                </div>
-
-                <div style="display: flex; gap: 12px; margin-top: 24px;">
-                    <button type="button" class="btn btn-secondary" style="flex: 1;" onclick="document.getElementById('itemFormContainer').style.display='none'">Cancel</button>
-                    <button type="button" class="btn btn-primary" style="flex: 2;" onclick="saveItemToTable()">Save Item To List</button>
                 </div>
             </div>
         </div>
@@ -811,6 +869,74 @@
             selectedCondition = btn.dataset.val;
         }
 
+        // --- WIZARD UI LOGIC ---
+        let wizStep = 1;
+        const WIZ_TOTAL = 8;
+        const WIZ_META = [
+            { title: "Item Barcode", hint: "Optional" },
+            { title: "Product Photo", hint: "Required" },
+            { title: "Description", hint: "Required" },
+            { title: "Category", hint: "Required" },
+            { title: "Quantity", hint: "Required" },
+            { title: "Unit Value (CAD)", hint: "Required" },
+            { title: "Brand & Notes", hint: "Required" },
+            { title: "Item Condition", hint: "Required" }
+        ];
+
+        function wizUpdate() {
+            for(let i=1; i<=WIZ_TOTAL; i++) {
+                const el = document.getElementById('wiz-s'+i);
+                if(el) el.style.display = (i === wizStep) ? 'block' : 'none';
+            }
+            document.getElementById('wiz-step-label').textContent = `Step ${wizStep} of ${WIZ_TOTAL}`;
+            document.getElementById('wiz-step-name').textContent = WIZ_META[wizStep-1].title;
+            document.getElementById('wiz-step-hint').textContent = WIZ_META[wizStep-1].hint;
+            document.getElementById('wiz-progress-bar').style.width = ((wizStep / WIZ_TOTAL) * 100) + '%';
+            
+            document.getElementById('wizBackBtn').style.display = (wizStep > 1) ? 'block' : 'none';
+            document.getElementById('wizNextBtn').textContent = (wizStep === WIZ_TOTAL) ? '💾 Save Item' : 'Next →';
+            
+            if(wizStep !== 1 && typeof stopScanner === 'function') stopScanner();
+        }
+
+        window.wizOpen = function() {
+            wizStep = 1;
+            wizUpdate();
+            document.getElementById('itemWizardOverlay').style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+        };
+
+        window.wizClose = function() {
+            document.getElementById('itemWizardOverlay').style.display = 'none';
+            document.body.style.overflow = '';
+            if(typeof stopScanner === 'function') stopScanner();
+        };
+
+        window.wizGoNext = function() {
+            // Validation before moving to next step
+            if (wizStep === 2 && !currentImageBase64) { alert("Photo is required to proceed!"); return; }
+            if (wizStep === 3 && !document.getElementById('itemDesc').value.trim()) { alert("Description is required!"); return; }
+            if (wizStep === 4 && !document.getElementById('itemCat').value) { alert("Please select a Category!"); return; }
+            if (wizStep === 5 && !document.getElementById('itemQty').value) { alert("Quantity is required!"); return; }
+            if (wizStep === 6 && !document.getElementById('itemValue').value) { alert("Unit Value is required!"); return; }
+            if (wizStep === 7 && (!document.getElementById('itemBrand').value || !document.getElementById('itemNote').value)) { alert("Brand and Note are required!"); return; }
+            if (wizStep === 8 && !selectedCondition) { alert("Condition is required!"); return; }
+            
+            if (wizStep < WIZ_TOTAL) {
+                wizStep++;
+                wizUpdate();
+            } else {
+                saveItemToTable();
+            }
+        };
+
+        window.wizGoBack = function() {
+            if (wizStep > 1) {
+                wizStep--;
+                wizUpdate();
+            }
+        };
+
         // --- 4. Add to Table ---
         function saveItemToTable() {
             const barcode = document.getElementById('itemBarcode').value;
@@ -858,7 +984,9 @@
             currentImageBase64 = null;
             document.querySelectorAll('.condition-btn').forEach(b => b.classList.remove('active-condition'));
             selectedCondition = "";
-            document.getElementById('itemFormContainer').style.display = 'none';
+            
+            // Close Wizard cleanly
+            wizClose();
         }
 
         function renderTable() {
@@ -923,9 +1051,11 @@
                 document.getElementById('imagePreview').style.display = 'block';
             }
 
-            // Show form
-            document.getElementById('itemFormContainer').style.display = 'block';
-            document.getElementById('itemFormContainer').scrollIntoView({ behavior: 'smooth' });
+            // Show wizard jumping to description (Step 3) since photo is there
+            wizStep = 3;
+            wizUpdate();
+            document.getElementById('itemWizardOverlay').style.display = 'flex';
+            document.body.style.overflow = 'hidden';
         }
 
         window.removeItem = function(idx) {
@@ -934,7 +1064,7 @@
                 // Reset edit state if they delete the item they are currently editing
                 if (currentEditIndex === idx) {
                     currentEditIndex = -1;
-                    document.getElementById('itemFormContainer').style.display = 'none';
+                    wizClose();
                 }
                 renderTable();
                 saveDraft();
@@ -1165,8 +1295,8 @@
             currentEditIndex = -1;
             renderTable();
             
-            // Hide item form container
-            document.getElementById('itemFormContainer').style.display = 'none';
+            // Close wizard safely
+            wizClose();
 
             // Scroll to top
             window.scrollTo({ top: 0, behavior: 'smooth' });
