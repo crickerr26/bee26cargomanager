@@ -1227,10 +1227,10 @@
 
         /* On desktop show as centered card instead of bottom sheet */
         @media (min-width: 768px) {
-            #itemWizardOverlay { display: flex; align-items: center; justify-content: center; }
+            #itemWizardOverlay[style*="block"] { display: flex !important; align-items: center; justify-content: center; }
             #itemWizardPanel {
-                position: relative; bottom: auto; left: auto; right: auto;
-                border-radius: 20px; max-width: 480px; width: 92%;
+                position: relative !important; bottom: auto !important; left: auto !important; right: auto !important;
+                border-radius: 20px !important; max-width: 480px; width: 92%;
                 max-height: 88vh; animation: wizardSlideUp 0.3s cubic-bezier(0.34,1.56,0.64,1);
             }
         }
