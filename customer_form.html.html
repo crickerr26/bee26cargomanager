@@ -49,31 +49,31 @@
             background-color: var(--bg-body); 
             color: var(--text-body); 
             margin: 0; 
-            padding: 20px 12px; 
+            padding: 12px 10px; /* Reduced for mobile */
             -webkit-font-smoothing: antialiased;
-            line-height: 1.5;
+            line-height: 1.4;
         }
 
         .container { 
             max-width: 800px; 
             margin: 0 auto; 
-            padding-bottom: 50px;
+            padding-bottom: 30px;
         }
 
         /* Header Re-styling */
         .header { 
             text-align: center; 
-            margin-bottom: 40px; 
-            padding-top: 20px;
+            margin-bottom: 16px; /* Tightened gap */
+            padding-top: 8px;
         }
         .header img { 
-            height: 60px; 
-            margin-bottom: 16px;
+            height: 42px; /* Reduced logo size */
+            margin-bottom: 8px;
             filter: drop-shadow(0 4px 6px rgba(0,0,0,0.05));
         }
         h2 { 
-            margin: 0 0 8px 0; 
-            font-size: 32px; 
+            margin: 0 0 4px 0; 
+            font-size: 22px; /* Scaled down */
             font-weight: 800; 
             letter-spacing: -0.02em;
             color: var(--text-heading);
@@ -81,34 +81,35 @@
         .header p {
             margin: 0 auto;
             max-width: 500px;
-            font-size: 15px;
+            font-size: 13px; /* Scaled down */
             color: var(--text-muted);
+            line-height: 1.3;
         }
         
         /* Premium Soft Cards */
         .form-section { 
             background: var(--bg-surface); 
-            border-radius: 20px; 
-            padding: 32px; 
-            margin-bottom: 30px; 
-            box-shadow: 0 10px 40px -10px rgba(0,0,0,0.08); 
+            border-radius: 16px; /* Slightly tighter corners for mobile */
+            padding: 20px; /* Tighter padding to fit screen */
+            margin-bottom: 16px; /* Reduced gap between sections */
+            box-shadow: 0 4px 20px -10px rgba(0,0,0,0.08); 
             border: 1px solid rgba(226, 232, 240, 0.6);
         }
         .form-section h3 {
             margin-top: 0;
-            margin-bottom: 24px;
-            font-size: 20px;
+            margin-bottom: 16px; /* Tighter spacing */
+            font-size: 18px; /* Slightly reduced */
             font-weight: 700;
             letter-spacing: -0.01em;
             color: var(--text-heading);
-            border-bottom: 2px solid var(--bg-body);
-            padding-bottom: 16px;
+            border-bottom: 1px solid var(--border-light); /* Thinner line */
+            padding-bottom: 12px;
         }
         
         .form-grid-two-col { 
             display: grid; 
             grid-template-columns: 1fr; 
-            gap: 20px; 
+            gap: 16px; /* Tighter gap between inputs */
         }
         @media (min-width: 600px) {
             .form-grid-two-col { grid-template-columns: 1fr 1fr; }
@@ -118,10 +119,10 @@
         .input-group { 
             display: flex; 
             flex-direction: column; 
-            gap: 6px; 
+            gap: 4px; /* Tighter label-to-input gap */
         }
         .input-group label { 
-            font-size: 12px; 
+            font-size: 11px; /* Tighter */
             font-weight: 700; 
             color: var(--text-heading); 
             text-transform: uppercase;
@@ -131,13 +132,13 @@
         
         .input-group input, .input-group select, .input-group textarea { 
             width: 100%; 
-            padding: 14px 16px; 
-            font-size: 16px; /* Perfect reading size */
+            padding: 12px 14px; /* Reduced padding */
+            font-size: 16px; /* Perfect reading size (keeps iOS from zooming) */
             font-weight: 500;
             color: var(--text-heading);
             background-color: #F8FAFC; /* Subtle fill */
             border: 1.5px solid var(--border-light); 
-            border-radius: 12px; 
+            border-radius: 10px; /* Apple style radius */
             box-sizing: border-box; 
             font-family: inherit; 
             transition: all 0.2s ease;
@@ -307,10 +308,10 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 24px;
+            margin-bottom: 16px; /* Tighter gap */
             background: var(--bg-surface);
-            padding: 12px;
-            border-radius: 16px;
+            padding: 8px; /* Reduced padding */
+            border-radius: 14px;
             box-shadow: 0 4px 12px rgba(0,0,0,0.03);
             border: 1px solid var(--border-light);
             overflow-x: auto;
@@ -357,7 +358,7 @@
     <div class="container">
         <div class="header">
             <img src="https://raw.githubusercontent.com/crickerr26/bee26cargomanager/main/BEE26.png" alt="Bee26 Logo">
-            <h2 style="font-size: 25px; color: #550f5c;">Shipment Declaration</h2>
+            <h2 style="font-size: 20px; color: #550f5c;">Shipment Declaration</h2>
             <p>Please list all the items you wish to ship. We will prepare your invoice automatically.</p>
         </div>
 
