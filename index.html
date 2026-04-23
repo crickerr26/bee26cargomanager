@@ -919,128 +919,276 @@
 
     </main>
 
-    <div class="modal-overlay" id="addItemModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2 id="modal-title">Add New Item</h2>
-                <button class="close-btn" id="closeModalBtn">&times;</button>
-            </div>
+    <!-- ===== ITEM WIZARD OVERLAY ===== -->
+    <div id="itemWizardOverlay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.75); z-index:2000; overflow-y:auto; -webkit-overflow-scrolling:touch;">
+        <div id="itemWizardPanel" style="background:#fff; border-radius:20px; width:92%; max-width:480px; margin:30px auto 60px; box-shadow:0 20px 60px rgba(0,0,0,0.3); overflow:hidden; animation:wizardSlideUp 0.35s cubic-bezier(0.34,1.56,0.64,1);">
             
-            <form id="addItemForm">
-                <div class="input-group" style="margin-bottom: 20px; padding: 10px; background: #f0f7ff; border: 1px dashed var(--blue); border-radius: 8px;">
-                    <label style="color: var(--blue); font-weight: bold;">1. Barcode (Optional)</label>
-                    
-                    <div id="scanner-container" style="width: 100%; display: none; margin-bottom: 10px; border: 2px solid var(--blue); border-radius: 8px; overflow: hidden;">
-                        <div id="reader" style="width: 100%;"></div>
-                        <button type="button" class="btn btn-danger" id="stopScanBtn" style="width: 100%; border-radius: 0;">🛑 Stop / Skip</button>
-                    </div>
+            <!-- Header -->
+            <div style="background:linear-gradient(135deg,#007aff,#0056b3); padding:18px 20px 14px; position:relative;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                    <span id="wiz-step-label" style="color:#fff; font-weight:700; font-size:1rem; letter-spacing:-0.3px;">Step 1 of 8</span>
+                    <button id="wizCloseBtn" type="button" style="background:rgba(255,255,255,0.2); border:none; color:#fff; width:32px; height:32px; border-radius:50%; font-size:1.2rem; cursor:pointer; display:flex; align-items:center; justify-content:center; line-height:1;">&times;</button>
+                </div>
+                <!-- Progress Bar -->
+                <div style="background:rgba(255,255,255,0.25); border-radius:10px; height:6px; overflow:hidden;">
+                    <div id="wiz-progress-bar" style="background:#fff; height:100%; border-radius:10px; transition:width 0.4s ease; width:12.5%;"></div>
+                </div>
+                <div style="display:flex; justify-content:space-between; margin-top:6px;">
+                    <span id="wiz-step-name" style="color:rgba(255,255,255,0.9); font-size:0.8rem; font-weight:600;">Item Barcode</span>
+                    <span id="wiz-step-hint" style="color:rgba(255,255,255,0.65); font-size:0.75rem;">Optional</span>
+                </div>
+            </div>
 
-                    <div style="display: flex; gap: 10px;">
-                        <button type="button" class="btn btn-primary" id="startScanBtn" style="flex: 1;">📷 Scan Barcode</button>
-                        <input type="text" id="modalBarcode" placeholder="Or type..." style="font-weight: bold; flex: 1; text-align: center;">
+            <!-- Step Body -->
+            <div id="wiz-body" style="padding:24px 20px 10px; min-height:260px;">
+
+                <!-- STEP 1: Barcode -->
+                <div id="wiz-s1" class="wiz-step-content">
+                    <div style="text-align:center; margin-bottom:16px;">
+                        <div style="font-size:3rem; margin-bottom:8px;">📦</div>
+                        <p style="color:#636366; font-size:0.9rem; margin:0;">Scan barcode or type manually, then press Enter</p>
+                    </div>
+                    <div id="wiz-scanner-container" style="display:none; border:2px solid #007aff; border-radius:12px; overflow:hidden; margin-bottom:12px;">
+                        <div id="wiz-reader" style="width:100%;"></div>
+                        <button type="button" id="wiz-stopScanBtn" style="width:100%; background:#ff3b30; color:#fff; border:none; padding:12px; font-weight:700; font-size:0.9rem; cursor:pointer; border-radius:0;">🛑 Stop Camera</button>
+                    </div>
+                    <div style="display:flex; gap:10px; margin-bottom:12px;">
+                        <button type="button" id="wiz-startScanBtn" style="flex:1; background:#007aff; color:#fff; border:none; border-radius:12px; padding:14px; font-weight:700; font-size:0.95rem; cursor:pointer;">📷 Scan Camera</button>
+                    </div>
+                    <input type="text" id="modalBarcode" placeholder="Or type barcode here, press Enter →" autocomplete="off" inputmode="text"
+                        style="width:100%; padding:14px; border:2px solid #e5e5ea; border-radius:12px; font-size:1rem; font-weight:700; text-align:center; box-sizing:border-box; transition:border-color 0.2s;">
+                    <div style="margin-top:14px; text-align:center;">
+                        <button type="button" id="wiz-skip-barcode" style="background:none; border:none; color:#8a8a8e; font-size:0.875rem; cursor:pointer; text-decoration:underline;">Skip (no barcode)</button>
                     </div>
                 </div>
 
-                <div class="form-grid-two-col">
-                    
-                    <div class="input-group" style="grid-column: 1 / -1;">
-                        <label for="modalItemImage" style="font-weight: 700;">2. Product Photo <span style="color:red">*</span></label>
-                        <input type="file" id="modalItemImage" accept="image/jpeg, image/png" style="padding: 10px; border: 1px solid #ddd; border-radius: 4px; width: 100%; box-sizing: border-box;">
-                        
-                        <div id="modalImagePreviewContainer" style="margin-top:10px; display:none;">
-                            <img id="modalImagePreview" src="" alt="Preview" style="max-height: 150px; border: 1px solid #ddd; border-radius: 4px; display: block; margin: auto;">
+                <!-- STEP 2: Photo -->
+                <div id="wiz-s2" class="wiz-step-content" style="display:none;">
+                    <div style="text-align:center; margin-bottom:16px;">
+                        <div style="font-size:3rem; margin-bottom:8px;">📷</div>
+                        <p style="color:#636366; font-size:0.9rem; margin:0;">Take a photo or upload from gallery</p>
+                    </div>
+                    <div id="wiz-photo-preview-wrap" style="display:none; text-align:center; margin-bottom:14px;">
+                        <img id="modalImagePreview" src="" alt="Preview" style="max-height:160px; border-radius:12px; border:2px solid #007aff; display:inline-block;">
+                        <div style="margin-top:8px;">
+                            <span style="color:#28a745; font-weight:700; font-size:0.9rem;">✅ Photo captured!</span>
                         </div>
                     </div>
-
-                    <div class="input-group" style="grid-column: 1 / -1;">
-                        <label for="modalItemDesc" style="font-weight: 700;">3. Description <span style="color:red">*</span></label>
-                        <div style="display: flex; gap: 5px;">
-                            <input type="text" id="modalItemDesc" placeholder="e.g., Men's T-Shirts" required style="flex-grow: 1;">
-                            <button type="button" id="voiceDictationBtn" class="btn btn-secondary" style="font-size: 1.2rem; padding: 0 1rem;">🎤</button>
-                        </div>
+                    <div style="display:flex; gap:10px;">
+                        <label style="flex:1; background:#007aff; color:#fff; border-radius:12px; padding:14px; font-weight:700; font-size:0.95rem; cursor:pointer; text-align:center;">
+                            📸 Camera / Gallery
+                            <input type="file" id="modalItemImage" accept="image/*" capture="environment" style="display:none;">
+                        </label>
+                        <label style="flex:1; background:#f0f0f5; color:#1c1c1e; border-radius:12px; padding:14px; font-weight:700; font-size:0.95rem; cursor:pointer; text-align:center;">
+                            🖼️ Browse Files
+                            <input type="file" id="modalItemImageAlt" accept="image/jpeg,image/png" style="display:none;">
+                        </label>
                     </div>
-
-                    <div class="input-group" style="grid-column: 1 / -1;">
-                        <label for="modalItemCat" style="font-weight: 700;">4. Category <span style="color:red">*</span></label>
-                        <select id="modalItemCat" required>
-                            <option value="">Select category...</option>
-                            <optgroup label="Apparel & Personal">
-                                <option value="Clothing">Clothing</option>
-                                <option value="Footwear & Shoes">Footwear & Shoes</option>
-                                <option value="Kids Clothing">Kids Clothing</option>
-                                <option value="Men's Accessories">Men's Accessories</option>
-                                <option value="Ladies' Accessories">Ladies' Accessories</option>
-                                <option value="Fabrics & Textiles">Fabrics & Textiles</option>
-                            </optgroup>
-                            <optgroup label="Electronics & Media">
-                                <option value="Computers & Laptops">Computers & Laptops</option>
-                                <option value="Phones & Accessories">Phones & Accessories</option>
-                                <option value="Cameras & Equipment">Cameras & Equipment</option>
-                                <option value="Electronic Items">Electronic Items</option>
-                            </optgroup>
-                            <optgroup label="Food & Perishables">
-                                <option value="Packaged Food (Non-Perishable)">Packaged Food (Non-Perishable)</option>
-                                <option value="Perishables (Special Handling)">Perishables (Special Handling)</option>
-                            </optgroup>
-                            <optgroup label="Household & Others">
-                                <option value="Kitchenware">Kitchenware</option>
-                                <option value="Home Decor">Home Decor</option>
-                                <option value="Toys & Hobbies">Toys & Hobbies</option>
-                                <option value="Baby Items">Baby Items</option>
-                                <option value="Cosmetics & Toiletries">Cosmetics & Toiletries</option>
-                                <option value="Medicines & Vitamins">Medicines & Vitamins</option>
-                                <option value="Books & Stationery">Books & Stationery</option>
-                                <option value="Tools & Hardware">Tools & Hardware</option>
-                                <option value="Automotive Parts">Automotive Parts</option>
-                                <option value="General Merchandise">General Merchandise</option>
-                                <option value="Other">Other</option>
-                            </optgroup>
-                        </select>
+                    <div id="modalImagePreviewContainer" style="display:none;"></div>
+                    <div style="margin-top:14px; text-align:center;">
+                        <button type="button" id="wiz-skip-photo" style="background:none; border:none; color:#8a8a8e; font-size:0.875rem; cursor:pointer; text-decoration:underline;">Skip photo</button>
                     </div>
-
-                    <div class="input-group">
-                        <label for="modalItemQty" style="font-weight: 700;">5. Quantity <span style="color:red">*</span></label>
-                        <input type="number" id="modalItemQty" placeholder="1" min="1" required>
-                    </div>
-
-                    <div class="input-group">
-                        <label for="modalItemValue" style="font-weight: 700;">6. Unit Value (CAD) <span style="color:red">*</span></label>
-                        <input type="number" id="modalItemValue" placeholder="15.00" min="0" step="0.01" required>
-                    </div>
-
-                    <div class="input-group" style="grid-column: 1 / -1;">
-                        <label style="font-weight: 700;">7. Condition <span style="color:red">*</span></label>
-                        <div style="display: flex; gap: 10px;">
-                            <button type="button" class="btn btn-secondary condition-btn" data-val="New" style="flex: 1; padding: 12px;">✨ New</button>
-                            <button type="button" class="btn btn-secondary condition-btn" data-val="Used" style="flex: 1; padding: 12px;">♻️ Used</button>
-                        </div>
-                        <input type="hidden" id="modalItemCondition" value="" required> 
-                    </div>
-
-                    <div class="input-group">
-                        <label for="modalItemBrand" style="font-weight: 700;">8. Brand Name <span style="color:red">*</span></label>
-                        <input type="text" id="modalItemBrand" placeholder="e.g. Nike" required>
-                    </div>
-
-                    <div class="input-group" style="grid-column: 1 / -1;">
-                        <label for="modalItemNote" style="font-weight: 700;">9. Item Note <span style="color:red">*</span></label>
-                        <input type="text" id="modalItemNote" placeholder="e.g. Serial Number / Color" required>
-                    </div>
-                    
-                    <div class="input-group" style="grid-column: 1 / -1;">
-                         <label style="font-size: 0.8rem; color: #888;">HS Code (Auto-Generated)</label>
-                         <input type="text" id="modalItemHSCode" placeholder="e.g., 6109.10">
-                    </div>
-
                 </div>
-                
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" id="cancelModalBtn">Cancel</button>
-                    <button type="submit" class="btn btn-primary" id="saveItemBtn" style="font-size: 1.2rem; padding: 12px 30px;">SAVE ITEM</button>
+
+                <!-- STEP 3: Description -->
+                <div id="wiz-s3" class="wiz-step-content" style="display:none;">
+                    <div style="text-align:center; margin-bottom:16px;">
+                        <div style="font-size:3rem; margin-bottom:8px;">📝</div>
+                        <p style="color:#636366; font-size:0.9rem; margin:0;">Describe the item clearly, then press Enter</p>
+                    </div>
+                    <div style="display:flex; gap:8px; align-items:center;">
+                        <input type="text" id="modalItemDesc" placeholder="e.g. Men's Cotton T-Shirts" autocomplete="off"
+                            style="flex:1; padding:16px; border:2px solid #e5e5ea; border-radius:12px; font-size:1.05rem; box-sizing:border-box; transition:border-color 0.2s;">
+                        <button type="button" id="voiceDictationBtn" style="background:#f0f0f5; border:none; border-radius:12px; padding:14px; font-size:1.4rem; cursor:pointer; flex-shrink:0;">🎤</button>
+                    </div>
                 </div>
-            </form>
+
+                <!-- STEP 4: Brand -->
+                <div id="wiz-s4" class="wiz-step-content" style="display:none;">
+                    <div style="text-align:center; margin-bottom:16px;">
+                        <div style="font-size:3rem; margin-bottom:8px;">🏷️</div>
+                        <p style="color:#636366; font-size:0.9rem; margin:0;">Enter brand name, then press Enter</p>
+                    </div>
+                    <input type="text" id="modalItemBrand" placeholder="e.g. Nike, Samsung, Generic" autocomplete="off"
+                        style="width:100%; padding:16px; border:2px solid #e5e5ea; border-radius:12px; font-size:1.05rem; box-sizing:border-box; transition:border-color 0.2s;">
+                </div>
+
+                <!-- STEP 5: Category -->
+                <div id="wiz-s5" class="wiz-step-content" style="display:none;">
+                    <div style="text-align:center; margin-bottom:14px;">
+                        <div style="font-size:3rem; margin-bottom:8px;">🗂️</div>
+                        <p style="color:#636366; font-size:0.9rem; margin:0;">Tap a category to continue</p>
+                    </div>
+                    <input type="text" id="wiz-cat-search" placeholder="🔍 Search categories..." autocomplete="off"
+                        style="width:100%; padding:12px; border:2px solid #e5e5ea; border-radius:10px; font-size:0.95rem; box-sizing:border-box; margin-bottom:10px;">
+                    <div id="wiz-cat-grid" style="display:grid; grid-template-columns:1fr 1fr; gap:8px; max-height:280px; overflow-y:auto; -webkit-overflow-scrolling:touch;">
+                    </div>
+                    <input type="hidden" id="modalItemCat">
+                </div>
+
+                <!-- STEP 6: Quantity -->
+                <div id="wiz-s6" class="wiz-step-content" style="display:none;">
+                    <div style="text-align:center; margin-bottom:10px;">
+                        <p style="color:#636366; font-size:0.85rem; margin:0; font-weight:500; letter-spacing:-0.2px;">Enter quantity, then press Enter</p>
+                    </div>
+                    <!-- Apple-style display -->
+                    <div style="background:#f9f9f9; border:1.5px solid #e5e5ea; border-radius:14px; padding:18px 20px; text-align:center; margin-bottom:12px; min-height:62px; display:flex; align-items:center; justify-content:center;">
+                        <span id="qty-display" style="font-size:2.6rem; font-weight:300; color:#1c1c1e; letter-spacing:-1px; font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display',sans-serif; min-width:40px; display:inline-block;">0</span>
+                    </div>
+                    <input type="hidden" id="modalItemQty" value="">
+                    <!-- Apple iOS-style numpad -->
+                    <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:10px;">
+                        <button type="button" class="apple-pad-btn" data-pad="1" data-target="qty">1</button>
+                        <button type="button" class="apple-pad-btn" data-pad="2" data-target="qty">2</button>
+                        <button type="button" class="apple-pad-btn" data-pad="3" data-target="qty">3</button>
+                        <button type="button" class="apple-pad-btn" data-pad="4" data-target="qty">4</button>
+                        <button type="button" class="apple-pad-btn" data-pad="5" data-target="qty">5</button>
+                        <button type="button" class="apple-pad-btn" data-pad="6" data-target="qty">6</button>
+                        <button type="button" class="apple-pad-btn" data-pad="7" data-target="qty">7</button>
+                        <button type="button" class="apple-pad-btn" data-pad="8" data-target="qty">8</button>
+                        <button type="button" class="apple-pad-btn" data-pad="9" data-target="qty">9</button>
+                        <button type="button" class="apple-pad-btn apple-pad-empty" data-pad="noop" data-target="qty" style="background:transparent; box-shadow:none; cursor:default;"></button>
+                        <button type="button" class="apple-pad-btn" data-pad="0" data-target="qty">0</button>
+                        <button type="button" class="apple-pad-btn apple-pad-del" data-pad="del" data-target="qty">⌫</button>
+                    </div>
+                </div>
+
+                <!-- STEP 7: Unit Value -->
+                <div id="wiz-s7" class="wiz-step-content" style="display:none;">
+                    <div style="text-align:center; margin-bottom:10px;">
+                        <p style="color:#636366; font-size:0.85rem; margin:0; font-weight:500; letter-spacing:-0.2px;">Enter unit value in CAD, then press Enter</p>
+                    </div>
+                    <!-- Apple-style currency display -->
+                    <div style="background:#f9f9f9; border:1.5px solid #e5e5ea; border-radius:14px; padding:18px 20px; text-align:center; margin-bottom:12px; min-height:62px; display:flex; align-items:center; justify-content:center; gap:6px;">
+                        <span style="font-size:1.6rem; font-weight:300; color:#8a8a8e; font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display',sans-serif; align-self:flex-start; margin-top:6px;">$</span>
+                        <span id="val-display" style="font-size:2.6rem; font-weight:300; color:#1c1c1e; letter-spacing:-1px; font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display',sans-serif; min-width:60px; display:inline-block;">0.00</span>
+                    </div>
+                    <input type="hidden" id="modalItemValue" value="">
+                    <!-- Apple iOS-style numpad -->
+                    <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:10px;">
+                        <button type="button" class="apple-pad-btn" data-pad="1" data-target="val">1</button>
+                        <button type="button" class="apple-pad-btn" data-pad="2" data-target="val">2</button>
+                        <button type="button" class="apple-pad-btn" data-pad="3" data-target="val">3</button>
+                        <button type="button" class="apple-pad-btn" data-pad="4" data-target="val">4</button>
+                        <button type="button" class="apple-pad-btn" data-pad="5" data-target="val">5</button>
+                        <button type="button" class="apple-pad-btn" data-pad="6" data-target="val">6</button>
+                        <button type="button" class="apple-pad-btn" data-pad="7" data-target="val">7</button>
+                        <button type="button" class="apple-pad-btn" data-pad="8" data-target="val">8</button>
+                        <button type="button" class="apple-pad-btn" data-pad="9" data-target="val">9</button>
+                        <button type="button" class="apple-pad-btn" data-pad="." data-target="val">.</button>
+                        <button type="button" class="apple-pad-btn" data-pad="0" data-target="val">0</button>
+                        <button type="button" class="apple-pad-btn apple-pad-del" data-pad="del" data-target="val">⌫</button>
+                    </div>
+                </div>
+
+                <!-- STEP 8: Note + Condition (final) -->
+                <div id="wiz-s8" class="wiz-step-content" style="display:none;">
+                    <div style="text-align:center; margin-bottom:16px;">
+                        <div style="font-size:3rem; margin-bottom:8px;">📋</div>
+                        <p style="color:#636366; font-size:0.9rem; margin:0;">Add notes & select condition (optional), then Save</p>
+                    </div>
+                    <input type="text" id="modalItemNote" placeholder="e.g. Red color, Serial #12345 (optional)" autocomplete="off"
+                        style="width:100%; padding:14px; border:2px solid #e5e5ea; border-radius:12px; font-size:1rem; box-sizing:border-box; margin-bottom:14px; transition:border-color 0.2s;">
+                    <label style="font-weight:700; font-size:0.9rem; color:#1c1c1e; display:block; margin-bottom:8px;">Condition</label>
+                    <div style="display:flex; gap:10px; margin-bottom:10px;">
+                        <button type="button" class="condition-btn" data-val="New" style="flex:1; background:#f0f0f5; border:none; border-radius:12px; padding:14px; font-weight:700; font-size:1rem; cursor:pointer; transition:all 0.2s;">✨ New</button>
+                        <button type="button" class="condition-btn" data-val="Used" style="flex:1; background:#f0f0f5; border:none; border-radius:12px; padding:14px; font-weight:700; font-size:1rem; cursor:pointer; transition:all 0.2s;">♻️ Used</button>
+                    </div>
+                    <input type="hidden" id="modalItemCondition" value="New">
+                    <input type="hidden" id="modalItemHSCode">
+                </div>
+
+            </div>
+
+            <!-- Footer Nav -->
+            <div style="padding:14px 20px 20px; display:flex; gap:10px; border-top:1px solid #f0f0f5;">
+                <button type="button" id="wizBackBtn" style="background:#f0f0f5; color:#1c1c1e; border:none; border-radius:12px; padding:14px 20px; font-weight:700; font-size:0.95rem; cursor:pointer; flex-shrink:0; display:none;">← Back</button>
+                <button type="button" id="wizNextBtn" style="flex:1; background:#007aff; color:#fff; border:none; border-radius:12px; padding:14px; font-weight:700; font-size:1rem; cursor:pointer; transition:background 0.2s;">Next →</button>
+            </div>
         </div>
     </div>
+
+    <!-- Hidden legacy form (keeps existing save/edit logic working) -->
+    <div style="display:none;">
+        <form id="addItemForm">
+            <input type="hidden" id="modalBarcode_legacy">
+            <button type="submit" id="saveItemBtn"></button>
+        </form>
+    </div>
+
+    <!-- Success overlay -->
+    <div id="wiz-success-overlay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:3000; align-items:center; justify-content:center;">
+        <div style="background:#fff; border-radius:24px; padding:40px 32px; text-align:center; max-width:300px; width:88%; animation:wizardSlideUp 0.3s ease;">
+            <div style="font-size:4rem; margin-bottom:12px;">✅</div>
+            <div style="font-size:1.3rem; font-weight:700; color:#1c1c1e; margin-bottom:6px;">Item Added!</div>
+            <div style="font-size:0.9rem; color:#636366;">Opening next item entry…</div>
+        </div>
+    </div>
+
+    <style>
+        @keyframes wizardSlideUp {
+            from { opacity:0; transform:translateY(30px) scale(0.97); }
+            to { opacity:1; transform:translateY(0) scale(1); }
+        }
+        .wiz-cat-btn {
+            background:#f0f0f5; border:2px solid transparent; border-radius:10px;
+            padding:12px 8px; font-size:0.8rem; font-weight:600; cursor:pointer;
+            text-align:center; transition:all 0.15s; line-height:1.3;
+            color:#1c1c1e;
+        }
+        .wiz-cat-btn:active { transform:scale(0.96); }
+        .wiz-cat-btn.selected { background:#e6f2ff; border-color:#007aff; color:#007aff; }
+        .condition-btn.selected { background:#007aff !important; color:#fff !important; }
+        #wiz-s1 input:focus, #wiz-s3 input:focus, #wiz-s4 input:focus,
+        #wiz-s6 input:focus, #wiz-s7 input:focus, #wiz-s8 input:focus {
+            border-color:#007aff; outline:none; box-shadow:0 0 0 3px rgba(0,122,255,0.15);
+        }
+        @media (max-width:480px) {
+            #itemWizardPanel { width:96%; margin:15px auto 80px; }
+        }
+
+        /* ===== Apple iOS Number Pad ===== */
+        .apple-pad-btn {
+            background: #ffffff;
+            border: none;
+            border-radius: 10px;
+            padding: 0;
+            height: 56px;
+            font-size: 1.5rem;
+            font-weight: 400;
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
+            color: #1c1c1e;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 1px 0 rgba(0,0,0,0.18), 0 0 0 0.5px rgba(0,0,0,0.08);
+            transition: background 0.08s ease, transform 0.08s ease;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+            letter-spacing: -0.5px;
+        }
+        .apple-pad-btn:active {
+            background: #d1d1d6;
+            transform: scale(0.96);
+        }
+        .apple-pad-del {
+            background: #d1d1d6;
+            font-size: 1.3rem;
+            color: #3c3c43;
+        }
+        .apple-pad-del:active {
+            background: #aeaeb2;
+        }
+        .apple-pad-empty {
+            box-shadow: none !important;
+            background: transparent !important;
+        }
+        @media (prefers-color-scheme: dark) {
+            .apple-pad-btn { background:#2c2c2e; color:#fff; box-shadow:0 1px 0 rgba(255,255,255,0.08); }
+            .apple-pad-del { background:#636366; }
+        }
+    </style>
 
 
     <script type="text/javascript"> 
@@ -1076,60 +1224,7 @@
                 return;
             }
 
-            // --- NEW: Image Handling Variables & Function ---
-            const modalItemImageInput = document.getElementById('modalItemImage');
-            const modalImagePreviewContainer = document.getElementById('modalImagePreviewContainer');
-            const modalImagePreview = document.getElementById('modalImagePreview');
-            let tempItemCompressedImage = null; // Stores the data URL ready for saving
-
-            // Helper: Compress Image
-            function compressImage(file, callback) {
-                const maxWidth = 800; // Max dimension
-                const quality = 0.6;  // 60% quality
-                const reader = new FileReader();
-                reader.readAsDataURL(file);
-                reader.onload = event => {
-                    const img = new Image();
-                    img.src = event.target.result;
-                    img.onload = () => {
-                        const canvas = document.createElement('canvas');
-                        let width = img.width;
-                        let height = img.height;
-                        // Calculate new dimensions
-                        if (width > height) {
-                            if (width > maxWidth) { height *= maxWidth / width; width = maxWidth; }
-                        } else {
-                            if (height > maxWidth) { width *= maxWidth / height; height = maxWidth; }
-                        }
-                        canvas.width = width;
-                        canvas.height = height;
-                        const ctx = canvas.getContext('2d');
-                        ctx.drawImage(img, 0, 0, width, height);
-                        // Compress
-                        const dataUrl = canvas.toDataURL('image/jpeg', quality);
-                        callback(dataUrl);
-                    };
-                };
-                reader.onerror = error => console.log(error);
-            }
-
-            // Listener for File Selection
-            if(modalItemImageInput) {
-                modalItemImageInput.addEventListener('change', function(e) {
-                    const file = e.target.files[0];
-                    if (file) {
-                        compressImage(file, (compressedDataUrl) => {
-                            tempItemCompressedImage = compressedDataUrl;
-                            modalImagePreview.src = compressedDataUrl;
-                            modalImagePreviewContainer.style.display = 'block';
-                        });
-                    } else {
-                        tempItemCompressedImage = null;
-                        modalImagePreview.src = '';
-                        modalImagePreviewContainer.style.display = 'none';
-                    }
-                });
-            }
+            // --- Image handling is managed by the Item Wizard (see wizSaveItem / handlePhotoFile below) ---
 
             // --- App State ---
             let local_items = []; 
@@ -1561,78 +1656,185 @@
             });
             // We also need to listen for dynamically added items (handled in renderItemTable)
 
-            // --- 3. Item CRUD (Manages local_items array) ---
-            const modal = document.getElementById('addItemModal');
+            // --- 3. Item CRUD — WIZARD FLOW ---
             const addNewItemBtn = document.getElementById('addNewItemBtn');
-            const closeModalBtn = document.getElementById('closeModalBtn');
-            const cancelModalBtn = document.getElementById('cancelModalBtn');
-            const addItemForm = document.getElementById('addItemForm');
             const itemTableTbody = document.getElementById('itemTableTbody');
+            const addItemForm = document.getElementById('addItemForm'); // legacy hidden form kept for compatibility
 
-            // NEW: Scanner & Voice Elements
-            const modalBarcode = document.getElementById('modalBarcode');
-            const startScanBtn = document.getElementById('startScanBtn');
-            const stopScanBtn = document.getElementById('stopScanBtn');
-            const scannerContainer = document.getElementById('scanner-container');
-            const voiceDictationBtn = document.getElementById('voiceDictationBtn');
-            
-            // Condition Buttons
-            const conditionBtns = document.querySelectorAll('.condition-btn');
-            const conditionInput = document.getElementById('modalItemCondition');
+            // Wizard state
+            let wizItemStep = 1;
+            const WIZ_TOTAL = 8;
+            let wiz_html5Scanner = null;
 
-            let html5QrcodeScanner = null;
+            const WIZ_STEPS_META = [
+                { name: 'Item Barcode',   hint: 'Optional' },
+                { name: 'Product Photo',  hint: 'Required' },
+                { name: 'Description',    hint: 'Required' },
+                { name: 'Brand Name',     hint: 'Required' },
+                { name: 'Category',       hint: 'Required — tap to select' },
+                { name: 'Quantity',       hint: 'Required' },
+                { name: 'Unit Value',     hint: 'Required (CAD)' },
+                { name: 'Notes & Condition', hint: 'Optional' }
+            ];
 
-            // --- A. CONDITION BUTTON LOGIC ---
-            conditionBtns.forEach(btn => {
-                btn.addEventListener('click', () => {
-                    // Reset all
-                    conditionBtns.forEach(b => {
-                        b.classList.remove('btn-primary');
-                        b.classList.add('btn-secondary');
+            const WIZ_CATEGORIES = [
+                { label: '👗 Clothing',          val: 'Clothing' },
+                { label: '👟 Footwear',           val: 'Footwear & Shoes' },
+                { label: '🧒 Kids Clothing',      val: 'Kids Clothing' },
+                { label: '👔 Men\'s Accessories', val: 'Men\'s Accessories' },
+                { label: '👜 Ladies\' Acc.',      val: 'Ladies\' Accessories' },
+                { label: '🧵 Fabrics',            val: 'Fabrics & Textiles' },
+                { label: '💻 Computers',          val: 'Computers & Laptops' },
+                { label: '📱 Phones',             val: 'Phones & Accessories' },
+                { label: '📷 Cameras',            val: 'Cameras & Equipment' },
+                { label: '🔌 Electronics',        val: 'Electronic Items' },
+                { label: '🥫 Packaged Food',      val: 'Packaged Food (Non-Perishable)' },
+                { label: '🥶 Perishables',        val: 'Perishables (Special Handling)' },
+                { label: '🍳 Kitchenware',        val: 'Kitchenware' },
+                { label: '🏠 Home Decor',         val: 'Home Decor' },
+                { label: '🧸 Toys',               val: 'Toys & Hobbies' },
+                { label: '🍼 Baby Items',         val: 'Baby Items' },
+                { label: '💄 Cosmetics',          val: 'Cosmetics & Toiletries' },
+                { label: '💊 Medicines',          val: 'Medicines & Vitamins' },
+                { label: '📚 Books',              val: 'Books & Stationery' },
+                { label: '🔧 Tools',              val: 'Tools & Hardware' },
+                { label: '🚗 Auto Parts',         val: 'Automotive Parts' },
+                { label: '📦 General',            val: 'General Merchandise' },
+                { label: '🗂️ Other',             val: 'Other' }
+            ];
+
+            function wizBuildCategoryGrid(filter = '') {
+                const grid = document.getElementById('wiz-cat-grid');
+                grid.innerHTML = '';
+                const filtered = filter ? WIZ_CATEGORIES.filter(c => c.label.toLowerCase().includes(filter.toLowerCase()) || c.val.toLowerCase().includes(filter.toLowerCase())) : WIZ_CATEGORIES;
+                filtered.forEach(cat => {
+                    const btn = document.createElement('button');
+                    btn.type = 'button';
+                    btn.className = 'wiz-cat-btn';
+                    btn.textContent = cat.label;
+                    btn.dataset.val = cat.val;
+                    if (document.getElementById('modalItemCat').value === cat.val) btn.classList.add('selected');
+                    btn.addEventListener('click', () => {
+                        document.getElementById('modalItemCat').value = cat.val;
+                        document.querySelectorAll('.wiz-cat-btn').forEach(b => b.classList.remove('selected'));
+                        btn.classList.add('selected');
+                        // Auto advance after short delay for visual feedback
+                        setTimeout(() => wizGoTo(wizItemStep + 1), 250);
                     });
-                    // Activate clicked
-                    btn.classList.remove('btn-secondary');
-                    btn.classList.add('btn-primary');
-                    // Set Value
-                    conditionInput.value = btn.dataset.val;
+                    grid.appendChild(btn);
                 });
-            });
+            }
 
-            // --- B. BARCODE SCANNER LOGIC ---
-            startScanBtn.addEventListener('click', () => {
-                scannerContainer.style.display = 'block';
-                if (!html5QrcodeScanner) { html5QrcodeScanner = new Html5Qrcode("reader"); }
-                const config = { fps: 10, qrbox: { width: 250, height: 250 } };
-                html5QrcodeScanner.start({ facingMode: "environment" }, config, onScanSuccess, onScanFailure);
-                startScanBtn.style.display = 'none'; 
-            });
+            function wizUpdateHeader() {
+                const meta = WIZ_STEPS_META[wizItemStep - 1];
+                document.getElementById('wiz-step-label').textContent = `Step ${wizItemStep} of ${WIZ_TOTAL}`;
+                document.getElementById('wiz-step-name').textContent = meta.name;
+                document.getElementById('wiz-step-hint').textContent = meta.hint;
+                document.getElementById('wiz-progress-bar').style.width = ((wizItemStep / WIZ_TOTAL) * 100) + '%';
+                document.getElementById('wizBackBtn').style.display = wizItemStep > 1 ? 'block' : 'none';
+                const nextBtn = document.getElementById('wizNextBtn');
+                nextBtn.textContent = wizItemStep === WIZ_TOTAL ? '💾 Save Item' : 'Next →';
+            }
 
-            function stopScanner() {
-                if (html5QrcodeScanner) {
-                    html5QrcodeScanner.stop().then(() => {
-                        scannerContainer.style.display = 'none';
-                        startScanBtn.style.display = 'block';
-                    }).catch(err => {
-                        // If stop fails (e.g. not running), just hide UI
-                        scannerContainer.style.display = 'none';
-                        startScanBtn.style.display = 'block';
+            function wizShowStep(n) {
+                for (let i = 1; i <= WIZ_TOTAL; i++) {
+                    const el = document.getElementById('wiz-s' + i);
+                    if (el) el.style.display = (i === n) ? 'block' : 'none';
+                }
+                wizUpdateHeader();
+                // Auto-focus correct field
+                setTimeout(() => {
+                    const focusMap = {
+                        1: 'modalBarcode',
+                        3: 'modalItemDesc',
+                        4: 'modalItemBrand',
+                        5: 'wiz-cat-search',
+                        6: 'modalItemQty',
+                        7: 'modalItemValue',
+                        8: 'modalItemNote'
+                    };
+                    const fid = focusMap[n];
+                    if (fid) { const el = document.getElementById(fid); if(el) el.focus(); }
+                }, 120);
+                if (n === 5) wizBuildCategoryGrid();
+            }
+
+            function wizGoTo(n) {
+                if (n < 1 || n > WIZ_TOTAL) return;
+                // Stop scanner if leaving step 1
+                if (wizItemStep === 1 && n !== 1) wizStopScanner();
+                wizItemStep = n;
+                wizShowStep(n);
+            }
+
+            function wizOpen(isEdit = false) {
+                document.getElementById('itemWizardOverlay').style.display = 'block';
+                document.body.style.overflow = 'hidden';
+                wizItemStep = 1;
+                wizShowStep(1);
+                // Auto-start step 1 scanner hint
+                setTimeout(() => {
+                    const bc = document.getElementById('modalBarcode');
+                    if (bc) bc.focus();
+                }, 200);
+            }
+
+            function wizClose() {
+                wizStopScanner();
+                document.getElementById('itemWizardOverlay').style.display = 'none';
+                document.body.style.overflow = '';
+            }
+
+            // --- SCANNER (Wizard) ---
+            function wizStartScanner() {
+                const container = document.getElementById('wiz-scanner-container');
+                container.style.display = 'block';
+                document.getElementById('wiz-startScanBtn').style.display = 'none';
+                if (!wiz_html5Scanner) { wiz_html5Scanner = new Html5Qrcode("wiz-reader"); }
+                const config = { fps: 10, qrbox: { width: 220, height: 220 } };
+                wiz_html5Scanner.start({ facingMode: "environment" }, config, wizOnScanSuccess, () => {}).catch(err => {
+                    console.error("Camera error:", err);
+                    wizStopScanner();
+                });
+            }
+
+            function wizStopScanner() {
+                if (wiz_html5Scanner) {
+                    wiz_html5Scanner.stop().then(() => {
+                        document.getElementById('wiz-scanner-container').style.display = 'none';
+                        document.getElementById('wiz-startScanBtn').style.display = 'block';
+                    }).catch(() => {
+                        document.getElementById('wiz-scanner-container').style.display = 'none';
+                        document.getElementById('wiz-startScanBtn').style.display = 'block';
                     });
                 } else {
-                     scannerContainer.style.display = 'none';
-                     startScanBtn.style.display = 'block';
+                    document.getElementById('wiz-scanner-container').style.display = 'none';
+                    const ssb = document.getElementById('wiz-startScanBtn');
+                    if(ssb) ssb.style.display = 'block';
                 }
             }
-            stopScanBtn.addEventListener('click', stopScanner);
 
-            async function onScanSuccess(decodedText, decodedResult) {
-                stopScanner();
-                window.showToast("Barcode Scanned: " + decodedText, "info");
-                modalBarcode.value = decodedText;
-
-                // Check Database
-                const productRef = dbRef(db, 'products/' + decodedText);
+            async function wizOnScanSuccess(decodedText) {
+                wizStopScanner();
+                // Play subtle beep
                 try {
-                    const snapshot = await dbGet(productRef);
+                    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.connect(gain); gain.connect(ctx.destination);
+                    osc.frequency.value = 880; osc.type = 'sine';
+                    gain.gain.setValueAtTime(0.3, ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
+                    osc.start(ctx.currentTime); osc.stop(ctx.currentTime + 0.3);
+                } catch(e) {}
+
+                document.getElementById('modalBarcode').value = decodedText;
+                window.showToast('✅ Barcode: ' + decodedText, 'success');
+
+                // Look up product
+                try {
+                    const safeKey = decodedText.replace(/[.#$\[\]]/g, "_");
+                    const snapshot = await dbGet(dbRef(db, 'products/' + safeKey));
                     if (snapshot.exists()) {
                         const prod = snapshot.val();
                         document.getElementById('modalItemDesc').value = prod.desc || '';
@@ -1640,123 +1842,331 @@
                         document.getElementById('modalItemValue').value = prod.value || '';
                         document.getElementById('modalItemHSCode').value = prod.hsCode || '';
                         document.getElementById('modalItemBrand').value = prod.brand || '';
-                        window.showToast("Product found & auto-filled!", "success");
-                    } else {
-                        window.showToast("New Item! Please fill details.", "info");
+                        window.showToast('📦 Product auto-filled!', 'success');
                     }
-                } catch (error) { console.error("Error fetching product:", error); }
-            }
-            function onScanFailure(error) {}
+                } catch(err) { console.error(err); }
 
-            // --- C. VOICE DICTATION LOGIC ---
+                // Advance after brief delay
+                setTimeout(() => wizGoTo(2), 400);
+            }
+
+            document.getElementById('wiz-startScanBtn').addEventListener('click', wizStartScanner);
+            document.getElementById('wiz-stopScanBtn').addEventListener('click', wizStopScanner);
+            document.getElementById('wizCloseBtn').addEventListener('click', wizClose);
+
+            document.getElementById('wiz-skip-barcode').addEventListener('click', () => wizGoTo(2));
+            document.getElementById('wiz-skip-photo').addEventListener('click', () => wizGoTo(3));
+
+            // Barcode manual enter key
+            document.getElementById('modalBarcode').addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') { e.preventDefault(); wizGoTo(2); }
+            });
+
+            // Category search filter
+            document.getElementById('wiz-cat-search').addEventListener('input', (e) => {
+                wizBuildCategoryGrid(e.target.value);
+            });
+
+            // ===== Apple Numpad Logic =====
+            let qtyRawStr = '';   // raw digit string for qty
+            let valRawStr = '';   // raw cent string for value (last 2 digits = cents)
+
+            function qtyDisplay() {
+                const n = parseInt(qtyRawStr || '0', 10);
+                document.getElementById('qty-display').textContent = n === 0 ? '0' : n.toString();
+                document.getElementById('modalItemQty').value = n === 0 ? '' : n.toString();
+            }
+
+            function valDisplay() {
+                // Treat valRawStr as integer cents: e.g. "1234" → 12.34
+                const cents = parseInt(valRawStr || '0', 10);
+                const dollars = (cents / 100).toFixed(2);
+                document.getElementById('val-display').textContent = dollars;
+                document.getElementById('modalItemValue').value = dollars;
+            }
+
+            document.querySelectorAll('.apple-pad-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const pad = btn.dataset.pad;
+                    const target = btn.dataset.target;
+
+                    if (target === 'qty') {
+                        if (pad === 'del') {
+                            qtyRawStr = qtyRawStr.slice(0, -1);
+                        } else if (pad === 'noop') {
+                            return;
+                        } else {
+                            if (qtyRawStr.length >= 4) return; // max 9999
+                            if (qtyRawStr === '0') qtyRawStr = pad;
+                            else qtyRawStr += pad;
+                        }
+                        qtyDisplay();
+                    }
+
+                    if (target === 'val') {
+                        if (pad === 'del') {
+                            valRawStr = valRawStr.slice(0, -1);
+                        } else if (pad === '.') {
+                            return; // decimal handled automatically by cent logic
+                        } else {
+                            if (valRawStr.length >= 7) return; // max $99999.99
+                            valRawStr += pad;
+                        }
+                        valDisplay();
+                    }
+                });
+            });
+
+            // Reset numpad displays when wizard opens / resets
+            function resetNumpads() {
+                qtyRawStr = '';
+                valRawStr = '';
+                const qd = document.getElementById('qty-display');
+                const vd = document.getElementById('val-display');
+                if (qd) qd.textContent = '0';
+                if (vd) vd.textContent = '0.00';
+            }
+
+            // Enter key advance for text/number steps
+            ['modalItemDesc', 'modalItemBrand', 'modalItemQty', 'modalItemValue'].forEach(id => {
+                const el = document.getElementById(id);
+                if (!el) return;
+                el.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        const stepMap = { modalItemDesc: 4, modalItemBrand: 5, modalItemQty: 7, modalItemValue: 8 };
+                        wizGoTo(stepMap[id]);
+                    }
+                });
+            });
+
+            // Note field — Enter = save
+            document.getElementById('modalItemNote').addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') { e.preventDefault(); wizSaveItem(); }
+            });
+
+            // Escape key = go back
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape' && document.getElementById('itemWizardOverlay').style.display === 'block') {
+                    if (wizItemStep > 1) wizGoTo(wizItemStep - 1);
+                    else wizClose();
+                }
+            });
+
+            // Condition buttons
+            document.querySelectorAll('.condition-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    document.querySelectorAll('.condition-btn').forEach(b => b.classList.remove('selected'));
+                    btn.classList.add('selected');
+                    document.getElementById('modalItemCondition').value = btn.dataset.val;
+                });
+            });
+            // Default condition = New
+            const defaultCondBtn = document.querySelector('.condition-btn[data-val="New"]');
+            if (defaultCondBtn) { defaultCondBtn.classList.add('selected'); }
+
+            // Wizard Back / Next buttons
+            document.getElementById('wizBackBtn').addEventListener('click', () => {
+                if (wizItemStep > 1) wizGoTo(wizItemStep - 1);
+            });
+
+            document.getElementById('wizNextBtn').addEventListener('click', () => {
+                if (wizItemStep === WIZ_TOTAL) {
+                    wizSaveItem();
+                } else {
+                    wizGoTo(wizItemStep + 1);
+                }
+            });
+
+            // --- PHOTO HANDLING (both inputs) ---
+            const modalItemImageInput = document.getElementById('modalItemImage');
+            const modalItemImageAlt = document.getElementById('modalItemImageAlt');
+            const modalImagePreview = document.getElementById('modalImagePreview');
+            const modalImagePreviewContainer = document.getElementById('modalImagePreviewContainer');
+            let tempItemCompressedImage = null;
+
+            function compressImage(file, callback) {
+                const maxWidth = 800;
+                const quality = 0.6;
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = event => {
+                    const img = new Image();
+                    img.src = event.target.result;
+                    img.onload = () => {
+                        const canvas = document.createElement('canvas');
+                        let width = img.width, height = img.height;
+                        if (width > height) { if (width > maxWidth) { height *= maxWidth / width; width = maxWidth; } }
+                        else { if (height > maxWidth) { width *= maxWidth / height; height = maxWidth; } }
+                        canvas.width = width; canvas.height = height;
+                        canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+                        callback(canvas.toDataURL('image/jpeg', quality));
+                    };
+                };
+                reader.onerror = e => console.log(e);
+            }
+
+            function handlePhotoFile(file) {
+                if (!file) return;
+                compressImage(file, (dataUrl) => {
+                    tempItemCompressedImage = dataUrl;
+                    modalImagePreview.src = dataUrl;
+                    document.getElementById('wiz-photo-preview-wrap').style.display = 'block';
+                    // Auto-advance after photo captured
+                    setTimeout(() => wizGoTo(3), 500);
+                });
+            }
+
+            modalItemImageInput.addEventListener('change', (e) => handlePhotoFile(e.target.files[0]));
+            modalItemImageAlt.addEventListener('change', (e) => handlePhotoFile(e.target.files[0]));
+
+            // --- VOICE DICTATION ---
+            const voiceDictationBtn = document.getElementById('voiceDictationBtn');
             if ('webkitSpeechRecognition' in window) {
                 const recognition = new webkitSpeechRecognition();
                 recognition.continuous = false;
                 recognition.lang = 'en-US';
                 voiceDictationBtn.addEventListener('click', () => {
-                    voiceDictationBtn.style.color = 'red'; recognition.start();
+                    voiceDictationBtn.style.background = '#ff3b30';
+                    voiceDictationBtn.style.color = '#fff';
+                    recognition.start();
                 });
                 recognition.onresult = (event) => {
-                    const transcript = event.results[0][0].transcript;
-                    document.getElementById('modalItemDesc').value = transcript.charAt(0).toUpperCase() + transcript.slice(1);
-                    if(typeof calculateHSCode === 'function') calculateHSCode();
+                    const t = event.results[0][0].transcript;
+                    document.getElementById('modalItemDesc').value = t.charAt(0).toUpperCase() + t.slice(1);
                 };
-                recognition.onend = () => { voiceDictationBtn.style.color = ''; };
-            } else { voiceDictationBtn.style.display = 'none'; }
-
-
-            // --- D. FORM SUBMISSION ---
-            addNewItemBtn.addEventListener('click', () => { 
-                currentEditItemId = null;
-                addItemForm.reset();
-                
-                // Reset Condition Buttons
-                conditionBtns.forEach(b => { b.classList.remove('btn-primary'); b.classList.add('btn-secondary'); });
-                conditionInput.value = ""; 
-
-                // Clear Image
-                if(modalItemImageInput) modalItemImageInput.value = '';
-                tempItemCompressedImage = null;
-                if(modalImagePreview) modalImagePreview.src = '';
-                if(modalImagePreviewContainer) modalImagePreviewContainer.style.display = 'none';
-                
-                modalBarcode.value = '';
-                document.getElementById('modal-title').textContent = 'Add New Item';
-                document.getElementById('saveItemBtn').textContent = 'Save Item';
-                modal.classList.add('active');
-            });
-            
-            function closeModal() { 
-                modal.classList.remove('active');
-                stopScanner();
+                recognition.onend = () => {
+                    voiceDictationBtn.style.background = '#f0f0f5';
+                    voiceDictationBtn.style.color = '';
+                };
+            } else {
+                voiceDictationBtn.style.display = 'none';
             }
-            closeModalBtn.addEventListener('click', closeModal);
-            cancelModalBtn.addEventListener('click', closeModal);
-            
-            addItemForm.addEventListener('submit', async (e) => { 
-                e.preventDefault();
-                
-                // MANDATORY CHECKS
-                const photo = tempItemCompressedImage;
-                const condition = conditionInput.value;
-                const note = document.getElementById('modalItemNote').value.trim();
 
-                if (!photo && currentEditItemId === null) {
-                    alert("Error: Product Photo is Mandatory for new items."); return;
-                }
-                if (!condition) {
-                    alert("Error: Please select a Condition (New or Used)."); return;
-                }
-                
-                // Collect Data
+            // --- OPEN WIZARD ---
+            addNewItemBtn.addEventListener('click', () => {
+                currentEditItemId = null;
+                // Reset all fields
+                document.getElementById('modalBarcode').value = '';
+                document.getElementById('modalItemDesc').value = '';
+                document.getElementById('modalItemBrand').value = '';
+                document.getElementById('modalItemCat').value = '';
+                document.getElementById('modalItemQty').value = '';
+                document.getElementById('modalItemValue').value = '';
+                document.getElementById('modalItemNote').value = '';
+                document.getElementById('modalItemHSCode').value = '';
+                document.getElementById('modalItemCondition').value = 'New';
+                document.querySelectorAll('.condition-btn').forEach(b => b.classList.remove('selected'));
+                const defBtn = document.querySelector('.condition-btn[data-val="New"]');
+                if (defBtn) defBtn.classList.add('selected');
+                tempItemCompressedImage = null;
+                modalImagePreview.src = '';
+                document.getElementById('wiz-photo-preview-wrap').style.display = 'none';
+                // Reset camera input
+                modalItemImageInput.value = '';
+                modalItemImageAlt.value = '';
+                resetNumpads();
+                wizOpen(false);
+            });
+
+            // --- SAVE ITEM ---
+            async function wizSaveItem() {
+                const desc = document.getElementById('modalItemDesc').value.trim();
+                const brand = document.getElementById('modalItemBrand').value.trim();
+                const cat = document.getElementById('modalItemCat').value;
+                const qty = parseFloat(document.getElementById('modalItemQty').value);
+                const val = parseFloat(document.getElementById('modalItemValue').value);
+                const condition = document.getElementById('modalItemCondition').value || 'New';
+
+                if (!desc) { wizGoTo(3); window.showToast('Please enter a description', 'error'); return; }
+                if (!brand) { wizGoTo(4); window.showToast('Please enter a brand name', 'error'); return; }
+                if (!cat) { wizGoTo(5); window.showToast('Please select a category', 'error'); return; }
+                if (!qty || qty < 1) { wizGoTo(6); window.showToast('Please enter a valid quantity', 'error'); return; }
+                if (isNaN(val) || val < 0) { wizGoTo(7); window.showToast('Please enter a valid value', 'error'); return; }
+
                 const item = {
-                    barcode: modalBarcode.value.trim(),
-                    desc: document.getElementById('modalItemDesc').value,
-                    category: document.getElementById('modalItemCat').value,
+                    barcode: document.getElementById('modalBarcode').value.trim(),
+                    desc: desc,
+                    category: cat,
                     hsCode: document.getElementById('modalItemHSCode').value,
-                    image: tempItemCompressedImage || null, // Might be null if editing and didn't change
-                    qty: parseFloat(document.getElementById('modalItemQty').value),
-                    value: parseFloat(document.getElementById('modalItemValue').value),
+                    image: tempItemCompressedImage || null,
+                    qty: qty,
+                    value: val,
                     condition: condition,
-                    brand: document.getElementById('modalItemBrand').value,
-                    // country: Removed
-                    note: note 
+                    brand: brand,
+                    note: document.getElementById('modalItemNote').value.trim()
                 };
-                
-                // If editing, preserve old image if no new one uploaded
+
                 if (currentEditItemId !== null) {
-                    if(!item.image) item.image = local_items[currentEditItemId].image;
-                    local_items[currentEditItemId] = item; 
+                    if (!item.image) item.image = local_items[currentEditItemId].image;
+                    local_items[currentEditItemId] = item;
                 } else {
-                    local_items.push(item); 
+                    local_items.push(item);
                 }
 
-                // Learn-As-You-Go Save
+                // Learn-As-You-Go Firebase save
                 if (item.barcode) {
                     const safeBarcode = item.barcode.replace(/[.#$\[\]]/g, "_");
-                    const productData = {
-                        desc: item.desc, category: item.category, value: item.value, 
-                        hsCode: item.hsCode, brand: item.brand, lastUpdated: new Date().toISOString()
-                    };
-                    try { await dbSet(dbRef(db, 'products/' + safeBarcode), productData); } catch(err) {}
+                    try {
+                        await dbSet(dbRef(db, 'products/' + safeBarcode), {
+                            desc: item.desc, category: item.category, value: item.value,
+                            hsCode: item.hsCode, brand: item.brand, lastUpdated: new Date().toISOString()
+                        });
+                    } catch(err) {}
                 }
 
                 renderItemTable();
-                closeModal();
-            });
 
-            function renderItemTable() { 
+                if (currentEditItemId !== null) {
+                    // Edit mode — just close
+                    wizClose();
+                    window.showToast('Item updated!', 'success');
+                } else {
+                    // Show success overlay, then reopen for next item
+                    const overlay = document.getElementById('wiz-success-overlay');
+                    overlay.style.display = 'flex';
+                    setTimeout(() => {
+                        overlay.style.display = 'none';
+                        // Reset for next item
+                        currentEditItemId = null;
+                        document.getElementById('modalBarcode').value = '';
+                        document.getElementById('modalItemDesc').value = '';
+                        document.getElementById('modalItemBrand').value = '';
+                        document.getElementById('modalItemCat').value = '';
+                        document.getElementById('modalItemQty').value = '';
+                        document.getElementById('modalItemValue').value = '';
+                        document.getElementById('modalItemNote').value = '';
+                        document.getElementById('modalItemHSCode').value = '';
+                        document.getElementById('modalItemCondition').value = 'New';
+                        document.querySelectorAll('.condition-btn').forEach(b => b.classList.remove('selected'));
+                        const defBtn2 = document.querySelector('.condition-btn[data-val="New"]');
+                        if (defBtn2) defBtn2.classList.add('selected');
+                        tempItemCompressedImage = null;
+                        modalImagePreview.src = '';
+                        document.getElementById('wiz-photo-preview-wrap').style.display = 'none';
+                        modalItemImageInput.value = '';
+                        modalItemImageAlt.value = '';
+                        resetNumpads();
+                        // Reopen at step 1
+                        wizItemStep = 1;
+                        wizShowStep(1);
+                        document.getElementById('itemWizardOverlay').style.display = 'block';
+                        document.body.style.overflow = 'hidden';
+                    }, 1800);
+                }
+            }
+
+            // --- ITEM TABLE ---
+            function renderItemTable() {
                 itemTableTbody.innerHTML = '';
                 if (local_items.length === 0) {
                     itemTableTbody.innerHTML = '<tr><td colspan="9" style="text-align: center;">No items added yet.</td></tr>';
                 } else {
                     local_items.forEach((item, index) => {
-                        // Safely parse the strings to numbers before doing math to prevent crashes
                         const qty = parseFloat(item.qty) || 0;
                         const val = parseFloat(item.value) || 0;
                         const totalVal = (qty * val).toFixed(2);
                         const imgHtml = item.image ? `<img src="${item.image}" alt="item" style="width: 40px; height: 40px; object-fit: cover; border-radius: 4px; border: 1px solid #eee;">` : '<span style="color:#ccc;">No img</span>';
-
                         const row = document.createElement('tr');
                         row.innerHTML = `
                             <td style="text-align: center;">${imgHtml}</td>
@@ -1777,7 +2187,7 @@
                 saveDraft();
             }
 
-            itemTableTbody.addEventListener('click', (e) => { 
+            itemTableTbody.addEventListener('click', (e) => {
                 const deleteBtn = e.target.closest('.delete-item-btn');
                 if (deleteBtn) {
                     if (confirm('Delete item?')) {
@@ -1792,42 +2202,42 @@
                     const index = editBtn.dataset.index;
                     const item = local_items[index];
                     currentEditItemId = index;
-                    
-                    document.getElementById('modal-title').textContent = 'Edit Item';
-                    document.getElementById('saveItemBtn').textContent = 'Update Item';
-                    
-                    modalBarcode.value = item.barcode || '';
-                    document.getElementById('modalItemDesc').value = item.desc;
-                    document.getElementById('modalItemCat').value = item.category;
+
+                    document.getElementById('modalBarcode').value = item.barcode || '';
+                    document.getElementById('modalItemDesc').value = item.desc || '';
+                    document.getElementById('modalItemCat').value = item.category || '';
                     document.getElementById('modalItemQty').value = item.qty;
                     document.getElementById('modalItemValue').value = item.value;
                     document.getElementById('modalItemBrand').value = item.brand || '';
-                    // document.getElementById('modalItemCountry').value = item.country || ''; // Removed
-                    document.getElementById('modalItemNote').value = item.note || ''; 
-                    document.getElementById('modalItemHSCode').value = item.hsCode || ''; 
-                    
-                    // Set Condition Buttons
-                    conditionBtns.forEach(b => {
-                        if(b.dataset.val === item.condition) {
-                             b.classList.remove('btn-secondary'); b.classList.add('btn-primary');
-                             conditionInput.value = item.condition;
-                        } else {
-                             b.classList.remove('btn-primary'); b.classList.add('btn-secondary');
-                        }
+                    document.getElementById('modalItemNote').value = item.note || '';
+                    document.getElementById('modalItemHSCode').value = item.hsCode || '';
+                    document.getElementById('modalItemCondition').value = item.condition || 'New';
+
+                    document.querySelectorAll('.condition-btn').forEach(b => {
+                        if (b.dataset.val === (item.condition || 'New')) { b.classList.add('selected'); }
+                        else { b.classList.remove('selected'); }
                     });
 
                     if (item.image) {
                         tempItemCompressedImage = item.image;
                         modalImagePreview.src = item.image;
-                        modalImagePreviewContainer.style.display = 'block';
+                        document.getElementById('wiz-photo-preview-wrap').style.display = 'block';
                     } else {
                         tempItemCompressedImage = null;
                         modalImagePreview.src = '';
-                        modalImagePreviewContainer.style.display = 'none';
+                        document.getElementById('wiz-photo-preview-wrap').style.display = 'none';
                     }
-                    modal.classList.add('active');
+
+                    // Open wizard at step 3 (description) for fast editing
+                    wizItemStep = 3;
+                    document.getElementById('itemWizardOverlay').style.display = 'block';
+                    document.body.style.overflow = 'hidden';
+                    wizShowStep(3);
                 }
             });
+
+            // Legacy closeModal stub (keeps any external references working)
+            function closeModal() { wizClose(); }
 
 
             // --- 4. Shipment Save, Review, and Load (FIREBASE CONNECTED) ---
