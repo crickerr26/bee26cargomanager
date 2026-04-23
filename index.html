@@ -919,140 +919,145 @@
 
     </main>
 
-    <!-- ===== ITEM WIZARD OVERLAY — FULLSCREEN APPLE THEME ===== -->
-    <div id="itemWizardOverlay" style="display:none; position:fixed; inset:0; background:#000; z-index:2000; overflow:hidden;">
-        <div id="itemWizardPanel" style="display:flex; flex-direction:column; width:100%; height:100%; height:100dvh; background:#f2f2f7; overflow:hidden;">
+    <!-- ===== ITEM WIZARD — BOTTOM SHEET ===== -->
+    <div id="itemWizardOverlay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:9999; backdrop-filter:blur(4px); -webkit-backdrop-filter:blur(4px);">
+        <div id="itemWizardPanel" style="position:absolute; bottom:0; left:0; right:0; background:#f2f2f7; border-radius:20px 20px 0 0; display:flex; flex-direction:column; max-height:80vh; max-height:80dvh; box-shadow:0 -8px 40px rgba(0,0,0,0.22);">
 
-            <!-- iOS-style Navigation Bar -->
-            <div id="wiz-navbar" style="background:rgba(242,242,247,0.92); backdrop-filter:saturate(180%) blur(20px); -webkit-backdrop-filter:saturate(180%) blur(20px); padding:12px 20px 8px; padding-top:max(12px, env(safe-area-inset-top)); flex-shrink:0; border-bottom:0.5px solid rgba(0,0,0,0.12); position:relative; text-align:center;">
+            <!-- Drag Handle -->
+            <div style="padding:10px 0 4px; text-align:center; flex-shrink:0; cursor:grab;">
+                <div style="width:36px; height:4px; background:#c7c7cc; border-radius:2px; display:inline-block;"></div>
+            </div>
+
+            <!-- Header: title + progress + back/close -->
+            <div id="wiz-navbar" style="padding:4px 18px 12px; flex-shrink:0; border-bottom:0.5px solid rgba(0,0,0,0.1);">
                 <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;">
-                    <button id="wizBackBtn" type="button" style="background:none; border:none; color:#007aff; font-size:1rem; font-weight:400; cursor:pointer; display:none; align-items:center; gap:4px; padding:4px 0; font-family:-apple-system,BlinkMacSystemFont,sans-serif;">
-                        <svg width="10" height="16" viewBox="0 0 10 16" fill="none" style="margin-right:2px;"><path d="M8.5 1L1.5 8L8.5 15" stroke="#007aff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    <button id="wizBackBtn" type="button" style="background:none; border:none; color:#007aff; font-size:0.9375rem; font-weight:400; cursor:pointer; display:none; align-items:center; gap:3px; padding:4px 0; font-family:-apple-system,BlinkMacSystemFont,sans-serif; min-width:56px;">
+                        <svg width="9" height="15" viewBox="0 0 10 16" fill="none"><path d="M8.5 1L1.5 8L8.5 15" stroke="#007aff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
                         Back
                     </button>
                     <div style="flex:1; text-align:center;">
-                        <div id="wiz-step-name" style="font-size:1.0625rem; font-weight:600; color:#1c1c1e; font-family:-apple-system,BlinkMacSystemFont,sans-serif; letter-spacing:-0.3px;">Item Barcode</div>
-                        <div id="wiz-step-label" style="font-size:0.75rem; color:#8a8a8e; margin-top:1px; font-family:-apple-system,BlinkMacSystemFont,sans-serif;">Step 1 of 8</div>
+                        <div id="wiz-step-name" style="font-size:1rem; font-weight:600; color:#1c1c1e; font-family:-apple-system,BlinkMacSystemFont,sans-serif; letter-spacing:-0.2px;">Item Barcode</div>
+                        <div id="wiz-step-label" style="font-size:0.7rem; color:#8a8a8e; margin-top:1px; font-family:-apple-system,BlinkMacSystemFont,sans-serif;">Step 1 of 8</div>
                     </div>
-                    <button id="wizCloseBtn" type="button" style="background:#e5e5ea; border:none; color:#636366; width:28px; height:28px; border-radius:50%; font-size:1rem; cursor:pointer; display:flex; align-items:center; justify-content:center; line-height:1; flex-shrink:0;">&times;</button>
+                    <button id="wizCloseBtn" type="button" style="background:#e5e5ea; border:none; color:#636366; width:26px; height:26px; border-radius:50%; font-size:0.95rem; cursor:pointer; display:flex; align-items:center; justify-content:center; flex-shrink:0; min-width:56px; justify-content:flex-end; background:none;">&times;</button>
                 </div>
-                <!-- iOS-style segmented progress -->
-                <div style="display:flex; gap:4px; margin-top:4px;">
-                    <div class="wiz-prog-seg" style="flex:1; height:3px; border-radius:2px; background:#007aff; transition:background 0.3s;"></div>
-                    <div class="wiz-prog-seg" style="flex:1; height:3px; border-radius:2px; background:#e5e5ea; transition:background 0.3s;"></div>
-                    <div class="wiz-prog-seg" style="flex:1; height:3px; border-radius:2px; background:#e5e5ea; transition:background 0.3s;"></div>
-                    <div class="wiz-prog-seg" style="flex:1; height:3px; border-radius:2px; background:#e5e5ea; transition:background 0.3s;"></div>
-                    <div class="wiz-prog-seg" style="flex:1; height:3px; border-radius:2px; background:#e5e5ea; transition:background 0.3s;"></div>
-                    <div class="wiz-prog-seg" style="flex:1; height:3px; border-radius:2px; background:#e5e5ea; transition:background 0.3s;"></div>
-                    <div class="wiz-prog-seg" style="flex:1; height:3px; border-radius:2px; background:#e5e5ea; transition:background 0.3s;"></div>
-                    <div class="wiz-prog-seg" style="flex:1; height:3px; border-radius:2px; background:#e5e5ea; transition:background 0.3s;"></div>
+                <!-- Segmented progress -->
+                <div style="display:flex; gap:4px;">
+                    <div class="wiz-prog-seg" style="flex:1; height:3px; border-radius:2px; background:#007aff;"></div>
+                    <div class="wiz-prog-seg" style="flex:1; height:3px; border-radius:2px; background:#e5e5ea;"></div>
+                    <div class="wiz-prog-seg" style="flex:1; height:3px; border-radius:2px; background:#e5e5ea;"></div>
+                    <div class="wiz-prog-seg" style="flex:1; height:3px; border-radius:2px; background:#e5e5ea;"></div>
+                    <div class="wiz-prog-seg" style="flex:1; height:3px; border-radius:2px; background:#e5e5ea;"></div>
+                    <div class="wiz-prog-seg" style="flex:1; height:3px; border-radius:2px; background:#e5e5ea;"></div>
+                    <div class="wiz-prog-seg" style="flex:1; height:3px; border-radius:2px; background:#e5e5ea;"></div>
+                    <div class="wiz-prog-seg" style="flex:1; height:3px; border-radius:2px; background:#e5e5ea;"></div>
                 </div>
             </div>
 
             <!-- Scrollable Step Body -->
-            <div id="wiz-body" style="flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch; padding:24px 20px 16px;">
+            <div id="wiz-body" style="flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch; padding:18px 18px 6px;">
 
                 <!-- STEP 1: Barcode -->
                 <div id="wiz-s1" class="wiz-step-content">
-                    <div style="text-align:center; margin-bottom:24px;">
-                        <div style="width:72px; height:72px; background:#007aff; border-radius:18px; display:flex; align-items:center; justify-content:center; margin:0 auto 14px; font-size:2rem;">📦</div>
-                        <div style="font-size:1.375rem; font-weight:700; color:#1c1c1e; letter-spacing:-0.5px; font-family:-apple-system,BlinkMacSystemFont,sans-serif;">Item Barcode</div>
-                        <div style="font-size:0.875rem; color:#8a8a8e; margin-top:4px;">Optional — scan or type manually</div>
+                    <div style="text-align:center; margin-bottom:16px;">
+                        <div style="width:56px; height:56px; background:#007aff; border-radius:14px; display:flex; align-items:center; justify-content:center; margin:0 auto 10px; font-size:1.6rem;">📦</div>
+                        <div style="font-size:1.125rem; font-weight:700; color:#1c1c1e; letter-spacing:-0.3px; font-family:-apple-system,BlinkMacSystemFont,sans-serif;">Item Barcode</div>
+                        <div style="font-size:0.8125rem; color:#8a8a8e; margin-top:3px;">Optional — scan or type manually</div>
                     </div>
-                    <div id="wiz-scanner-container" style="display:none; border-radius:16px; overflow:hidden; margin-bottom:14px; border:2px solid #007aff;">
+                    <div id="wiz-scanner-container" style="display:none; border-radius:14px; overflow:hidden; margin-bottom:12px; border:2px solid #007aff;">
                         <div id="wiz-reader" style="width:100%;"></div>
-                        <button type="button" id="wiz-stopScanBtn" style="width:100%; background:#ff3b30; color:#fff; border:none; padding:14px; font-weight:600; font-size:0.95rem; cursor:pointer; font-family:-apple-system,BlinkMacSystemFont,sans-serif;">Stop Camera</button>
+                        <button type="button" id="wiz-stopScanBtn" style="width:100%; background:#ff3b30; color:#fff; border:none; padding:13px; font-weight:600; font-size:0.9rem; cursor:pointer; font-family:-apple-system,BlinkMacSystemFont,sans-serif;">Stop Camera</button>
                     </div>
-                    <button type="button" id="wiz-startScanBtn" style="width:100%; background:#007aff; color:#fff; border:none; border-radius:13px; padding:16px; font-weight:600; font-size:1rem; cursor:pointer; margin-bottom:12px; font-family:-apple-system,BlinkMacSystemFont,sans-serif; letter-spacing:-0.2px;">📷  Scan Barcode</button>
-                    <div style="background:#fff; border-radius:13px; overflow:hidden; box-shadow:0 1px 0 rgba(0,0,0,0.06);">
+                    <button type="button" id="wiz-startScanBtn" style="width:100%; background:#007aff; color:#fff; border:none; border-radius:12px; padding:14px; font-weight:600; font-size:0.9375rem; cursor:pointer; margin-bottom:10px; font-family:-apple-system,BlinkMacSystemFont,sans-serif;">📷  Scan Barcode</button>
+                    <div style="background:#fff; border-radius:12px; overflow:hidden; box-shadow:0 1px 0 rgba(0,0,0,0.06);">
                         <input type="text" id="modalBarcode" placeholder="Or type barcode here…" autocomplete="off" inputmode="text"
-                            style="width:100%; padding:16px; border:none; font-size:1rem; font-weight:500; text-align:center; box-sizing:border-box; background:transparent; font-family:-apple-system,BlinkMacSystemFont,sans-serif; color:#1c1c1e; outline:none;">
+                            style="width:100%; padding:14px; border:none; font-size:1rem; font-weight:500; text-align:center; box-sizing:border-box; background:transparent; font-family:-apple-system,BlinkMacSystemFont,sans-serif; color:#1c1c1e; outline:none;">
                     </div>
-                    <button type="button" id="wiz-skip-barcode" style="width:100%; background:none; border:none; color:#007aff; font-size:0.9375rem; cursor:pointer; margin-top:16px; padding:8px; font-family:-apple-system,BlinkMacSystemFont,sans-serif;">Skip — no barcode</button>
+                    <button type="button" id="wiz-skip-barcode" style="width:100%; background:none; border:none; color:#007aff; font-size:0.875rem; cursor:pointer; margin-top:12px; padding:6px; font-family:-apple-system,BlinkMacSystemFont,sans-serif;">Skip — no barcode</button>
                 </div>
 
                 <!-- STEP 2: Photo -->
                 <div id="wiz-s2" class="wiz-step-content" style="display:none;">
-                    <div style="text-align:center; margin-bottom:24px;">
-                        <div style="width:72px; height:72px; background:#ff9500; border-radius:18px; display:flex; align-items:center; justify-content:center; margin:0 auto 14px; font-size:2rem;">📷</div>
-                        <div style="font-size:1.375rem; font-weight:700; color:#1c1c1e; letter-spacing:-0.5px; font-family:-apple-system,BlinkMacSystemFont,sans-serif;">Product Photo <span style="color:#ff3b30; font-size:1rem;">*</span></div>
-                        <div style="font-size:0.875rem; color:#8a8a8e; margin-top:4px;">Required — take or upload a clear photo</div>
+                    <div style="text-align:center; margin-bottom:16px;">
+                        <div style="width:56px; height:56px; background:#ff9500; border-radius:14px; display:flex; align-items:center; justify-content:center; margin:0 auto 10px; font-size:1.6rem;">📷</div>
+                        <div style="font-size:1.125rem; font-weight:700; color:#1c1c1e; letter-spacing:-0.3px; font-family:-apple-system,BlinkMacSystemFont,sans-serif;">Product Photo <span style="color:#ff3b30; font-size:0.875rem;">*</span></div>
+                        <div style="font-size:0.8125rem; color:#8a8a8e; margin-top:3px;">Required — take or upload a clear photo</div>
                     </div>
-                    <div id="wiz-photo-preview-wrap" style="display:none; text-align:center; margin-bottom:16px;">
-                        <img id="modalImagePreview" src="" alt="Preview" style="max-height:200px; border-radius:16px; border:2px solid #007aff; display:inline-block; box-shadow:0 4px 16px rgba(0,122,255,0.2);">
-                        <div style="margin-top:10px; display:flex; align-items:center; justify-content:center; gap:6px;">
-                            <div style="width:20px; height:20px; background:#34c759; border-radius:50%; display:flex; align-items:center; justify-content:center; color:#fff; font-size:0.7rem;">✓</div>
-                            <span style="color:#34c759; font-weight:600; font-size:0.9rem; font-family:-apple-system,BlinkMacSystemFont,sans-serif;">Photo captured</span>
+                    <div id="wiz-photo-preview-wrap" style="display:none; text-align:center; margin-bottom:14px;">
+                        <img id="modalImagePreview" src="" alt="Preview" style="max-height:160px; border-radius:14px; border:2px solid #007aff; display:inline-block; box-shadow:0 4px 14px rgba(0,122,255,0.18);">
+                        <div style="margin-top:8px; display:flex; align-items:center; justify-content:center; gap:5px;">
+                            <div style="width:18px; height:18px; background:#34c759; border-radius:50%; display:flex; align-items:center; justify-content:center; color:#fff; font-size:0.65rem;">✓</div>
+                            <span style="color:#34c759; font-weight:600; font-size:0.85rem; font-family:-apple-system,BlinkMacSystemFont,sans-serif;">Photo captured</span>
                         </div>
                     </div>
-                    <div style="display:flex; gap:10px; margin-bottom:12px;">
-                        <label style="flex:1; background:#007aff; color:#fff; border-radius:13px; padding:16px 12px; font-weight:600; font-size:0.95rem; cursor:pointer; text-align:center; font-family:-apple-system,BlinkMacSystemFont,sans-serif;">
+                    <div style="display:flex; gap:10px; margin-bottom:10px;">
+                        <label style="flex:1; background:#007aff; color:#fff; border-radius:12px; padding:14px 10px; font-weight:600; font-size:0.9rem; cursor:pointer; text-align:center; font-family:-apple-system,BlinkMacSystemFont,sans-serif;">
                             📸 Camera
                             <input type="file" id="modalItemImage" accept="image/*" capture="environment" style="display:none;">
                         </label>
-                        <label style="flex:1; background:#fff; color:#007aff; border-radius:13px; padding:16px 12px; font-weight:600; font-size:0.95rem; cursor:pointer; text-align:center; font-family:-apple-system,BlinkMacSystemFont,sans-serif; box-shadow:0 1px 0 rgba(0,0,0,0.08);">
+                        <label style="flex:1; background:#fff; color:#007aff; border-radius:12px; padding:14px 10px; font-weight:600; font-size:0.9rem; cursor:pointer; text-align:center; font-family:-apple-system,BlinkMacSystemFont,sans-serif; box-shadow:0 1px 0 rgba(0,0,0,0.08);">
                             🖼️ Gallery
                             <input type="file" id="modalItemImageAlt" accept="image/jpeg,image/png" style="display:none;">
                         </label>
                     </div>
                     <div id="modalImagePreviewContainer" style="display:none;"></div>
-                    <button type="button" id="wiz-skip-photo" style="width:100%; background:none; border:none; color:#8a8a8e; font-size:0.875rem; cursor:pointer; padding:8px; font-family:-apple-system,BlinkMacSystemFont,sans-serif;">Skip photo</button>
+                    <button type="button" id="wiz-skip-photo" style="width:100%; background:none; border:none; color:#8a8a8e; font-size:0.8125rem; cursor:pointer; padding:6px; font-family:-apple-system,BlinkMacSystemFont,sans-serif;">Skip photo</button>
                 </div>
 
                 <!-- STEP 3: Description -->
                 <div id="wiz-s3" class="wiz-step-content" style="display:none;">
-                    <div style="text-align:center; margin-bottom:24px;">
-                        <div style="width:72px; height:72px; background:#34c759; border-radius:18px; display:flex; align-items:center; justify-content:center; margin:0 auto 14px; font-size:2rem;">📝</div>
-                        <div style="font-size:1.375rem; font-weight:700; color:#1c1c1e; letter-spacing:-0.5px; font-family:-apple-system,BlinkMacSystemFont,sans-serif;">Description <span style="color:#ff3b30; font-size:1rem;">*</span></div>
-                        <div style="font-size:0.875rem; color:#8a8a8e; margin-top:4px;">Required — describe the item clearly</div>
+                    <div style="text-align:center; margin-bottom:16px;">
+                        <div style="width:56px; height:56px; background:#34c759; border-radius:14px; display:flex; align-items:center; justify-content:center; margin:0 auto 10px; font-size:1.6rem;">📝</div>
+                        <div style="font-size:1.125rem; font-weight:700; color:#1c1c1e; letter-spacing:-0.3px; font-family:-apple-system,BlinkMacSystemFont,sans-serif;">Description <span style="color:#ff3b30; font-size:0.875rem;">*</span></div>
+                        <div style="font-size:0.8125rem; color:#8a8a8e; margin-top:3px;">Required — describe the item clearly</div>
                     </div>
-                    <div style="background:#fff; border-radius:13px; overflow:hidden; box-shadow:0 1px 0 rgba(0,0,0,0.06); display:flex; align-items:center;">
+                    <div style="background:#fff; border-radius:12px; overflow:hidden; box-shadow:0 1px 0 rgba(0,0,0,0.06); display:flex; align-items:center;">
                         <input type="text" id="modalItemDesc" placeholder="e.g. Men's Cotton T-Shirts" autocomplete="off"
-                            style="flex:1; padding:16px; border:none; font-size:1.0625rem; box-sizing:border-box; background:transparent; font-family:-apple-system,BlinkMacSystemFont,sans-serif; color:#1c1c1e; outline:none;">
-                        <button type="button" id="voiceDictationBtn" style="background:none; border:none; padding:14px 16px; font-size:1.3rem; cursor:pointer; flex-shrink:0;">🎤</button>
+                            style="flex:1; padding:14px; border:none; font-size:1rem; box-sizing:border-box; background:transparent; font-family:-apple-system,BlinkMacSystemFont,sans-serif; color:#1c1c1e; outline:none;">
+                        <button type="button" id="voiceDictationBtn" style="background:none; border:none; padding:12px 14px; font-size:1.2rem; cursor:pointer; flex-shrink:0;">🎤</button>
                     </div>
                 </div>
 
                 <!-- STEP 4: Brand -->
                 <div id="wiz-s4" class="wiz-step-content" style="display:none;">
-                    <div style="text-align:center; margin-bottom:24px;">
-                        <div style="width:72px; height:72px; background:#5856d6; border-radius:18px; display:flex; align-items:center; justify-content:center; margin:0 auto 14px; font-size:2rem;">🏷️</div>
-                        <div style="font-size:1.375rem; font-weight:700; color:#1c1c1e; letter-spacing:-0.5px; font-family:-apple-system,BlinkMacSystemFont,sans-serif;">Brand Name <span style="color:#ff3b30; font-size:1rem;">*</span></div>
-                        <div style="font-size:0.875rem; color:#8a8a8e; margin-top:4px;">Required — enter the brand or manufacturer</div>
+                    <div style="text-align:center; margin-bottom:16px;">
+                        <div style="width:56px; height:56px; background:#5856d6; border-radius:14px; display:flex; align-items:center; justify-content:center; margin:0 auto 10px; font-size:1.6rem;">🏷️</div>
+                        <div style="font-size:1.125rem; font-weight:700; color:#1c1c1e; letter-spacing:-0.3px; font-family:-apple-system,BlinkMacSystemFont,sans-serif;">Brand Name <span style="color:#ff3b30; font-size:0.875rem;">*</span></div>
+                        <div style="font-size:0.8125rem; color:#8a8a8e; margin-top:3px;">Required — enter the brand or manufacturer</div>
                     </div>
-                    <div style="background:#fff; border-radius:13px; overflow:hidden; box-shadow:0 1px 0 rgba(0,0,0,0.06);">
+                    <div style="background:#fff; border-radius:12px; overflow:hidden; box-shadow:0 1px 0 rgba(0,0,0,0.06);">
                         <input type="text" id="modalItemBrand" placeholder="e.g. Nike, Samsung, Generic" autocomplete="off"
-                            style="width:100%; padding:16px; border:none; font-size:1.0625rem; box-sizing:border-box; background:transparent; font-family:-apple-system,BlinkMacSystemFont,sans-serif; color:#1c1c1e; outline:none;">
+                            style="width:100%; padding:14px; border:none; font-size:1rem; box-sizing:border-box; background:transparent; font-family:-apple-system,BlinkMacSystemFont,sans-serif; color:#1c1c1e; outline:none;">
                     </div>
                 </div>
 
                 <!-- STEP 5: Category -->
                 <div id="wiz-s5" class="wiz-step-content" style="display:none;">
-                    <div style="text-align:center; margin-bottom:20px;">
-                        <div style="width:72px; height:72px; background:#ff9500; border-radius:18px; display:flex; align-items:center; justify-content:center; margin:0 auto 14px; font-size:2rem;">🗂️</div>
-                        <div style="font-size:1.375rem; font-weight:700; color:#1c1c1e; letter-spacing:-0.5px; font-family:-apple-system,BlinkMacSystemFont,sans-serif;">Category <span style="color:#ff3b30; font-size:1rem;">*</span></div>
-                        <div style="font-size:0.875rem; color:#8a8a8e; margin-top:4px;">Required — tap to select</div>
+                    <div style="text-align:center; margin-bottom:14px;">
+                        <div style="width:56px; height:56px; background:#ff9500; border-radius:14px; display:flex; align-items:center; justify-content:center; margin:0 auto 10px; font-size:1.6rem;">🗂️</div>
+                        <div style="font-size:1.125rem; font-weight:700; color:#1c1c1e; letter-spacing:-0.3px; font-family:-apple-system,BlinkMacSystemFont,sans-serif;">Category <span style="color:#ff3b30; font-size:0.875rem;">*</span></div>
+                        <div style="font-size:0.8125rem; color:#8a8a8e; margin-top:3px;">Required — tap to select</div>
                     </div>
-                    <div style="background:#fff; border-radius:13px; overflow:hidden; box-shadow:0 1px 0 rgba(0,0,0,0.06); margin-bottom:12px;">
+                    <div style="background:#fff; border-radius:12px; overflow:hidden; box-shadow:0 1px 0 rgba(0,0,0,0.06); margin-bottom:10px;">
                         <input type="text" id="wiz-cat-search" placeholder="🔍  Search categories..." autocomplete="off"
-                            style="width:100%; padding:14px 16px; border:none; font-size:1rem; box-sizing:border-box; background:transparent; font-family:-apple-system,BlinkMacSystemFont,sans-serif; color:#1c1c1e; outline:none;">
+                            style="width:100%; padding:12px 14px; border:none; font-size:0.9375rem; box-sizing:border-box; background:transparent; font-family:-apple-system,BlinkMacSystemFont,sans-serif; color:#1c1c1e; outline:none;">
                     </div>
-                    <div id="wiz-cat-grid" style="display:grid; grid-template-columns:1fr 1fr; gap:8px; max-height:340px; overflow-y:auto; -webkit-overflow-scrolling:touch;">
+                    <div id="wiz-cat-grid" style="display:grid; grid-template-columns:1fr 1fr; gap:7px; max-height:260px; overflow-y:auto; -webkit-overflow-scrolling:touch;">
                     </div>
                     <input type="hidden" id="modalItemCat">
                 </div>
 
                 <!-- STEP 6: Quantity -->
                 <div id="wiz-s6" class="wiz-step-content" style="display:none;">
-                    <div style="text-align:center; margin-bottom:16px;">
+                    <div style="text-align:center; margin-bottom:10px;">
                         <div style="font-size:0.9375rem; font-weight:600; color:#1c1c1e; font-family:-apple-system,BlinkMacSystemFont,sans-serif;">Quantity <span style="color:#ff3b30;">*</span></div>
-                        <div style="font-size:0.8125rem; color:#8a8a8e; margin-top:2px;">Required</div>
+                        <div style="font-size:0.75rem; color:#8a8a8e; margin-top:2px;">Required</div>
                     </div>
-                    <div style="background:#fff; border-radius:13px; box-shadow:0 1px 0 rgba(0,0,0,0.06); padding:20px; text-align:center; margin-bottom:16px; min-height:70px; display:flex; align-items:center; justify-content:center;">
-                        <span id="qty-display" style="font-size:3rem; font-weight:200; color:#1c1c1e; letter-spacing:-2px; font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display',sans-serif;">0</span>
+                    <div style="background:#fff; border-radius:12px; box-shadow:0 1px 0 rgba(0,0,0,0.06); padding:14px; text-align:center; margin-bottom:12px; display:flex; align-items:center; justify-content:center;">
+                        <span id="qty-display" style="font-size:2.6rem; font-weight:200; color:#1c1c1e; letter-spacing:-2px; font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display',sans-serif;">0</span>
                     </div>
                     <input type="hidden" id="modalItemQty" value="">
-                    <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:10px;">
+                    <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:8px;">
                         <button type="button" class="apple-pad-btn" data-pad="1" data-target="qty">1</button>
                         <button type="button" class="apple-pad-btn" data-pad="2" data-target="qty">2</button>
                         <button type="button" class="apple-pad-btn" data-pad="3" data-target="qty">3</button>
@@ -1070,16 +1075,16 @@
 
                 <!-- STEP 7: Unit Value -->
                 <div id="wiz-s7" class="wiz-step-content" style="display:none;">
-                    <div style="text-align:center; margin-bottom:16px;">
+                    <div style="text-align:center; margin-bottom:10px;">
                         <div style="font-size:0.9375rem; font-weight:600; color:#1c1c1e; font-family:-apple-system,BlinkMacSystemFont,sans-serif;">Unit Value (CAD) <span style="color:#ff3b30;">*</span></div>
-                        <div style="font-size:0.8125rem; color:#8a8a8e; margin-top:2px;">Required</div>
+                        <div style="font-size:0.75rem; color:#8a8a8e; margin-top:2px;">Required</div>
                     </div>
-                    <div style="background:#fff; border-radius:13px; box-shadow:0 1px 0 rgba(0,0,0,0.06); padding:20px; text-align:center; margin-bottom:16px; min-height:70px; display:flex; align-items:center; justify-content:center; gap:4px;">
-                        <span style="font-size:1.75rem; font-weight:200; color:#8a8a8e; font-family:-apple-system,BlinkMacSystemFont,sans-serif; align-self:flex-start; margin-top:8px;">$</span>
-                        <span id="val-display" style="font-size:3rem; font-weight:200; color:#1c1c1e; letter-spacing:-2px; font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display',sans-serif;">0.00</span>
+                    <div style="background:#fff; border-radius:12px; box-shadow:0 1px 0 rgba(0,0,0,0.06); padding:14px; text-align:center; margin-bottom:12px; display:flex; align-items:center; justify-content:center; gap:4px;">
+                        <span style="font-size:1.5rem; font-weight:200; color:#8a8a8e; font-family:-apple-system,BlinkMacSystemFont,sans-serif; align-self:flex-start; margin-top:6px;">$</span>
+                        <span id="val-display" style="font-size:2.6rem; font-weight:200; color:#1c1c1e; letter-spacing:-2px; font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display',sans-serif;">0.00</span>
                     </div>
                     <input type="hidden" id="modalItemValue" value="">
-                    <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:10px;">
+                    <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:8px;">
                         <button type="button" class="apple-pad-btn" data-pad="1" data-target="val">1</button>
                         <button type="button" class="apple-pad-btn" data-pad="2" data-target="val">2</button>
                         <button type="button" class="apple-pad-btn" data-pad="3" data-target="val">3</button>
@@ -1097,30 +1102,33 @@
 
                 <!-- STEP 8: Note + Condition -->
                 <div id="wiz-s8" class="wiz-step-content" style="display:none;">
-                    <div style="text-align:center; margin-bottom:24px;">
-                        <div style="width:72px; height:72px; background:#32ade6; border-radius:18px; display:flex; align-items:center; justify-content:center; margin:0 auto 14px; font-size:2rem;">📋</div>
-                        <div style="font-size:1.375rem; font-weight:700; color:#1c1c1e; letter-spacing:-0.5px; font-family:-apple-system,BlinkMacSystemFont,sans-serif;">Final Details</div>
-                        <div style="font-size:0.875rem; color:#8a8a8e; margin-top:4px;">Condition is required — notes are optional</div>
+                    <div style="text-align:center; margin-bottom:16px;">
+                        <div style="width:56px; height:56px; background:#32ade6; border-radius:14px; display:flex; align-items:center; justify-content:center; margin:0 auto 10px; font-size:1.6rem;">📋</div>
+                        <div style="font-size:1.125rem; font-weight:700; color:#1c1c1e; letter-spacing:-0.3px; font-family:-apple-system,BlinkMacSystemFont,sans-serif;">Final Details</div>
+                        <div style="font-size:0.8125rem; color:#8a8a8e; margin-top:3px;">Condition is required — notes are optional</div>
                     </div>
-                    <div style="background:#fff; border-radius:13px; overflow:hidden; box-shadow:0 1px 0 rgba(0,0,0,0.06); margin-bottom:16px;">
+                    <div style="background:#fff; border-radius:12px; overflow:hidden; box-shadow:0 1px 0 rgba(0,0,0,0.06); margin-bottom:14px;">
                         <input type="text" id="modalItemNote" placeholder="Notes — e.g. Red color, Serial #12345" autocomplete="off"
-                            style="width:100%; padding:16px; border:none; font-size:1rem; box-sizing:border-box; background:transparent; font-family:-apple-system,BlinkMacSystemFont,sans-serif; color:#1c1c1e; outline:none;">
+                            style="width:100%; padding:14px; border:none; font-size:0.9375rem; box-sizing:border-box; background:transparent; font-family:-apple-system,BlinkMacSystemFont,sans-serif; color:#1c1c1e; outline:none;">
                     </div>
-                    <div style="font-size:0.8125rem; font-weight:600; color:#8a8a8e; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:8px; padding-left:4px; font-family:-apple-system,BlinkMacSystemFont,sans-serif;">Condition <span style="color:#ff3b30;">*</span></div>
+                    <div style="font-size:0.75rem; font-weight:600; color:#8a8a8e; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:8px; padding-left:2px; font-family:-apple-system,BlinkMacSystemFont,sans-serif;">Condition <span style="color:#ff3b30;">*</span></div>
                     <div style="display:flex; gap:10px; margin-bottom:10px;">
-                        <button type="button" class="condition-btn" data-val="New" style="flex:1; background:#fff; border:2px solid #e5e5ea; border-radius:13px; padding:16px; font-weight:600; font-size:1rem; cursor:pointer; transition:all 0.2s; font-family:-apple-system,BlinkMacSystemFont,sans-serif; color:#1c1c1e;">✨  New</button>
-                        <button type="button" class="condition-btn" data-val="Used" style="flex:1; background:#fff; border:2px solid #e5e5ea; border-radius:13px; padding:16px; font-weight:600; font-size:1rem; cursor:pointer; transition:all 0.2s; font-family:-apple-system,BlinkMacSystemFont,sans-serif; color:#1c1c1e;">♻️  Used</button>
+                        <button type="button" class="condition-btn" data-val="New" style="flex:1; background:#fff; border:2px solid #e5e5ea; border-radius:12px; padding:14px; font-weight:600; font-size:0.9375rem; cursor:pointer; transition:all 0.2s; font-family:-apple-system,BlinkMacSystemFont,sans-serif; color:#1c1c1e;">✨  New</button>
+                        <button type="button" class="condition-btn" data-val="Used" style="flex:1; background:#fff; border:2px solid #e5e5ea; border-radius:12px; padding:14px; font-weight:600; font-size:0.9375rem; cursor:pointer; transition:all 0.2s; font-family:-apple-system,BlinkMacSystemFont,sans-serif; color:#1c1c1e;">♻️  Used</button>
                     </div>
                     <input type="hidden" id="modalItemCondition" value="New">
                     <input type="hidden" id="modalItemHSCode">
                 </div>
 
+                <!-- Next button — inside scroll body, always at bottom of content -->
+                </div>
+
+            <div style="padding:14px 18px calc(14px + env(safe-area-inset-bottom, 0px)); background:#f2f2f7; border-top:1px solid rgba(0,0,0,0.05); flex-shrink:0;">
+                <div style="display:flex; gap:10px;">
+                    <button type="button" id="wizNextBtn" style="flex:1; background:#007aff; color:#fff; border:none; border-radius:13px; padding:15px; font-weight:600; font-size:1rem; cursor:pointer; font-family:-apple-system,BlinkMacSystemFont,sans-serif; letter-spacing:-0.2px; transition:background 0.12s; box-shadow: 0 4px 12px rgba(0,122,255,0.3);">Next</button>
+                </div>
             </div>
 
-            <!-- iOS-style Bottom Action Bar -->
-            <div id="wiz-footer" style="background:rgba(242,242,247,0.92); backdrop-filter:saturate(180%) blur(20px); -webkit-backdrop-filter:saturate(180%) blur(20px); padding:12px 20px; padding-bottom:max(12px, env(safe-area-inset-bottom)); border-top:0.5px solid rgba(0,0,0,0.12); flex-shrink:0;">
-                <button type="button" id="wizNextBtn" style="width:100%; background:#007aff; color:#fff; border:none; border-radius:14px; padding:16px; font-weight:600; font-size:1.0625rem; cursor:pointer; transition:opacity 0.15s; font-family:-apple-system,BlinkMacSystemFont,sans-serif; letter-spacing:-0.2px;">Next</button>
-            </div>
         </div>
     </div>
 
@@ -1133,9 +1141,9 @@
     </div>
 
     <!-- Success overlay -->
-    <div id="wiz-success-overlay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:3000; align-items:center; justify-content:center; backdrop-filter:blur(8px);">
+    <div id="wiz-success-overlay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:10000; align-items:center; justify-content:center; backdrop-filter:blur(8px);"></div>
         <div style="background:#fff; border-radius:20px; padding:36px 28px; text-align:center; max-width:280px; width:85%; animation:wizardSlideUp 0.3s cubic-bezier(0.34,1.56,0.64,1);">
-            <div style="width:64px; height:64px; background:#34c759; border-radius:50%; display:flex; align-items:center; justify-content:center; margin:0 auto 16px; color:#fff; font-size:1.8rem;">✓</div>
+            <div style="width:64px; height:64px; background:#34c759; border-radius:50%; display:flex; align-items:center; justify-content:margin:0 auto 16px; color:#fff; font-size:1.8rem; margin:0 auto 16px; align-items:center; justify-content:center;">✓</div>
             <div style="font-size:1.25rem; font-weight:700; color:#1c1c1e; margin-bottom:6px; font-family:-apple-system,BlinkMacSystemFont,sans-serif; letter-spacing:-0.3px;">Item Added!</div>
             <div style="font-size:0.875rem; color:#8a8a8e; font-family:-apple-system,BlinkMacSystemFont,sans-serif;">Ready for next item…</div>
         </div>
@@ -1146,14 +1154,20 @@
             from { opacity:0; transform:translateY(20px) scale(0.96); }
             to { opacity:1; transform:translateY(0) scale(1); }
         }
+        @keyframes sheetSlideUp {
+            from { transform: translateY(100%); }
+            to { transform: translateY(0); }
+        }
+
+        #itemWizardPanel { animation: sheetSlideUp 0.32s cubic-bezier(0.32,0.72,0,1); }
 
         /* iOS Category Buttons */
         .wiz-cat-btn {
             background: #fff;
             border: 1.5px solid #e5e5ea;
-            border-radius: 12px;
-            padding: 13px 8px;
-            font-size: 0.8125rem;
+            border-radius: 11px;
+            padding: 11px 6px;
+            font-size: 0.8rem;
             font-weight: 500;
             cursor: pointer;
             text-align: center;
@@ -1169,7 +1183,7 @@
         /* iOS Condition Buttons */
         .condition-btn.selected { background: #007aff !important; border-color: #007aff !important; color: #fff !important; }
 
-        /* iOS Back Button — show as flex when visible */
+        /* iOS Back Button */
         #wizBackBtn[style*="display:none"] { display: none !important; }
         #wizBackBtn:not([style*="display:none"]) { display: flex !important; }
 
@@ -1182,8 +1196,8 @@
             border: none;
             border-radius: 10px;
             padding: 0;
-            height: 56px;
-            font-size: 1.5625rem;
+            height: 52px;
+            font-size: 1.5rem;
             font-weight: 400;
             font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
             color: #1c1c1e;
@@ -1195,23 +1209,31 @@
             transition: background 0.08s ease;
             user-select: none;
             -webkit-tap-highlight-color: transparent;
-            letter-spacing: -0.5px;
         }
         .apple-pad-btn:active { background: #d1d1d6; }
-        .apple-pad-del { background: #d1d1d6; font-size: 1.25rem; color: #3c3c43; }
+        .apple-pad-del { background: #d1d1d6; font-size: 1.2rem; color: #3c3c43; }
         .apple-pad-del:active { background: #aeaeb2; }
         .apple-pad-empty { box-shadow: none !important; background: transparent !important; pointer-events: none; }
 
-        /* Input fields — no native focus ring, Apple style */
+        /* Input fields */
         #wiz-s1 input, #wiz-s3 input, #wiz-s4 input, #wiz-s5 input, #wiz-s8 input {
             -webkit-appearance: none;
         }
         #wiz-s1 input:focus, #wiz-s3 input:focus, #wiz-s4 input:focus,
         #wiz-s5 input:focus, #wiz-s8 input:focus { outline: none; }
 
-        /* Fullscreen on all sizes */
-        #itemWizardOverlay { background: #000 !important; }
-        #itemWizardPanel { height: 100vh; height: 100dvh; }
+        /* Overlay tap-to-dismiss */
+        #itemWizardOverlay { touch-action: none; }
+
+        /* On desktop show as centered card instead of bottom sheet */
+        @media (min-width: 768px) {
+            #itemWizardOverlay { display: flex; align-items: center; justify-content: center; }
+            #itemWizardPanel {
+                position: relative; bottom: auto; left: auto; right: auto;
+                border-radius: 20px; max-width: 480px; width: 92%;
+                max-height: 88vh; animation: wizardSlideUp 0.3s cubic-bezier(0.34,1.56,0.64,1);
+            }
+        }
     </style>
 
 
