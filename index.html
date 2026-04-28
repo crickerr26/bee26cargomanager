@@ -942,130 +942,97 @@
             <!-- Step Body -->
             <div id="wiz-body" style="padding:24px 20px 10px; min-height:260px;">
 
-                <!-- STEP 1: Barcode -->
                 <div id="wiz-s1" class="wiz-step-content">
-                    <div style="text-align:center; margin-bottom:16px;">
-                        <div style="font-size:3rem; margin-bottom:8px;">📦</div>
-                        <p style="color:#636366; font-size:0.9rem; margin:0;">Scan barcode or type manually, then press Enter</p>
-                    </div>
+                    <h3 style="color:var(--blue); font-size:1.1rem; margin-top:0; text-align:center; margin-bottom:12px;">1. Scan Barcode (Optional)</h3>
                     <div id="wiz-scanner-container" style="display:none; border:2px solid #007aff; border-radius:12px; overflow:hidden; margin-bottom:12px;">
                         <div id="wiz-reader" style="width:100%;"></div>
-                        <button type="button" id="wiz-stopScanBtn" style="width:100%; background:#ff3b30; color:#fff; border:none; padding:12px; font-weight:700; font-size:0.9rem; cursor:pointer; border-radius:0;">🛑 Stop Camera</button>
+                        <button type="button" id="wiz-stopScanBtn" style="width:100%; background:#ff3b30; color:#fff; border:none; padding:10px; font-weight:700; font-size:0.9rem; cursor:pointer; border-radius:0;">🛑 Stop Camera</button>
                     </div>
                     <div style="display:flex; gap:10px; margin-bottom:12px;">
-                        <button type="button" id="wiz-startScanBtn" style="flex:1; background:#007aff; color:#fff; border:none; border-radius:12px; padding:14px; font-weight:700; font-size:0.95rem; cursor:pointer;">📷 Scan Camera</button>
+                        <button type="button" id="wiz-startScanBtn" style="flex:1; background:#007aff; color:#fff; border:none; border-radius:10px; padding:12px; font-weight:700; font-size:0.9rem; cursor:pointer;">📷 Scan Barcode</button>
                     </div>
                     <input type="text" id="modalBarcode" placeholder="Or type barcode here, press Enter →" autocomplete="off" inputmode="text"
-                        style="width:100%; padding:14px; border:2px solid #e5e5ea; border-radius:12px; font-size:1rem; font-weight:700; text-align:center; box-sizing:border-box; transition:border-color 0.2s;">
-                    <div style="margin-top:14px; text-align:center;">
-                        <button type="button" id="wiz-skip-barcode" style="background:none; border:none; color:#8a8a8e; font-size:0.875rem; cursor:pointer; text-decoration:underline;">Skip (no barcode)</button>
-                    </div>
-                </div>
+                        style="width:100%; padding:12px; border:2px solid #e5e5ea; border-radius:10px; font-size:0.95rem; font-weight:700; text-align:center; box-sizing:border-box; transition:border-color 0.2s; margin-bottom:20px;">
 
-                <!-- STEP 2: Photo -->
-                <div id="wiz-s2" class="wiz-step-content" style="display:none;">
-                    <div style="text-align:center; margin-bottom:16px;">
-                        <div style="font-size:3rem; margin-bottom:8px;">📷</div>
-                        <p style="color:#636366; font-size:0.9rem; margin:0;">Take a photo or upload from gallery</p>
-                    </div>
-                    <div id="wiz-photo-preview-wrap" style="display:none; text-align:center; margin-bottom:14px;">
-                        <img id="modalImagePreview" src="" alt="Preview" style="max-height:160px; border-radius:12px; border:2px solid #007aff; display:inline-block;">
-                        <div style="margin-top:8px;">
-                            <span style="color:#28a745; font-weight:700; font-size:0.9rem;">✅ Photo captured!</span>
+                    <h3 style="color:var(--purple); font-size:1.1rem; margin-top:0; text-align:center; margin-bottom:12px;">2. Product Photo</h3>
+                    <div id="wiz-photo-preview-wrap" style="display:none; text-align:center; margin-bottom:12px;">
+                        <img id="modalImagePreview" src="" alt="Preview" style="max-height:120px; border-radius:10px; border:2px solid #007aff; display:inline-block;">
+                        <div style="margin-top:4px;">
+                            <span style="color:#28a745; font-weight:700; font-size:0.8rem;">✅ Photo captured!</span>
                         </div>
                     </div>
                     <div style="display:flex; gap:10px;">
-                        <label style="flex:1; background:#007aff; color:#fff; border-radius:12px; padding:14px; font-weight:700; font-size:0.95rem; cursor:pointer; text-align:center;">
-                            📸 Camera / Gallery
+                        <label style="flex:1; background:#5856d6; color:#fff; border-radius:10px; padding:12px; font-weight:700; font-size:0.9rem; cursor:pointer; text-align:center;">
+                            📸 Camera
                             <input type="file" id="modalItemImage" accept="image/*" capture="environment" style="display:none;">
                         </label>
-                        <label style="flex:1; background:#f0f0f5; color:#1c1c1e; border-radius:12px; padding:14px; font-weight:700; font-size:0.95rem; cursor:pointer; text-align:center;">
-                            🖼️ Browse Files
+                        <label style="flex:1; background:#f0f0f5; color:#1c1c1e; border-radius:10px; padding:12px; font-weight:700; font-size:0.9rem; cursor:pointer; text-align:center;">
+                            🖼️ Gallery
                             <input type="file" id="modalItemImageAlt" accept="image/jpeg,image/png" style="display:none;">
                         </label>
                     </div>
                     <div id="modalImagePreviewContainer" style="display:none;"></div>
-                    <div style="margin-top:14px; text-align:center;">
-                        <button type="button" id="wiz-skip-photo" style="background:none; border:none; color:#8a8a8e; font-size:0.875rem; cursor:pointer; text-decoration:underline;">Skip photo</button>
-                    </div>
                 </div>
 
-                <!-- STEP 3: Description -->
-                <div id="wiz-s3" class="wiz-step-content" style="display:none;">
-                    <div style="text-align:center; margin-bottom:16px;">
-                        <div style="font-size:3rem; margin-bottom:8px;">📝</div>
-                        <p style="color:#636366; font-size:0.9rem; margin:0;">Describe the item clearly, then press Enter</p>
-                    </div>
-                    <div style="display:flex; gap:8px; align-items:center;">
+                <div id="wiz-s2" class="wiz-step-content" style="display:none;">
+                    <h3 style="color:var(--blue); font-size:1.1rem; margin-top:0; text-align:center; margin-bottom:15px;">Item Details</h3>
+                    
+                    <label style="font-weight:700; font-size:0.85rem; color:#1c1c1e; display:block; margin-bottom:6px;">Description <span style="color:red">*</span></label>
+                    <div style="display:flex; gap:8px; align-items:center; margin-bottom:12px;">
                         <input type="text" id="modalItemDesc" placeholder="e.g. Men's Cotton T-Shirts" autocomplete="off"
-                            style="flex:1; padding:16px; border:2px solid #e5e5ea; border-radius:12px; font-size:1.05rem; box-sizing:border-box; transition:border-color 0.2s;">
-                        <button type="button" id="voiceDictationBtn" style="background:#f0f0f5; border:none; border-radius:12px; padding:14px; font-size:1.4rem; cursor:pointer; flex-shrink:0;">🎤</button>
+                            style="flex:1; padding:12px; border:2px solid #e5e5ea; border-radius:10px; font-size:0.95rem; box-sizing:border-box; transition:border-color 0.2s;">
+                        <button type="button" id="voiceDictationBtn" style="background:#f0f0f5; border:none; border-radius:10px; padding:10px; font-size:1.2rem; cursor:pointer; flex-shrink:0;">🎤</button>
                     </div>
+
+                    <label style="font-weight:700; font-size:0.85rem; color:#1c1c1e; display:block; margin-bottom:6px;">Brand <span style="color:red">*</span></label>
+                    <input type="text" id="modalItemBrand" placeholder="e.g. Nike, Generic" autocomplete="off"
+                        style="width:100%; padding:12px; border:2px solid #e5e5ea; border-radius:10px; font-size:0.95rem; box-sizing:border-box; transition:border-color 0.2s; margin-bottom:12px;">
+
+                    <label style="font-weight:700; font-size:0.85rem; color:#1c1c1e; display:block; margin-bottom:6px;">Condition</label>
+                    <div style="display:flex; gap:10px; margin-bottom:12px;">
+                        <button type="button" class="condition-btn" data-val="New" style="flex:1; background:#f0f0f5; border:none; border-radius:10px; padding:10px; font-weight:700; font-size:0.9rem; cursor:pointer; transition:all 0.2s;">✨ New</button>
+                        <button type="button" class="condition-btn" data-val="Used" style="flex:1; background:#f0f0f5; border:none; border-radius:10px; padding:10px; font-weight:700; font-size:0.9rem; cursor:pointer; transition:all 0.2s;">♻️ Used</button>
+                    </div>
+                    <input type="hidden" id="modalItemCondition" value="New">
+
+                    <label style="font-weight:700; font-size:0.85rem; color:#1c1c1e; display:block; margin-bottom:6px;">Notes (Optional)</label>
+                    <input type="text" id="modalItemNote" placeholder="e.g. Red color, Serial #12345" autocomplete="off"
+                        style="width:100%; padding:12px; border:2px solid #e5e5ea; border-radius:10px; font-size:0.95rem; box-sizing:border-box; transition:border-color 0.2s; margin-bottom:10px;">
+                    
+                    <input type="hidden" id="modalItemHSCode">
                 </div>
 
-                <!-- STEP 4: Brand -->
-                <div id="wiz-s4" class="wiz-step-content" style="display:none;">
-                    <div style="text-align:center; margin-bottom:16px;">
-                        <div style="font-size:3rem; margin-bottom:8px;">🏷️</div>
-                        <p style="color:#636366; font-size:0.9rem; margin:0;">Enter brand name, then press Enter</p>
-                    </div>
-                    <input type="text" id="modalItemBrand" placeholder="e.g. Nike, Samsung, Generic" autocomplete="off"
-                        style="width:100%; padding:16px; border:2px solid #e5e5ea; border-radius:12px; font-size:1.05rem; box-sizing:border-box; transition:border-color 0.2s;">
-                </div>
-
-                <!-- STEP 5: Category -->
-                <div id="wiz-s5" class="wiz-step-content" style="display:none;">
-                    <div style="text-align:center; margin-bottom:14px;">
-                        <div style="font-size:3rem; margin-bottom:8px;">🗂️</div>
-                        <p style="color:#636366; font-size:0.9rem; margin:0;">Tap a category to continue</p>
-                    </div>
+                <div id="wiz-s3" class="wiz-step-content" style="display:none;">
+                    <h3 style="color:var(--teal); font-size:1.1rem; margin-top:0; text-align:center; margin-bottom:10px;">Select Category</h3>
                     <input type="text" id="wiz-cat-search" placeholder="🔍 Search categories..." autocomplete="off"
-                        style="width:100%; padding:12px; border:2px solid #e5e5ea; border-radius:10px; font-size:0.95rem; box-sizing:border-box; margin-bottom:10px;">
-                    <div id="wiz-cat-grid" style="display:grid; grid-template-columns:1fr 1fr; gap:8px; max-height:280px; overflow-y:auto; -webkit-overflow-scrolling:touch;">
+                        style="width:100%; padding:10px; border:2px solid #e5e5ea; border-radius:8px; font-size:0.9rem; box-sizing:border-box; margin-bottom:10px;">
+                    <div id="wiz-cat-grid" style="display:grid; grid-template-columns:1fr 1fr; gap:6px; max-height:220px; overflow-y:auto; -webkit-overflow-scrolling:touch; padding-right:5px;">
                     </div>
                     <input type="hidden" id="modalItemCat">
                 </div>
 
-                <!-- STEP 6: Quantity -->
-                <div id="wiz-s6" class="wiz-step-content" style="display:none;">
-                    <div style="text-align:center; margin-bottom:10px;">
-                        <p style="color:#636366; font-size:0.85rem; margin:0; font-weight:500; letter-spacing:-0.2px;">Enter quantity, then press Enter</p>
-                    </div>
-                    <!-- Apple-style display -->
-                    <div style="background:#f9f9f9; border:1.5px solid #e5e5ea; border-radius:14px; padding:18px 20px; text-align:center; margin-bottom:12px; min-height:62px; display:flex; align-items:center; justify-content:center;">
-                        <span id="qty-display" style="font-size:2.6rem; font-weight:300; color:#1c1c1e; letter-spacing:-1px; font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display',sans-serif; min-width:40px; display:inline-block;">0</span>
-                    </div>
-                    <input type="hidden" id="modalItemQty" value="">
-                    <!-- Apple iOS-style numpad -->
-                    <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:10px;">
-                        <button type="button" class="apple-pad-btn" data-pad="1" data-target="qty">1</button>
-                        <button type="button" class="apple-pad-btn" data-pad="2" data-target="qty">2</button>
-                        <button type="button" class="apple-pad-btn" data-pad="3" data-target="qty">3</button>
-                        <button type="button" class="apple-pad-btn" data-pad="4" data-target="qty">4</button>
-                        <button type="button" class="apple-pad-btn" data-pad="5" data-target="qty">5</button>
-                        <button type="button" class="apple-pad-btn" data-pad="6" data-target="qty">6</button>
-                        <button type="button" class="apple-pad-btn" data-pad="7" data-target="qty">7</button>
-                        <button type="button" class="apple-pad-btn" data-pad="8" data-target="qty">8</button>
-                        <button type="button" class="apple-pad-btn" data-pad="9" data-target="qty">9</button>
-                        <button type="button" class="apple-pad-btn apple-pad-empty" data-pad="noop" data-target="qty" style="background:transparent; box-shadow:none; cursor:default;"></button>
-                        <button type="button" class="apple-pad-btn" data-pad="0" data-target="qty">0</button>
-                        <button type="button" class="apple-pad-btn apple-pad-del" data-pad="del" data-target="qty">⌫</button>
-                    </div>
-                </div>
+                <div id="wiz-s4" class="wiz-step-content" style="display:none;">
+                    <h3 style="color:var(--orange); font-size:1.1rem; margin-top:0; text-align:center; margin-bottom:15px;">Quantity & Value</h3>
+                    
+                    <label style="font-weight:700; font-size:0.85rem; color:#1c1c1e; display:block; margin-bottom:6px;">Quantity</label>
+                    <select id="modalItemQty" style="width:100%; padding:12px; border:2px solid #e5e5ea; border-radius:10px; font-size:1rem; font-weight:bold; box-sizing:border-box; margin-bottom:15px; background-color:#f9f9f9; cursor:pointer;">
+                        <option value="" disabled selected>Select Quantity</option>
+                        <option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option>
+                        <option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10">10</option>
+                        <option value="11">11</option><option value="12">12</option><option value="13">13</option><option value="14">14</option><option value="15">15</option>
+                        <option value="16">16</option><option value="17">17</option><option value="18">18</option><option value="19">19</option><option value="20">20</option>
+                        <option value="21">21</option><option value="22">22</option><option value="23">23</option><option value="24">24</option><option value="25">25</option>
+                        <option value="26">26</option><option value="27">27</option><option value="28">28</option><option value="29">29</option><option value="30">30</option>
+                    </select>
 
-                <!-- STEP 7: Unit Value -->
-                <div id="wiz-s7" class="wiz-step-content" style="display:none;">
-                    <div style="text-align:center; margin-bottom:10px;">
-                        <p style="color:#636366; font-size:0.85rem; margin:0; font-weight:500; letter-spacing:-0.2px;">Enter unit value in CAD, then press Enter</p>
-                    </div>
-                    <!-- Apple-style currency display -->
-                    <div style="background:#f9f9f9; border:1.5px solid #e5e5ea; border-radius:14px; padding:18px 20px; text-align:center; margin-bottom:12px; min-height:62px; display:flex; align-items:center; justify-content:center; gap:6px;">
-                        <span style="font-size:1.6rem; font-weight:300; color:#8a8a8e; font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display',sans-serif; align-self:flex-start; margin-top:6px;">$</span>
-                        <span id="val-display" style="font-size:2.6rem; font-weight:300; color:#1c1c1e; letter-spacing:-1px; font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display',sans-serif; min-width:60px; display:inline-block;">0.00</span>
+                    <label style="font-weight:700; font-size:0.85rem; color:#1c1c1e; display:block; margin-bottom:6px;">Unit Value (CAD)</label>
+                    <div style="background:#f9f9f9; border:1.5px solid #e5e5ea; border-radius:10px; padding:12px 15px; text-align:center; margin-bottom:10px; min-height:50px; display:flex; align-items:center; justify-content:center; gap:6px;">
+                        <span style="font-size:1.2rem; font-weight:400; color:#8a8a8e;">$</span>
+                        <span id="val-display" style="font-size:2rem; font-weight:500; color:#1c1c1e; letter-spacing:-1px; min-width:60px; display:inline-block;">0.00</span>
                     </div>
                     <input type="hidden" id="modalItemValue" value="">
-                    <!-- Apple iOS-style numpad -->
-                    <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:10px;">
+                    
+                    <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:8px;">
                         <button type="button" class="apple-pad-btn" data-pad="1" data-target="val">1</button>
                         <button type="button" class="apple-pad-btn" data-pad="2" data-target="val">2</button>
                         <button type="button" class="apple-pad-btn" data-pad="3" data-target="val">3</button>
@@ -1079,23 +1046,6 @@
                         <button type="button" class="apple-pad-btn" data-pad="0" data-target="val">0</button>
                         <button type="button" class="apple-pad-btn apple-pad-del" data-pad="del" data-target="val">⌫</button>
                     </div>
-                </div>
-
-                <!-- STEP 8: Note + Condition (final) -->
-                <div id="wiz-s8" class="wiz-step-content" style="display:none;">
-                    <div style="text-align:center; margin-bottom:16px;">
-                        <div style="font-size:3rem; margin-bottom:8px;">📋</div>
-                        <p style="color:#636366; font-size:0.9rem; margin:0;">Add notes & select condition (optional), then Save</p>
-                    </div>
-                    <input type="text" id="modalItemNote" placeholder="e.g. Red color, Serial #12345 (optional)" autocomplete="off"
-                        style="width:100%; padding:14px; border:2px solid #e5e5ea; border-radius:12px; font-size:1rem; box-sizing:border-box; margin-bottom:14px; transition:border-color 0.2s;">
-                    <label style="font-weight:700; font-size:0.9rem; color:#1c1c1e; display:block; margin-bottom:8px;">Condition</label>
-                    <div style="display:flex; gap:10px; margin-bottom:10px;">
-                        <button type="button" class="condition-btn" data-val="New" style="flex:1; background:#f0f0f5; border:none; border-radius:12px; padding:14px; font-weight:700; font-size:1rem; cursor:pointer; transition:all 0.2s;">✨ New</button>
-                        <button type="button" class="condition-btn" data-val="Used" style="flex:1; background:#f0f0f5; border:none; border-radius:12px; padding:14px; font-weight:700; font-size:1rem; cursor:pointer; transition:all 0.2s;">♻️ Used</button>
-                    </div>
-                    <input type="hidden" id="modalItemCondition" value="New">
-                    <input type="hidden" id="modalItemHSCode">
                 </div>
 
             </div>
@@ -1144,7 +1094,19 @@
             border-color:#007aff; outline:none; box-shadow:0 0 0 3px rgba(0,122,255,0.15);
         }
         @media (max-width:480px) {
-            #itemWizardPanel { width:96%; margin:15px auto 80px; }
+            #itemWizardPanel { 
+                width: 100%; 
+                margin: 0; 
+                position: absolute; 
+                bottom: 0; 
+                left: 0; 
+                border-radius: 24px 24px 0 0; 
+                padding-bottom: max(20px, env(safe-area-inset-bottom)); 
+            }
+            #wiz-body {
+                max-height: 70vh; 
+                overflow-y: auto; 
+            }
         }
 
         /* ===== Apple iOS Number Pad ===== */
@@ -1663,44 +1625,40 @@
 
             // Wizard state
             let wizItemStep = 1;
-            const WIZ_TOTAL = 8;
+            const WIZ_TOTAL = 4;
             let wiz_html5Scanner = null;
 
             const WIZ_STEPS_META = [
-                { name: 'Item Barcode',   hint: 'Optional' },
-                { name: 'Product Photo',  hint: 'Required' },
-                { name: 'Description',    hint: 'Required' },
-                { name: 'Brand Name',     hint: 'Required' },
+                { name: 'Scan & Photo',   hint: 'Capture Item' },
+                { name: 'Item Details',   hint: 'Required' },
                 { name: 'Category',       hint: 'Required — tap to select' },
-                { name: 'Quantity',       hint: 'Required' },
-                { name: 'Unit Value',     hint: 'Required (CAD)' },
-                { name: 'Notes & Condition', hint: 'Optional' }
+                { name: 'Quantity & Price', hint: 'Required' }
             ];
 
             const WIZ_CATEGORIES = [
-                { label: '👗 Clothing',          val: 'Clothing' },
-                { label: '👟 Footwear',           val: 'Footwear & Shoes' },
-                { label: '🧒 Kids Clothing',      val: 'Kids Clothing' },
-                { label: '👔 Men\'s Accessories', val: 'Men\'s Accessories' },
-                { label: '👜 Ladies\' Acc.',      val: 'Ladies\' Accessories' },
-                { label: '🧵 Fabrics',            val: 'Fabrics & Textiles' },
-                { label: '💻 Computers',          val: 'Computers & Laptops' },
-                { label: '📱 Phones',             val: 'Phones & Accessories' },
+                { label: '🚗 Auto Parts',         val: 'Automotive Parts' },
+                { label: '🍼 Baby Items',         val: 'Baby Items' },
+                { label: '📚 Books',              val: 'Books & Stationery' },
                 { label: '📷 Cameras',            val: 'Cameras & Equipment' },
+                { label: '👗 Clothing',          val: 'Clothing' },
+                { label: '💻 Computers',          val: 'Computers & Laptops' },
+                { label: '💄 Cosmetics',          val: 'Cosmetics & Toiletries' },
                 { label: '🔌 Electronics',        val: 'Electronic Items' },
+                { label: '🧵 Fabrics',            val: 'Fabrics & Textiles' },
+                { label: '👟 Footwear',           val: 'Footwear & Shoes' },
+                { label: '📦 General',            val: 'General Merchandise' },
+                { label: '🏠 Home Decor',         val: 'Home Decor' },
+                { label: '🧒 Kids Clothing',      val: 'Kids Clothing' },
+                { label: '🍳 Kitchenware',        val: 'Kitchenware' },
+                { label: '👜 Ladies\' Acc.',      val: 'Ladies\' Accessories' },
+                { label: '💊 Medicines',          val: 'Medicines & Vitamins' },
+                { label: '👔 Men\'s Accessories', val: 'Men\'s Accessories' },
+                { label: '🗂️ Other',             val: 'Other' },
                 { label: '🥫 Packaged Food',      val: 'Packaged Food (Non-Perishable)' },
                 { label: '🥶 Perishables',        val: 'Perishables (Special Handling)' },
-                { label: '🍳 Kitchenware',        val: 'Kitchenware' },
-                { label: '🏠 Home Decor',         val: 'Home Decor' },
-                { label: '🧸 Toys',               val: 'Toys & Hobbies' },
-                { label: '🍼 Baby Items',         val: 'Baby Items' },
-                { label: '💄 Cosmetics',          val: 'Cosmetics & Toiletries' },
-                { label: '💊 Medicines',          val: 'Medicines & Vitamins' },
-                { label: '📚 Books',              val: 'Books & Stationery' },
+                { label: '📱 Phones',             val: 'Phones & Accessories' },
                 { label: '🔧 Tools',              val: 'Tools & Hardware' },
-                { label: '🚗 Auto Parts',         val: 'Automotive Parts' },
-                { label: '📦 General',            val: 'General Merchandise' },
-                { label: '🗂️ Other',             val: 'Other' }
+                { label: '🧸 Toys',               val: 'Toys & Hobbies' }
             ];
 
             function wizBuildCategoryGrid(filter = '') {
@@ -1746,26 +1704,21 @@
                 setTimeout(() => {
                     const focusMap = {
                         1: 'modalBarcode',
-                        3: 'modalItemDesc',
-                        4: 'modalItemBrand',
-                        5: 'wiz-cat-search',
-                        6: 'modalItemQty',
-                        7: 'modalItemValue',
-                        8: 'modalItemNote'
+                        2: 'modalItemDesc',
+                        3: 'wiz-cat-search'
                     };
                     const fid = focusMap[n];
                     if (fid) { const el = document.getElementById(fid); if(el) el.focus(); }
                 }, 120);
-                if (n === 5) wizBuildCategoryGrid();
+                if (n === 3) wizBuildCategoryGrid();
             }
 
             function wizGoTo(n) {
                 if (n < 1 || n > WIZ_TOTAL) return;
                 // Stop scanner if leaving step 1
                 if (wizItemStep === 1 && n !== 1) wizStopScanner();
-                // Sync numpad displays when entering step 6 or 7
-                if (n === 6) { qtyRawStr = qtyRawStr || ''; qtyDisplay(); }
-                if (n === 7) { valRawStr = valRawStr || ''; valDisplay(); }
+                // Sync numpad displays when entering step 4
+                if (n === 4) { valRawStr = valRawStr || ''; valDisplay(); }
                 wizItemStep = n;
                 wizShowStep(n);
             }
@@ -1854,10 +1807,7 @@
             document.getElementById('wiz-stopScanBtn').addEventListener('click', wizStopScanner);
             document.getElementById('wizCloseBtn').addEventListener('click', wizClose);
 
-            document.getElementById('wiz-skip-barcode').addEventListener('click', () => wizGoTo(2));
-            document.getElementById('wiz-skip-photo').addEventListener('click', () => wizGoTo(3));
-
-            // Barcode manual enter key
+            // Barcode manual enter key - Goes to Step 2 (Details)
             document.getElementById('modalBarcode').addEventListener('keydown', (e) => {
                 if (e.key === 'Enter') { e.preventDefault(); wizGoTo(2); }
             });
@@ -1935,22 +1885,19 @@
                 if (hv) hv.value = '';
             }
 
-            // Enter key advance for text steps (qty and value now use hidden inputs — Enter handled on wiz-body)
-            ['modalItemDesc', 'modalItemBrand'].forEach(id => {
+            // Enter key advance for text steps (Advance to step 3 after form fields are complete)
+            ['modalItemDesc', 'modalItemBrand', 'modalItemNote'].forEach(id => {
                 const el = document.getElementById(id);
                 if (!el) return;
                 el.addEventListener('keydown', (e) => {
                     if (e.key === 'Enter') {
                         e.preventDefault();
-                        const stepMap = { modalItemDesc: 4, modalItemBrand: 5 };
-                        wizGoTo(stepMap[id]);
+                        // Validate before advancing to Category
+                        if (wizCanAdvance(2)) {
+                            wizGoTo(3);
+                        }
                     }
                 });
-            });
-
-            // Note field — Enter = save
-            document.getElementById('modalItemNote').addEventListener('keydown', (e) => {
-                if (e.key === 'Enter') { e.preventDefault(); wizSaveItem(); }
             });
 
             // Escape key = go back
@@ -1973,6 +1920,32 @@
             const defaultCondBtn = document.querySelector('.condition-btn[data-val="New"]');
             if (defaultCondBtn) { defaultCondBtn.classList.add('selected'); }
 
+            // Step-by-Step Validation Function
+            function wizCanAdvance(step) {
+                if (step === 2) {
+                    const desc = document.getElementById('modalItemDesc').value.trim();
+                    const brand = document.getElementById('modalItemBrand').value.trim();
+                    if (!desc) { 
+                        window.showToast('Please enter a description', 'error'); 
+                        document.getElementById('modalItemDesc').focus(); 
+                        return false; 
+                    }
+                    if (!brand) { 
+                        window.showToast('Please enter a brand name', 'error'); 
+                        document.getElementById('modalItemBrand').focus(); 
+                        return false; 
+                    }
+                }
+                if (step === 3) {
+                    const cat = document.getElementById('modalItemCat').value;
+                    if (!cat) { 
+                        window.showToast('Please select a category', 'error'); 
+                        return false; 
+                    }
+                }
+                return true;
+            }
+
             // Wizard Back / Next buttons
             document.getElementById('wizBackBtn').addEventListener('click', () => {
                 if (wizItemStep > 1) wizGoTo(wizItemStep - 1);
@@ -1982,7 +1955,10 @@
                 if (wizItemStep === WIZ_TOTAL) {
                     wizSaveItem();
                 } else {
-                    wizGoTo(wizItemStep + 1);
+                    // Check validation before moving forward
+                    if (wizCanAdvance(wizItemStep)) {
+                        wizGoTo(wizItemStep + 1);
+                    }
                 }
             });
 
@@ -2021,7 +1997,7 @@
                     modalImagePreview.src = dataUrl;
                     document.getElementById('wiz-photo-preview-wrap').style.display = 'block';
                     // Auto-advance after photo captured
-                    setTimeout(() => wizGoTo(3), 500);
+                    setTimeout(() => wizGoTo(2), 500);
                 });
             }
 
@@ -2086,11 +2062,11 @@
                 const val = parseFloat(document.getElementById('modalItemValue').value);
                 const condition = document.getElementById('modalItemCondition').value || 'New';
 
-                if (!desc) { wizGoTo(3); window.showToast('Please enter a description', 'error'); return; }
-                if (!brand) { wizGoTo(4); window.showToast('Please enter a brand name', 'error'); return; }
-                if (!cat) { wizGoTo(5); window.showToast('Please select a category', 'error'); return; }
-                if (!qty || qty < 1) { wizGoTo(6); window.showToast('Please enter a valid quantity', 'error'); return; }
-                if (isNaN(val) || val < 0) { wizGoTo(7); window.showToast('Please enter a valid value', 'error'); return; }
+                if (!desc) { wizGoTo(2); window.showToast('Please enter a description', 'error'); return; }
+                if (!brand) { wizGoTo(2); window.showToast('Please enter a brand name', 'error'); return; }
+                if (!cat) { wizGoTo(3); window.showToast('Please select a category', 'error'); return; }
+                if (!qty || qty < 1) { wizGoTo(4); window.showToast('Please enter a valid quantity', 'error'); return; }
+                if (isNaN(val) || val < 0) { wizGoTo(4); window.showToast('Please enter a valid value', 'error'); return; }
 
                 const item = {
                     barcode: document.getElementById('modalBarcode').value.trim(),
@@ -2236,11 +2212,11 @@
                         document.getElementById('wiz-photo-preview-wrap').style.display = 'none';
                     }
 
-                    // Open wizard at step 3 (description) for fast editing
-                    wizItemStep = 3;
+                    // Open wizard at step 2 (details) for fast editing
+                    wizItemStep = 2;
                     document.getElementById('itemWizardOverlay').style.display = 'block';
                     document.body.style.overflow = 'hidden';
-                    wizShowStep(3);
+                    wizShowStep(2);
                 }
             });
 
