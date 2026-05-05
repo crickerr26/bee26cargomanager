@@ -1767,7 +1767,7 @@
                 } catch(e) {}
 
                 document.getElementById('modalBarcode').value = decodedText;
-                window.showToast('✅ Barcode: ' + decodedText, 'success');
+                window.showToast('✅ Barcode captured! Now take a product photo.', 'success');
 
                 // Look up product
                 try {
@@ -1780,12 +1780,12 @@
                         document.getElementById('modalItemValue').value = prod.value || '';
                         document.getElementById('modalItemHSCode').value = prod.hsCode || '';
                         document.getElementById('modalItemBrand').value = prod.brand || '';
-                        window.showToast('📦 Product auto-filled!', 'success');
+                        window.showToast('📦 Product auto-filled! Take photo to continue.', 'success');
                     }
                 } catch(err) { console.error(err); }
 
-                // Advance after brief delay
-                setTimeout(() => wizGoTo(2), 400);
+                // Stay on Step 1 — user must take a photo (or click Next) to advance.
+                // Photo capture handler in handlePhotoFile() will auto-advance to Step 2.
             }
 
             document.getElementById('wiz-startScanBtn').addEventListener('click', wizStartScanner);
