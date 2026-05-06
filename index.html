@@ -164,6 +164,106 @@
             border: 1px solid var(--grey-mid); 
             border-radius: 8px;
         }
+
+        /* --- FROZEN COLUMNS for All Shipments table (columns 1-5: Invoice, Batch, Date, Sender, Receiver) --- */
+        /* Only applies on screens wide enough to make freezing useful */
+        @media (min-width: 900px) {
+            #page-all-shipments .styled-table th:nth-child(1),
+            #page-all-shipments .styled-table td:nth-child(1),
+            #page-all-shipments .styled-table th:nth-child(2),
+            #page-all-shipments .styled-table td:nth-child(2),
+            #page-all-shipments .styled-table th:nth-child(3),
+            #page-all-shipments .styled-table td:nth-child(3),
+            #page-all-shipments .styled-table th:nth-child(4),
+            #page-all-shipments .styled-table td:nth-child(4),
+            #page-all-shipments .styled-table th:nth-child(5),
+            #page-all-shipments .styled-table td:nth-child(5) {
+                position: sticky;
+                background-color: var(--bg-white, #fff);
+                z-index: 2;
+            }
+            #page-all-shipments .styled-table thead th:nth-child(1),
+            #page-all-shipments .styled-table thead th:nth-child(2),
+            #page-all-shipments .styled-table thead th:nth-child(3),
+            #page-all-shipments .styled-table thead th:nth-child(4),
+            #page-all-shipments .styled-table thead th:nth-child(5) {
+                background-color: #fcfcfc;
+                z-index: 3;
+            }
+            /* Cumulative left offsets — must match column widths */
+            #page-all-shipments .styled-table th:nth-child(1),
+            #page-all-shipments .styled-table td:nth-child(1) { left: 0; }
+            #page-all-shipments .styled-table th:nth-child(2),
+            #page-all-shipments .styled-table td:nth-child(2) { left: 95px; }
+            #page-all-shipments .styled-table th:nth-child(3),
+            #page-all-shipments .styled-table td:nth-child(3) { left: 235px; }
+            #page-all-shipments .styled-table th:nth-child(4),
+            #page-all-shipments .styled-table td:nth-child(4) { left: 305px; }
+            #page-all-shipments .styled-table th:nth-child(5),
+            #page-all-shipments .styled-table td:nth-child(5) {
+                left: 445px;
+                /* Right border to visually separate frozen pane from scrollable area */
+                box-shadow: 2px 0 4px -2px rgba(0,0,0,0.1);
+                border-right: 1px solid var(--grey-mid);
+            }
+            /* Keep hover color sane on sticky cells */
+            #page-all-shipments .styled-table tbody tr:hover td:nth-child(-n+5) {
+                background-color: var(--grey-light);
+            }
+        }
+
+        /* --- PAGINATION CONTROLS for All Shipments --- */
+        .pagination-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 12px;
+            padding: 8px 4px;
+        }
+        .pagination-info {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+        .pagination-pages {
+            display: flex;
+            gap: 4px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        .page-btn {
+            min-width: 34px;
+            height: 34px;
+            padding: 0 10px;
+            border: 1px solid var(--grey-mid);
+            background: #fff;
+            color: var(--text-primary);
+            border-radius: 6px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+        .page-btn:hover:not(:disabled) {
+            background: var(--blue-light);
+            border-color: var(--blue);
+            color: var(--blue);
+        }
+        .page-btn.active {
+            background: var(--blue);
+            border-color: var(--blue);
+            color: #fff;
+        }
+        .page-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+        .page-ellipsis {
+            padding: 0 4px;
+            color: var(--text-secondary);
+            user-select: none;
+        }
         .styled-table { width: 100%; border-collapse: collapse; font-size: 0.8rem; white-space: nowrap; /* Prevents text wrapping on mobile */ }
         .styled-table th, .styled-table td { padding: 0.5rem; text-align: left; border-bottom: 1px solid var(--grey-mid); vertical-align: middle; }
         .styled-table th { color: var(--text-secondary); font-weight: 600; background-color: #fcfcfc; }
@@ -745,6 +845,10 @@
                             <tr><td colspan="10" style="text-align: center;">Loading data from Firebase...</td></tr>
                         </tbody>
                     </table>
+                </div>
+                <div id="shipmentsPaginationBar" class="pagination-bar" style="display:none;">
+                    <div class="pagination-info" id="shipmentsPaginationInfo"></div>
+                    <div class="pagination-pages" id="shipmentsPaginationPages"></div>
                 </div>
             </div>
         </div>
@@ -2762,6 +2866,67 @@
                 return options;
             }
 
+            // Pagination state for All Shipments
+            let currentShipmentsPage = 1;
+            const SHIPMENTS_PER_PAGE = 20;
+
+            function renderShipmentsPagination(totalItems, totalPages) {
+                const bar = document.getElementById('shipmentsPaginationBar');
+                const info = document.getElementById('shipmentsPaginationInfo');
+                const pagesEl = document.getElementById('shipmentsPaginationPages');
+                if (!bar || !info || !pagesEl) return;
+
+                if (totalPages <= 1) {
+                    bar.style.display = 'none';
+                    return;
+                }
+                bar.style.display = 'flex';
+
+                const startIdx = (currentShipmentsPage - 1) * SHIPMENTS_PER_PAGE + 1;
+                const endIdx = Math.min(currentShipmentsPage * SHIPMENTS_PER_PAGE, totalItems);
+                info.textContent = `Showing ${startIdx}–${endIdx} of ${totalItems} shipments`;
+
+                // Build smart page list: 1 ... (cur-1) cur (cur+1) ... last
+                const pages = [];
+                const cur = currentShipmentsPage;
+                const last = totalPages;
+                const window2 = 1; // pages on each side of current
+                const add = (v) => { if (!pages.includes(v)) pages.push(v); };
+
+                add(1);
+                for (let i = cur - window2; i <= cur + window2; i++) {
+                    if (i > 1 && i < last) add(i);
+                }
+                if (last > 1) add(last);
+                pages.sort((a, b) => a - b);
+
+                // Build HTML with ellipses where there's a gap
+                let html = '';
+                html += `<button class="page-btn" data-page="prev" ${cur === 1 ? 'disabled' : ''}>‹</button>`;
+                let prev = 0;
+                pages.forEach(p => {
+                    if (prev && p - prev > 1) html += `<span class="page-ellipsis">…</span>`;
+                    html += `<button class="page-btn ${p === cur ? 'active' : ''}" data-page="${p}">${p}</button>`;
+                    prev = p;
+                });
+                html += `<button class="page-btn" data-page="next" ${cur === last ? 'disabled' : ''}>›</button>`;
+                pagesEl.innerHTML = html;
+
+                // Wire up clicks (delegated)
+                pagesEl.onclick = (e) => {
+                    const btn = e.target.closest('.page-btn');
+                    if (!btn || btn.disabled) return;
+                    const action = btn.dataset.page;
+                    if (action === 'prev') currentShipmentsPage = Math.max(1, currentShipmentsPage - 1);
+                    else if (action === 'next') currentShipmentsPage = Math.min(last, currentShipmentsPage + 1);
+                    else currentShipmentsPage = parseInt(action, 10);
+                    renderShipmentsTable();
+                    // Scroll the table into view for clarity
+                    const tc = document.querySelector('#page-all-shipments .table-container');
+                    if (tc) tc.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                };
+            }
+
             function renderShipmentsTable() {
                 populateBatchDropdowns(); // Ensure dropdown is dynamically updated
 
@@ -2772,8 +2937,10 @@
                 }
 
                  shipmentsTableTbody.innerHTML = '';
+                const paginationBar = document.getElementById('shipmentsPaginationBar');
                 if (local_shipments_cache.length === 0) {
                     shipmentsTableTbody.innerHTML = '<tr><td colspan="10" style="text-align: center;">No shipments created yet.</td></tr>'; 
+                    if (paginationBar) paginationBar.style.display = 'none';
                     return;
                 }
                 
@@ -2803,15 +2970,28 @@
 
                 if (filteredShipments.length === 0) {
                      shipmentsTableTbody.innerHTML = `<tr><td colspan="10" style="text-align: center;">No shipments found matching filters.</td></tr>`; 
+                     if (paginationBar) paginationBar.style.display = 'none';
                      return;
                 }
+
+                // PAGINATION SLICE
+                const totalItems = filteredShipments.length;
+                const totalPages = Math.max(1, Math.ceil(totalItems / SHIPMENTS_PER_PAGE));
+                if (currentShipmentsPage > totalPages) currentShipmentsPage = totalPages;
+                if (currentShipmentsPage < 1) currentShipmentsPage = 1;
+                const sliceStart = (currentShipmentsPage - 1) * SHIPMENTS_PER_PAGE;
+                const pagedShipments = filteredShipments.slice(sliceStart, sliceStart + SHIPMENTS_PER_PAGE);
 
                 const updateSelectColor = (select) => {
                     select.className = 'status-select'; 
                     select.classList.add(`status-${select.value.replace(' ','-')}`);
                 };
 
-                filteredShipments.forEach(shipment => {
+                // Compact label maps (reduces horizontal space)
+                const DELIVERY_LABELS = { 'Pending': 'Pending', 'Shipped': 'Shipped', 'Delivered': 'Delivered' };
+                const PAYMENT_LABELS = { 'Not-Paid': 'N/P', 'Partially-Paid': 'Pa', 'Paid': 'P' };
+
+                pagedShipments.forEach(shipment => {
                     const row = document.createElement('tr');
                     
                     const serviceFee = parseFloat(shipment.paymentTotal) || 0;
@@ -2826,25 +3006,33 @@
                     deliveryStatusSelect.dataset.id = safeId;
                     deliveryStatusSelect.dataset.field = 'deliveryStatus';
                     deliveryStatusSelect.innerHTML = `
-                        <option value="Pending" ${shipment.deliveryStatus === 'Pending' ? 'selected' : ''}>Pending</option>
-                        <option value="Shipped" ${shipment.deliveryStatus === 'Shipped' ? 'selected' : ''}>Shipped</option>
-                        <option value="Delivered" ${shipment.deliveryStatus === 'Delivered' ? 'selected' : ''}>Delivered</option>
+                        <option value="Pending" ${shipment.deliveryStatus === 'Pending' ? 'selected' : ''}>${DELIVERY_LABELS['Pending']}</option>
+                        <option value="Shipped" ${shipment.deliveryStatus === 'Shipped' ? 'selected' : ''}>${DELIVERY_LABELS['Shipped']}</option>
+                        <option value="Delivered" ${shipment.deliveryStatus === 'Delivered' ? 'selected' : ''}>${DELIVERY_LABELS['Delivered']}</option>
                     `;
                     updateSelectColor(deliveryStatusSelect); 
                     deliveryStatusSelect.onchange = () => updateSelectColor(deliveryStatusSelect); 
 
-                    // Payment Status
+                    // Payment Status — short labels (P / N/P / Pa) to save space
                     const paymentStatusSelect = document.createElement('select');
                     paymentStatusSelect.className = 'status-select';
                     paymentStatusSelect.dataset.id = safeId;
                     paymentStatusSelect.dataset.field = 'paymentStatus';
+                    paymentStatusSelect.style.minWidth = '60px';
+                    paymentStatusSelect.title = shipment.paymentStatus === 'Not-Paid' ? 'Not Paid'
+                        : shipment.paymentStatus === 'Partially-Paid' ? 'Partially Paid'
+                        : shipment.paymentStatus === 'Paid' ? 'Paid' : '';
                     paymentStatusSelect.innerHTML = `
-                        <option value="Not-Paid" ${shipment.paymentStatus === 'Not-Paid' ? 'selected' : ''}>Not Paid</option>
-                        <option value="Partially-Paid" ${shipment.paymentStatus === 'Partially-Paid' ? 'selected' : ''}>Partially Paid</option>
-                        <option value="Paid" ${shipment.paymentStatus === 'Paid' ? 'selected' : ''}>Paid</option>
+                        <option value="Not-Paid" ${shipment.paymentStatus === 'Not-Paid' ? 'selected' : ''}>${PAYMENT_LABELS['Not-Paid']}</option>
+                        <option value="Partially-Paid" ${shipment.paymentStatus === 'Partially-Paid' ? 'selected' : ''}>${PAYMENT_LABELS['Partially-Paid']}</option>
+                        <option value="Paid" ${shipment.paymentStatus === 'Paid' ? 'selected' : ''}>${PAYMENT_LABELS['Paid']}</option>
                     `;
                     updateSelectColor(paymentStatusSelect); 
-                    paymentStatusSelect.onchange = () => updateSelectColor(paymentStatusSelect); 
+                    paymentStatusSelect.onchange = () => {
+                        updateSelectColor(paymentStatusSelect);
+                        paymentStatusSelect.title = paymentStatusSelect.value === 'Not-Paid' ? 'Not Paid'
+                            : paymentStatusSelect.value === 'Partially-Paid' ? 'Partially Paid' : 'Paid';
+                    }; 
 
                     // Batch SELECT (Dropdown)
                     const batchSelect = document.createElement('select');
@@ -2893,7 +3081,10 @@
 
                     shipmentsTableTbody.appendChild(row);
                 });
-                
+
+                // Render pagination controls
+                renderShipmentsPagination(totalItems, totalPages);
+
                 // Recalculate if a batch is selected
                 calculateBatchTotals();
             }
@@ -2945,6 +3136,7 @@
             
             // Listeners for Batch Actions
             batchSelector.addEventListener('change', () => {
+                currentShipmentsPage = 1; // Reset to page 1 on filter change
                 renderShipmentsTable(); // This calls calculateBatchTotals internally
             });
             
@@ -4626,8 +4818,14 @@ async function generateThermalLabel() {
                     doc.text("Customer Signature", margin, currentY);
                     doc.text("Date", pageWidth - margin - 200, currentY);
 
-                    // Save PDF with specific name
-                    doc.save("Invoice & Concern Form.pdf");
+                    // Save PDF with shipment-specific name (sanitized for filesystem safety)
+                    const cfInvoice = (document.getElementById('invoiceNumber').value || 'Shipment').trim();
+                    const cfSender = (document.getElementById('senderName').value || '').trim();
+                    const cfSafe = (s) => s.replace(/[\\/:*?"<>|#]+/g, '').replace(/\s+/g, '_').slice(0, 40);
+                    const cfFileName = cfSender
+                        ? `Concern_Form_${cfSafe(cfInvoice)}_${cfSafe(cfSender)}.pdf`
+                        : `Concern_Form_${cfSafe(cfInvoice)}.pdf`;
+                    doc.save(cfFileName);
 
                 } catch (error) {
                     console.error("Error generating Concern Form:", error);
@@ -5884,6 +6082,7 @@ async function generateThermalLabel() {
             // Check if element exists before adding listener to avoid errors
             if (allShipmentsSearchInput) {
                 allShipmentsSearchInput.addEventListener('input', () => {
+                    currentShipmentsPage = 1; // Reset to page 1 on new search
                     renderShipmentsTable();
                 });
             }
