@@ -1223,7 +1223,9 @@
                                         <div class="item-title">#${index + 1} - ${item.desc || 'Unknown Item'}</div>
                                         <div class="item-expected">
                                             <strong>Invoice:</strong> <span style="color: var(--blue); font-weight: 600;">${boxItem.invoiceNumber}</span> <br>
-                                            <strong>Sender:</strong> ${boxItem.senderName} <br>
+                                            <strong>Sender:</strong> ${boxItem.senderName || '--'} <br>
+                                            <strong>Receiver:</strong> ${boxItem.receiverName || '--'} <br>
+                                            <strong>Address:</strong> <span style="word-break: break-word;">${boxItem.receiverAddress || '--'}</span> <br>
                                             <strong>BC:</strong> ${item.barcode || '--'} | <strong>Br:</strong> ${item.brand || '--'} <br>
                                             <strong>Expected Qty:</strong> ${expectedQty}
                                         </div>
