@@ -3284,10 +3284,14 @@
                     else if (btn.classList.contains('share-recv-btn')) {
                         const shipment = local_shipments_cache.find(s => s.id === shipmentId);
                         if (shipment) {
-                            const baseUrl = window.location.href.substring(0, window.location.href.lastIndexOf('/')) + '/receiver_portal.html';
-                            const message = `Please click the link below to view your packing list and confirm the receipt of the shipment.\n\nReceiver Portal (Invoice ${shipment.invoiceNumber}):\n${baseUrl}`;
+                            // Use absolute URL (RECEIVER_PORTAL_URL is defined at the bottom of this file
+                            // alongside the other portal buttons; falls back gracefully if accessed early).
+                            const portalUrl = (typeof RECEIVER_PORTAL_URL !== 'undefined')
+                                ? RECEIVER_PORTAL_URL
+                                : "https://crickerr26.github.io/bee26cargomanager/receiver_portal.html";
+                            const message = `Please click the link below to view your packing list and confirm the receipt of the shipment.\n\nReceiver Portal (Invoice ${shipment.invoiceNumber}):\n${portalUrl}`;
                             const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
-                            window.open(whatsappUrl, '_blank');
+                            window.open(whatsappUrl, '_blank', 'noopener,noreferrer');
                         }
                     }
                     else if (btn.classList.contains('delete-shipment-btn')) {
@@ -5938,22 +5942,32 @@ async function generateThermalLabel() {
             document.getElementById('invoiceDate').valueAsDate = new Date();
             
             // --- RECEIVER PORTAL BUTTONS ---
+            // Single source of truth for the receiver portal URL.
+            // Uses the same hosted GitHub Pages pattern as the customer form (line ~5572),
+            // which avoids relative-path bugs caused by SPA routing, file:// loads, or trailing slashes.
+            // If you ever rename the file on the server, just change RECEIVER_PORTAL_URL.
+            const RECEIVER_PORTAL_URL = "https://crickerr26.github.io/bee26cargomanager/receiver_portal.html";
+
             const btnOpenReceiverPortal = document.getElementById('btn-open-receiver-portal');
             const btnShareReceiverPortal = document.getElementById('btn-share-receiver-portal');
 
             if (btnOpenReceiverPortal) {
                 btnOpenReceiverPortal.addEventListener('click', () => {
-                    const baseUrl = window.location.href.substring(0, window.location.href.lastIndexOf('/')) + '/receiver_portal.html';
-                    window.open(baseUrl, '_blank');
+                    // Open in a new tab — `noopener,noreferrer` prevents the new tab from
+                    // accessing window.opener (security best practice for cross-origin links).
+                    const newWin = window.open(RECEIVER_PORTAL_URL, '_blank', 'noopener,noreferrer');
+                    // Some mobile browsers block window.open inside async listeners; fall back gracefully.
+                    if (!newWin) {
+                        window.location.href = RECEIVER_PORTAL_URL;
+                    }
                 });
             }
 
             if (btnShareReceiverPortal) {
                 btnShareReceiverPortal.addEventListener('click', () => {
-                    const baseUrl = window.location.href.substring(0, window.location.href.lastIndexOf('/')) + '/receiver_portal.html';
-                    const message = `Hello! You can access the Bee26 Receiver Portal here:\n\n${baseUrl}`;
+                    const message = `Hello! You can access the Bee26 Receiver Portal here:\n\n${RECEIVER_PORTAL_URL}`;
                     const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
-                    window.open(whatsappUrl, '_blank');
+                    window.open(whatsappUrl, '_blank', 'noopener,noreferrer');
                 });
             }
 
