@@ -995,7 +995,21 @@
                     <label style="font-weight:700; font-size:0.85rem; color:#1c1c1e; display:block; margin-bottom:6px;">Notes (Optional)</label>
                     <input type="text" id="modalItemNote" placeholder="e.g. Red color, Serial #12345" autocomplete="off"
                         style="width:100%; padding:12px; border:2px solid #e5e5ea; border-radius:10px; font-size:0.95rem; box-sizing:border-box; transition:border-color 0.2s; margin-bottom:10px;">
-                    
+
+                    <label style="font-weight:700; font-size:0.85rem; color:#1c1c1e; display:block; margin-bottom:6px;">🎙️ Voice Note for Receiver (Optional)</label>
+                    <div id="voiceNoteWrap" style="background:#f9f9fb; border:1.5px solid #e5e5ea; border-radius:10px; padding:10px; margin-bottom:10px;">
+                        <div style="display:flex; gap:8px; align-items:center;">
+                            <button type="button" id="voiceNoteRecordBtn" style="flex:1; background:#ff3b30; color:#fff; border:none; border-radius:8px; padding:10px; font-weight:700; font-size:0.85rem; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px;">
+                                <span id="voiceNoteRecordIcon">🔴</span>
+                                <span id="voiceNoteRecordLabel">Record</span>
+                            </button>
+                            <button type="button" id="voiceNoteDeleteBtn" style="display:none; background:#f0f0f5; color:#1c1c1e; border:none; border-radius:8px; padding:10px 14px; font-weight:700; font-size:0.85rem; cursor:pointer;">🗑</button>
+                        </div>
+                        <div id="voiceNoteTimer" style="display:none; text-align:center; font-size:0.8rem; color:#ff3b30; font-weight:700; margin-top:6px;">● Recording 00:00</div>
+                        <audio id="voiceNotePlayback" controls style="display:none; width:100%; margin-top:8px;"></audio>
+                    </div>
+                    <input type="hidden" id="modalItemVoiceNote">
+
                     <input type="hidden" id="modalItemHSCode">
                 </div>
 
@@ -1780,7 +1794,32 @@
                         document.getElementById('modalItemValue').value = prod.value || '';
                         document.getElementById('modalItemHSCode').value = prod.hsCode || '';
                         document.getElementById('modalItemBrand').value = prod.brand || '';
-                        window.showToast('📦 Product auto-filled! Take photo to continue.', 'success');
+                        document.getElementById('modalItemNote').value = prod.note || '';
+                        document.getElementById('modalItemCondition').value = prod.condition || 'New';
+
+                        // Sync condition button highlight
+                        document.querySelectorAll('.condition-btn').forEach(b => {
+                            if (b.dataset.val === (prod.condition || 'New')) { b.classList.add('selected'); }
+                            else { b.classList.remove('selected'); }
+                        });
+
+                        // Sync the Apple numpad display + raw string with the auto-filled value
+                        const prefVal = parseFloat(prod.value);
+                        if (!isNaN(prefVal) && prefVal > 0) {
+                            const cents = Math.round(prefVal * 100);
+                            valRawStr = String(cents);
+                            const vd = document.getElementById('val-display');
+                            if (vd) vd.textContent = (cents / 100).toFixed(2);
+                        }
+
+                        // Auto-fill last-used product image (user can tap Camera/Gallery to replace)
+                        if (prod.image) {
+                            tempItemCompressedImage = prod.image;
+                            modalImagePreview.src = prod.image;
+                            document.getElementById('wiz-photo-preview-wrap').style.display = 'block';
+                        }
+
+                        window.showToast('📦 Product auto-filled! Tap Camera to replace photo, or Next to continue.', 'success');
                     }
                 } catch(err) { console.error(err); }
 
@@ -1989,6 +2028,141 @@
             modalItemImageInput.addEventListener('change', (e) => handlePhotoFile(e.target.files[0]));
             modalItemImageAlt.addEventListener('change', (e) => handlePhotoFile(e.target.files[0]));
 
+            // --- VOICE NOTE RECORDER (for Receiver) ---
+            (function setupVoiceNoteRecorder() {
+                const recordBtn = document.getElementById('voiceNoteRecordBtn');
+                const recordIcon = document.getElementById('voiceNoteRecordIcon');
+                const recordLabel = document.getElementById('voiceNoteRecordLabel');
+                const deleteBtn = document.getElementById('voiceNoteDeleteBtn');
+                const timerEl = document.getElementById('voiceNoteTimer');
+                const playback = document.getElementById('voiceNotePlayback');
+                const hidden = document.getElementById('modalItemVoiceNote');
+
+                if (!recordBtn || !hidden) return; // UI not present, skip
+
+                let mediaRecorder = null;
+                let audioChunks = [];
+                let recordingStream = null;
+                let timerInterval = null;
+                let secondsElapsed = 0;
+                const MAX_SECONDS = 60; // hard cap to keep payload reasonable
+
+                function setIdleUI(hasNote) {
+                    recordIcon.textContent = '🔴';
+                    recordLabel.textContent = hasNote ? 'Re-record' : 'Record';
+                    recordBtn.style.background = hasNote ? '#5856d6' : '#ff3b30';
+                    timerEl.style.display = 'none';
+                    deleteBtn.style.display = hasNote ? 'inline-block' : 'none';
+                    playback.style.display = hasNote ? 'block' : 'none';
+                }
+
+                function setRecordingUI() {
+                    recordIcon.textContent = '⏹';
+                    recordLabel.textContent = 'Stop';
+                    recordBtn.style.background = '#1c1c1e';
+                    timerEl.style.display = 'block';
+                    deleteBtn.style.display = 'none';
+                    playback.style.display = 'none';
+                }
+
+                function formatTime(s) {
+                    const m = Math.floor(s / 60).toString().padStart(2, '0');
+                    const sec = (s % 60).toString().padStart(2, '0');
+                    return `${m}:${sec}`;
+                }
+
+                async function startRecording() {
+                    if (!navigator.mediaDevices || !window.MediaRecorder) {
+                        window.showToast('Voice recording is not supported on this device.', 'error');
+                        return;
+                    }
+                    try {
+                        recordingStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    } catch (err) {
+                        window.showToast('Microphone permission denied.', 'error');
+                        return;
+                    }
+
+                    audioChunks = [];
+                    // Pick a widely supported mime type
+                    let mimeType = '';
+                    const candidates = ['audio/webm;codecs=opus', 'audio/webm', 'audio/mp4', 'audio/ogg;codecs=opus'];
+                    for (const c of candidates) {
+                        if (window.MediaRecorder.isTypeSupported && window.MediaRecorder.isTypeSupported(c)) { mimeType = c; break; }
+                    }
+                    try {
+                        mediaRecorder = mimeType ? new MediaRecorder(recordingStream, { mimeType }) : new MediaRecorder(recordingStream);
+                    } catch (e) {
+                        mediaRecorder = new MediaRecorder(recordingStream);
+                    }
+
+                    mediaRecorder.ondataavailable = (e) => { if (e.data && e.data.size > 0) audioChunks.push(e.data); };
+                    mediaRecorder.onstop = () => {
+                        const blob = new Blob(audioChunks, { type: mediaRecorder.mimeType || 'audio/webm' });
+                        const reader = new FileReader();
+                        reader.onloadend = () => {
+                            const dataUrl = reader.result;
+                            hidden.value = dataUrl;
+                            playback.src = dataUrl;
+                            setIdleUI(true);
+                        };
+                        reader.readAsDataURL(blob);
+                        // Stop all tracks to release the mic
+                        if (recordingStream) recordingStream.getTracks().forEach(t => t.stop());
+                        recordingStream = null;
+                    };
+
+                    mediaRecorder.start();
+                    secondsElapsed = 0;
+                    timerEl.textContent = `● Recording 00:00`;
+                    setRecordingUI();
+                    timerInterval = setInterval(() => {
+                        secondsElapsed++;
+                        timerEl.textContent = `● Recording ${formatTime(secondsElapsed)}`;
+                        if (secondsElapsed >= MAX_SECONDS) stopRecording();
+                    }, 1000);
+                }
+
+                function stopRecording() {
+                    if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+                    if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+                        try { mediaRecorder.stop(); } catch(e) {}
+                    }
+                }
+
+                recordBtn.addEventListener('click', () => {
+                    if (mediaRecorder && mediaRecorder.state === 'recording') {
+                        stopRecording();
+                    } else {
+                        startRecording();
+                    }
+                });
+
+                deleteBtn.addEventListener('click', () => {
+                    hidden.value = '';
+                    playback.src = '';
+                    setIdleUI(false);
+                });
+
+                // Public loader used by Edit + Reset
+                window.loadVoiceNoteIntoUI = function(dataUrl) {
+                    if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+                    if (mediaRecorder && mediaRecorder.state === 'recording') { try { mediaRecorder.stop(); } catch(e) {} }
+                    if (recordingStream) { recordingStream.getTracks().forEach(t => t.stop()); recordingStream = null; }
+                    hidden.value = dataUrl || '';
+                    if (dataUrl) {
+                        playback.src = dataUrl;
+                        setIdleUI(true);
+                    } else {
+                        playback.src = '';
+                        setIdleUI(false);
+                    }
+                };
+
+                // Initial state
+                setIdleUI(false);
+            })();
+
             // --- VOICE DICTATION ---
             const voiceDictationBtn = document.getElementById('voiceDictationBtn');
             if ('webkitSpeechRecognition' in window) {
@@ -2034,6 +2208,8 @@
                 // Reset camera input
                 modalItemImageInput.value = '';
                 modalItemImageAlt.value = '';
+                // Reset voice note
+                if (typeof window.loadVoiceNoteIntoUI === 'function') window.loadVoiceNoteIntoUI('');
                 resetNumpads();
                 wizOpen(false);
             });
@@ -2046,6 +2222,7 @@
                 const qty = parseFloat(document.getElementById('modalItemQty').value);
                 const val = parseFloat(document.getElementById('modalItemValue').value);
                 const condition = document.getElementById('modalItemCondition').value || 'New';
+                const voiceNote = document.getElementById('modalItemVoiceNote').value || '';
 
                 if (!desc) { wizGoTo(2); window.showToast('Please enter a description', 'error'); return; }
                 if (!brand) { wizGoTo(2); window.showToast('Please enter a brand name', 'error'); return; }
@@ -2057,6 +2234,7 @@
                     barcode: document.getElementById('modalBarcode').value.trim(),
                     desc: desc,
                     category: cat,
+                    voiceNote: voiceNote,
                     hsCode: document.getElementById('modalItemHSCode').value,
                     image: tempItemCompressedImage || null,
                     qty: qty,
@@ -2073,13 +2251,17 @@
                     local_items.push(item);
                 }
 
-                // Learn-As-You-Go Firebase save
+                // Learn-As-You-Go Firebase save (now also caches image, condition, note)
                 if (item.barcode) {
                     const safeBarcode = item.barcode.replace(/[.#$\[\]]/g, "_");
                     try {
                         await dbSet(dbRef(db, 'products/' + safeBarcode), {
                             desc: item.desc, category: item.category, value: item.value,
-                            hsCode: item.hsCode, brand: item.brand, lastUpdated: new Date().toISOString()
+                            hsCode: item.hsCode, brand: item.brand,
+                            condition: item.condition || 'New',
+                            note: item.note || '',
+                            image: item.image || '',
+                            lastUpdated: new Date().toISOString()
                         });
                     } catch(err) {}
                 }
@@ -2125,6 +2307,49 @@
                 }
             }
 
+            // --- IMAGE ENLARGE MODAL (shared by Itemized List & Review) ---
+            (function setupItemImageModal() {
+                if (document.getElementById('itemImageModal')) return;
+                const modalHTML = `
+                <div id="itemImageModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.92); z-index:5000; align-items:center; justify-content:center; opacity:0; transition:opacity 0.2s ease; padding:20px; box-sizing:border-box;">
+                    <span id="itemImageModalClose" style="position:absolute; top:18px; right:28px; color:#fff; font-size:42px; font-weight:300; cursor:pointer; line-height:1; user-select:none; text-shadow:0 2px 8px rgba(0,0,0,0.5);">&times;</span>
+                    <img id="itemEnlargedImage" src="" alt="Enlarged item" style="max-width:96%; max-height:96%; border-radius:10px; object-fit:contain; box-shadow:0 12px 40px rgba(0,0,0,0.6); transform:scale(0.92); transition:transform 0.22s cubic-bezier(0.2, 0.9, 0.3, 1.2);">
+                </div>`;
+                document.body.insertAdjacentHTML('beforeend', modalHTML);
+
+                const modal = document.getElementById('itemImageModal');
+                const img = document.getElementById('itemEnlargedImage');
+                const closeBtn = document.getElementById('itemImageModalClose');
+
+                const closeModal = () => {
+                    modal.style.opacity = '0';
+                    img.style.transform = 'scale(0.92)';
+                    setTimeout(() => { modal.style.display = 'none'; img.src = ''; }, 200);
+                };
+
+                // Click outside image to close
+                modal.addEventListener('click', (e) => {
+                    if (e.target === modal) closeModal();
+                });
+                closeBtn.addEventListener('click', closeModal);
+
+                // ESC key to close
+                document.addEventListener('keydown', (e) => {
+                    if (e.key === 'Escape' && modal.style.display === 'flex') closeModal();
+                });
+
+                window.openItemImageModal = function(src) {
+                    if (!src) return;
+                    img.src = src;
+                    modal.style.display = 'flex';
+                    // Trigger animation on next frame
+                    requestAnimationFrame(() => {
+                        modal.style.opacity = '1';
+                        img.style.transform = 'scale(1)';
+                    });
+                };
+            })();
+
             // --- ITEM TABLE ---
             function renderItemTable() {
                 itemTableTbody.innerHTML = '';
@@ -2135,7 +2360,7 @@
                         const qty = parseFloat(item.qty) || 0;
                         const val = parseFloat(item.value) || 0;
                         const totalVal = (qty * val).toFixed(2);
-                        const imgHtml = item.image ? `<img src="${item.image}" alt="item" style="width: 40px; height: 40px; object-fit: cover; border-radius: 4px; border: 1px solid #eee;">` : '<span style="color:#ccc;">No img</span>';
+                        const imgHtml = item.image ? `<img src="${item.image}" alt="item" onclick="window.openItemImageModal('${item.image}')" style="width: 40px; height: 40px; object-fit: cover; border-radius: 4px; border: 1px solid #eee; cursor: zoom-in; transition: transform 0.15s ease;" onmouseover="this.style.transform='scale(1.08)'" onmouseout="this.style.transform='scale(1)'">` : '<span style="color:#ccc;">No img</span>';
                         const row = document.createElement('tr');
                         row.innerHTML = `
                             <td style="text-align: center;">${imgHtml}</td>
@@ -2182,6 +2407,29 @@
                     document.getElementById('modalItemHSCode').value = item.hsCode || '';
                     document.getElementById('modalItemCondition').value = item.condition || 'New';
 
+                    // CRITICAL FIX: Rehydrate the Apple-style numpad displays + raw strings
+                    // (without this, Step 4 shows $0.00 / 0 even though the hidden input has the value,
+                    // and the first tap on the keypad starts from scratch, wiping the price).
+                    const editQty = parseInt(item.qty, 10);
+                    qtyRawStr = (editQty && editQty > 0) ? String(editQty) : '';
+                    const qd = document.getElementById('qty-display');
+                    if (qd) qd.textContent = qtyRawStr || '0';
+
+                    const editVal = parseFloat(item.value);
+                    if (!isNaN(editVal) && editVal > 0) {
+                        // Convert to cents string, e.g. 12.50 -> "1250"
+                        const cents = Math.round(editVal * 100);
+                        valRawStr = String(cents);
+                    } else {
+                        valRawStr = '';
+                    }
+                    const vd = document.getElementById('val-display');
+                    if (vd) {
+                        const cents = parseInt(valRawStr || '0', 10);
+                        const dollars = (cents / 100).toFixed(2);
+                        vd.textContent = dollars;
+                    }
+
                     document.querySelectorAll('.condition-btn').forEach(b => {
                         if (b.dataset.val === (item.condition || 'New')) { b.classList.add('selected'); }
                         else { b.classList.remove('selected'); }
@@ -2195,6 +2443,11 @@
                         tempItemCompressedImage = null;
                         modalImagePreview.src = '';
                         document.getElementById('wiz-photo-preview-wrap').style.display = 'none';
+                    }
+
+                    // Rehydrate voice note (if any)
+                    if (typeof window.loadVoiceNoteIntoUI === 'function') {
+                        window.loadVoiceNoteIntoUI(item.voiceNote || '');
                     }
 
                     // Open wizard at step 2 (details) for fast editing
@@ -2249,7 +2502,7 @@
                         const itemTotal = (parseFloat(item.qty) || 0) * (parseFloat(item.value) || 0);
                         declaredTotal += itemTotal;
                         // Image Thumbnail Logic
-                        const imgHtml = item.image ? `<img src="${item.image}" alt="item" style="width: 40px; height: 40px; object-fit: cover; border-radius: 4px; border: 1px solid #eee;">` : '<span style="color:#ccc;">No img</span>';
+                        const imgHtml = item.image ? `<img src="${item.image}" alt="item" onclick="window.openItemImageModal('${item.image}')" style="width: 40px; height: 40px; object-fit: cover; border-radius: 4px; border: 1px solid #eee; cursor: zoom-in; transition: transform 0.15s ease;" onmouseover="this.style.transform='scale(1.08)'" onmouseout="this.style.transform='scale(1)'">` : '<span style="color:#ccc;">No img</span>';
 
                         reviewTbody.innerHTML += `
                             <tr>
@@ -5302,6 +5555,13 @@ async function generateThermalLabel() {
                             
                             const imgHtml = item.image ? `<img src="${item.image}" onclick="window.openAdminImageModal('${item.image}')" style="width: 45px; height: 45px; border-radius: 6px; object-fit: cover; border: 1px solid #ddd; cursor: pointer;">` : '<span style="color:#aaa; font-size: 0.7rem;">No Img</span>';
 
+                            // Voice note playback for receiver (only renders if a note was attached)
+                            const voiceHtml = item.voiceNote ? `
+                                <div style="margin-top:6px; padding:6px 8px; background:#eef4ff; border:1px solid #cfe0ff; border-radius:8px;">
+                                    <div style="font-size:0.7rem; font-weight:700; color:#0a4ea8; margin-bottom:4px;">🎙️ Sender's voice note</div>
+                                    <audio controls preload="none" src="${item.voiceNote}" style="width:100%; height:32px;"></audio>
+                                </div>` : '';
+
                             const rowHtml = `
                                 <tr style="${rowBg}">
                                     <td style="text-align:center; vertical-align:middle; padding: 6px 4px; border-bottom: 1px solid #ddd;">${imgHtml}</td>
@@ -5312,6 +5572,7 @@ async function generateThermalLabel() {
                                             <strong>Br:</strong> ${item.brand || '--'} <br>
                                             <strong>Note:</strong> ${item.note || '--'}
                                         </div>
+                                        ${voiceHtml}
                                     </td>
                                     <td style="text-align:center; vertical-align:middle; font-size: 0.9rem; padding: 6px 4px; border-bottom: 1px solid #ddd;">${expected}</td>
                                     <td style="text-align:center; vertical-align:middle; font-size: 0.9rem; font-weight: bold; padding: 6px 4px; border-bottom: 1px solid #ddd; ${receivedColor}">${received}</td>
