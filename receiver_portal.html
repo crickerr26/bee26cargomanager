@@ -3,32 +3,61 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Bee26 - Receive Shipment</title>
-    
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
-    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 
+    <!-- ============================================================
+         AGGRESSIVE NO-CACHE HEADERS
+         Prevents the browser, "Add to Home Screen" PWA WebView, and
+         any intermediate proxy from showing a stale copy of this page.
+         Combined with the JS auto-update check below, this guarantees
+         the latest GitHub version is always shown.
+         ============================================================ -->
+    <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+
+    <!-- Build version — bump this whenever you push a meaningful change.
+         The auto-updater compares the running version against the live
+         server copy and force-reloads if they differ. -->
+    <meta name="build-version" content="2026-05-07-001">
+
+    <!-- PWA / iOS home-screen hints (so saved-to-home-screen behaves correctly) -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="mobile-web-app-capable" content="yes">
+
+    <title>Bee26 - Receive Shipment</title>
+
+    <!-- ============================================================
+         PERFORMANCE: PRECONNECT + DNS-PREFETCH
+         Tells the browser to open TCP/TLS connections to these origins
+         in parallel with parsing the HTML — saves 200–800ms on slow
+         networks (Sri Lanka mobile / 3G).
+         ============================================================ -->
+    <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://bee26cargoservices-2651f-default-rtdb.firebaseio.com" crossorigin>
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+    <link rel="preconnect" href="https://unpkg.com" crossorigin>
+    <link rel="dns-prefetch" href="https://raw.githubusercontent.com">
+
+    <!-- Firebase loads as a module (non-blocking — browser parses HTML in parallel). -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
         import { getDatabase, ref, get, query, orderByChild, equalTo, update, onValue } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-database.js";
-        
-        // Use the exact same Firebase config from your main app
+
         const firebaseConfig = {
             apiKey: "AIzaSyAMZHYef6CXhkfJNdewMQ8M2gifGgS07k",
             authDomain: "bee26cargoservices-2651f.firebaseapp.com",
             projectId: "bee26cargoservices-2651f",
-            storageBucket: "bee26cargoservices-2651f.appspot.com", 
+            storageBucket: "bee26cargoservices-2651f.appspot.com",
             messagingSenderId: "508829616627",
             appId: "1:508829616627:web:062d3f033cad60a9089686",
             measurementId: "G-YSB8DJ5PE6",
-            databaseURL: "https://bee26cargoservices-2651f-default-rtdb.firebaseio.com" 
+            databaseURL: "https://bee26cargoservices-2651f-default-rtdb.firebaseio.com"
         };
 
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
 
-        // Expose to window for our script to use
         window.db = db;
         window.dbRef = ref;
         window.dbGet = get;
@@ -37,6 +66,48 @@
         window.dbEqualTo = equalTo;
         window.dbUpdate = update;
         window.dbOnValue = onValue;
+
+        // Fire a custom event so the main script can start IMMEDIATELY when
+        // Firebase is ready (instead of polling every 100ms — saves up to 100ms).
+        window.dispatchEvent(new CustomEvent('firebase-ready'));
+    </script>
+
+    <!-- ============================================================
+         LAZY LOADERS for heavy libraries
+         These libraries (jsPDF ~200KB, autotable ~80KB, html5-qrcode ~150KB)
+         are NOT loaded on initial page load — they're fetched only when
+         the user actually clicks "PDF Report" or "Scan Barcode".
+         This cuts initial download by ~430KB on slow Sri Lanka networks.
+         ============================================================ -->
+    <script>
+        window.__libsLoaded = { pdf: false, scanner: false };
+        window.__libsLoading = {};
+
+        function loadScriptOnce(src) {
+            if (window.__libsLoading[src]) return window.__libsLoading[src];
+            window.__libsLoading[src] = new Promise((resolve, reject) => {
+                const s = document.createElement('script');
+                s.src = src;
+                s.async = true;
+                s.onload = () => resolve();
+                s.onerror = () => reject(new Error('Failed to load ' + src));
+                document.head.appendChild(s);
+            });
+            return window.__libsLoading[src];
+        }
+
+        window.loadPdfLibs = async function () {
+            if (window.__libsLoaded.pdf) return;
+            await loadScriptOnce('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js');
+            await loadScriptOnce('https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js');
+            window.__libsLoaded.pdf = true;
+        };
+
+        window.loadScannerLib = async function () {
+            if (window.__libsLoaded.scanner) return;
+            await loadScriptOnce('https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js');
+            window.__libsLoaded.scanner = true;
+        };
     </script>
 
     <style>
@@ -673,9 +744,178 @@
             50%  { box-shadow: 0 0 0 14px rgba(0, 122, 255, 0); }
             100% { box-shadow: 0 0 0 0 rgba(0, 122, 255, 0); }
         }
+
+        /* --- AUTO-UPDATE TOAST (shown briefly before force-reload) --- */
+        .update-toast {
+            position: fixed;
+            bottom: 16px;
+            left: 50%;
+            transform: translateX(-50%) translateY(120%);
+            background: linear-gradient(135deg, #007aff, #5856d6);
+            color: #fff;
+            padding: 12px 18px;
+            border-radius: 24px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.25);
+            z-index: 5000;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: transform 0.35s cubic-bezier(0.2, 0.9, 0.3, 1.1);
+            max-width: 92vw;
+        }
+        .update-toast.visible { transform: translateX(-50%) translateY(0); }
+        .update-toast .upd-spinner {
+            width: 14px;
+            height: 14px;
+            border: 2px solid rgba(255,255,255,0.35);
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        /* --- INSTANT SKELETON SCREEN ---
+           Shown immediately while Firebase is fetching the shipment data.
+           User sees structure in <50ms instead of a blank page. --- */
+        .skeleton-row {
+            background: #fff;
+            border: 1px solid var(--grey-mid);
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 6px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            overflow: hidden;
+            position: relative;
+        }
+        .skeleton-bar {
+            height: 12px;
+            background: linear-gradient(90deg, #ececf1 0%, #f6f6f9 50%, #ececf1 100%);
+            background-size: 200% 100%;
+            border-radius: 4px;
+            animation: skeletonShimmer 1.2s ease-in-out infinite;
+        }
+        .skeleton-bar.bar-title { width: 60%; height: 14px; margin-bottom: 6px; }
+        .skeleton-bar.bar-sub { width: 35%; height: 10px; }
+        .skeleton-bar.bar-pill { width: 60px; height: 22px; border-radius: 12px; }
+        @keyframes skeletonShimmer {
+            0%   { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
     </style>
 </head>
 <body>
+
+    <!-- Auto-update toast (controlled by the version checker below) -->
+    <div class="update-toast" id="update-toast">
+        <span class="upd-spinner"></span>
+        <span id="update-toast-text">New version found — refreshing…</span>
+    </div>
+
+    <script>
+        // ============================================================
+        // AUTO-UPDATE ENGINE
+        // Solves the "Add to Home Screen / saved link shows old version"
+        // problem. Three layers:
+        //   (1) Kill any stale Service Worker — #1 cause of stuck PWAs
+        //   (2) Compare current build-version to the live server copy
+        //       on load + every 60s + when the tab regains focus
+        //   (3) If they differ, hard-reload with a cache-busting query
+        //       so the user always sees the latest GitHub version.
+        // ============================================================
+        (function () {
+            // (1) Unregister any service worker that may have been left over
+            //     from a previous deployment. This is critical — a registered
+            //     SW will keep serving stale HTML even after your GitHub push.
+            if ('serviceWorker' in navigator) {
+                try {
+                    navigator.serviceWorker.getRegistrations().then(function (regs) {
+                        regs.forEach(function (r) { r.unregister(); });
+                    });
+                } catch (e) { /* ignore */ }
+            }
+
+            // Read the current page's build-version meta tag
+            const currentVersionMeta = document.querySelector('meta[name="build-version"]');
+            const CURRENT_VERSION = currentVersionMeta ? currentVersionMeta.getAttribute('content') : null;
+            if (!CURRENT_VERSION) return; // no version tag = nothing to compare against
+
+            const SELF_URL = location.pathname + (location.search || '');
+            let isReloading = false;
+
+            function showUpdateToast(text) {
+                const toast = document.getElementById('update-toast');
+                const txt = document.getElementById('update-toast-text');
+                if (!toast) return;
+                if (txt && text) txt.textContent = text;
+                toast.classList.add('visible');
+            }
+
+            function hardReload() {
+                if (isReloading) return;
+                isReloading = true;
+                showUpdateToast('New version found — refreshing…');
+                // Cache-busting query string forces the browser to bypass any
+                // cached copy (including PWA WebView cache).
+                const sep = SELF_URL.indexOf('?') === -1 ? '?' : '&';
+                const cleanUrl = SELF_URL.replace(/[?&]_v=\d+/, '');
+                const sep2 = cleanUrl.indexOf('?') === -1 ? '?' : '&';
+                setTimeout(function () {
+                    location.replace(cleanUrl + sep2 + '_v=' + Date.now());
+                }, 600);
+            }
+
+            async function checkForUpdate() {
+                if (isReloading) return;
+                if (!navigator.onLine) return; // skip when offline
+                try {
+                    // Fetch the same page with a cache-busting param. We use
+                    // 'no-store' + a unique query so even aggressive proxies
+                    // (some Sri Lankan ISPs cache HTML) can't return a stale copy.
+                    const probeUrl = SELF_URL + (SELF_URL.indexOf('?') === -1 ? '?' : '&') + '_check=' + Date.now();
+                    const res = await fetch(probeUrl, {
+                        method: 'GET',
+                        cache: 'no-store',
+                        headers: { 'Cache-Control': 'no-cache, no-store', 'Pragma': 'no-cache' }
+                    });
+                    if (!res.ok) return;
+                    const html = await res.text();
+                    const m = html.match(/<meta\s+name=["']build-version["']\s+content=["']([^"']+)["']/i);
+                    if (m && m[1] && m[1] !== CURRENT_VERSION) {
+                        // Server has a newer version — reload
+                        hardReload();
+                    }
+                } catch (e) {
+                    // Network errors are silently ignored — we just try again later
+                }
+            }
+
+            // Run an update check:
+            //   - Right after first load (slight delay so it doesn't compete
+            //     with Firebase initialization on slow networks)
+            //   - Every 60 seconds while the tab is open
+            //   - Whenever the tab regains visibility (user comes back to the saved app)
+            //   - When the network comes back online
+            setTimeout(checkForUpdate, 4000);
+            setInterval(checkForUpdate, 60000);
+            document.addEventListener('visibilitychange', function () {
+                if (document.visibilityState === 'visible') checkForUpdate();
+            });
+            window.addEventListener('online', checkForUpdate);
+
+            // Also strip any leftover _v= query param from the URL bar (cosmetic)
+            if (location.search.indexOf('_v=') !== -1 && window.history && window.history.replaceState) {
+                try {
+                    const cleaned = location.pathname + location.search
+                        .replace(/([?&])_v=\d+&?/, '$1')
+                        .replace(/[?&]$/, '');
+                    window.history.replaceState({}, document.title, cleaned);
+                } catch (e) { /* ignore */ }
+            }
+        })();
+    </script>
 
     <div class="container">
         <div style="text-align: center; margin-bottom: 20px;">
@@ -685,10 +925,16 @@
         <div class="card" id="invoice-list-section">
             <h2 style="margin-bottom: 5px;">All Shipments</h2>
             <p style="margin-top: 0;">Click on an invoice below to view the packing list and mark items as received.</p>
-            <div id="loading-invoices" style="text-align: center; padding: 20px; color: var(--text-secondary);">Loading invoices...</div>
-            
+            <div id="loading-invoices" style="text-align: center; padding: 8px; color: var(--text-secondary); font-size: 0.78rem;">Loading shipments…</div>
+
             <h3 style="margin-top: 15px; border-bottom: 1px solid #eee; padding-bottom: 5px; color: var(--orange);">Pending Receiving</h3>
-            <div id="invoices-pending-container"></div>
+            <!-- Skeleton placeholders rendered immediately on first paint -->
+            <div id="invoices-pending-container">
+                <div class="skeleton-row"><div style="flex:1;"><div class="skeleton-bar bar-title"></div><div class="skeleton-bar bar-sub"></div></div><div class="skeleton-bar bar-pill"></div></div>
+                <div class="skeleton-row"><div style="flex:1;"><div class="skeleton-bar bar-title"></div><div class="skeleton-bar bar-sub"></div></div><div class="skeleton-bar bar-pill"></div></div>
+                <div class="skeleton-row"><div style="flex:1;"><div class="skeleton-bar bar-title"></div><div class="skeleton-bar bar-sub"></div></div><div class="skeleton-bar bar-pill"></div></div>
+                <div class="skeleton-row"><div style="flex:1;"><div class="skeleton-bar bar-title"></div><div class="skeleton-bar bar-sub"></div></div><div class="skeleton-bar bar-pill"></div></div>
+            </div>
 
             <div id="delivered-section-wrapper" style="display: none;">
                 <h3 style="margin-top: 20px; border-bottom: 1px solid #eee; padding-bottom: 5px; color: var(--green); display: flex; justify-content: space-between; align-items: center;">
@@ -787,14 +1033,31 @@
 
     <script type="text/javascript">
         document.addEventListener('DOMContentLoaded', () => {
-            // Use an interval instead of a fixed 500ms timeout to wait for Firebase to load.
-            // This reliably fixes the connection drop error on slower mobile networks.
-            const firebaseLoader = setInterval(() => {
+            // ============================================================
+            // PERFORMANCE: Event-driven Firebase wait
+            // Instead of polling every 100ms (which wastes CPU on slow phones
+            // and adds up to 100ms of needless delay), we listen for the
+            // 'firebase-ready' event dispatched by the Firebase module above.
+            // Falls back to a one-time check in case the event already fired
+            // before this listener was attached.
+            // ============================================================
+            function startApp() {
                 const db = window.db;
                 if (!db || !window.dbGet || !window.dbRef || !window.dbOnValue) {
-                    return; // Wait patiently until it's actually ready
+                    // Tiny fallback poll — only runs if the event was missed
+                    setTimeout(startApp, 50);
+                    return;
                 }
-                clearInterval(firebaseLoader);
+                bootApp();
+            }
+
+            // Attach event listener AND check immediately (covers both timing cases)
+            window.addEventListener('firebase-ready', startApp, { once: true });
+            startApp();
+
+            function bootApp() {
+                const db = window.db;
+                if (!db || !window.dbGet || !window.dbRef || !window.dbOnValue) return;
 
                 let currentBoxKey = null;
                 let currentBoxItems = [];
@@ -939,15 +1202,22 @@
 
                 // --- 1. LOAD ALL BOXES ---
                 let isListenerAttached = false;
+                let renderThrottleTimer = null;
+                let pendingSnapshot = null;
+                const RENDER_THROTTLE_MS = 250; // coalesce rapid updates into one render
+
                 function loadAllInvoices() {
                     if (isListenerAttached) return; // Prevent duplicate listeners
                     isListenerAttached = true;
-                    
+
                     loadingInvoices.style.display = 'block';
-                    loadingInvoices.innerHTML = '<span style="color: var(--blue); font-weight: bold;">Connecting securely...</span>';
+                    loadingInvoices.innerHTML = '<span style="color: var(--blue); font-weight: bold;">Connecting…</span>';
                     const shipmentsRef = window.dbRef(db, 'shipments');
-                    
-                    window.dbOnValue(shipmentsRef, (snapshot) => {
+
+                    // Throttled handler — Firebase can fire many onValue updates in
+                    // quick succession (e.g., when multiple receivers update qty).
+                    // We coalesce them into one render every 250ms so the UI never lags.
+                    function processSnapshot(snapshot) {
                         loadingInvoices.style.display = 'none';
                         invoicesPendingContainer.innerHTML = '';
                         invoicesDeliveredContainer.innerHTML = '';
@@ -1080,10 +1350,22 @@
                         } else {
                             invoicesPendingContainer.innerHTML = '<p style="text-align:center;">No shipments found.</p>';
                         }
+                    }
+
+                    window.dbOnValue(shipmentsRef, (snapshot) => {
+                        // Throttle: coalesce rapid Firebase updates into one render
+                        pendingSnapshot = snapshot;
+                        if (renderThrottleTimer) return; // already scheduled
+                        renderThrottleTimer = setTimeout(() => {
+                            renderThrottleTimer = null;
+                            const snap = pendingSnapshot;
+                            pendingSnapshot = null;
+                            if (snap) processSnapshot(snap);
+                        }, RENDER_THROTTLE_MS);
                     }, (error) => {
                         console.error("Firebase listener error:", error);
                         loadingInvoices.style.display = 'block';
-                        loadingInvoices.innerHTML = '<span style="color: red; font-weight: bold;">Connection issue. Reconnecting...</span>';
+                        loadingInvoices.innerHTML = '<span style="color: red; font-weight: bold;">Connection issue. Reconnecting…</span>';
                     });
                 }
 
@@ -1317,6 +1599,24 @@
                 }
 
                 async function openScanner() {
+                    // Lazy-load the scanner library on first use (saves ~150KB on initial page load)
+                    if (!window.Html5Qrcode) {
+                        const btn = btnOpenScanner;
+                        const originalLabel = btn ? btn.innerHTML : '';
+                        if (btn) {
+                            btn.innerHTML = '<span style="font-size:1.1rem;">⏳</span> Loading scanner…';
+                            btn.disabled = true;
+                        }
+                        try {
+                            await window.loadScannerLib();
+                        } catch (e) {
+                            if (btn) { btn.innerHTML = originalLabel; btn.disabled = false; }
+                            alert('Failed to load scanner. Please check your internet and try again.');
+                            return;
+                        }
+                        if (btn) { btn.innerHTML = originalLabel; btn.disabled = false; }
+                    }
+
                     if (!window.Html5Qrcode) {
                         alert('Scanner library not loaded. Please check your internet connection and reload.');
                         return;
@@ -1841,10 +2141,28 @@
                 });
 
                 // --- 5. DOWNLOAD PDF REPORT (Box Specific) ---
-                document.getElementById('btn-download-pdf').addEventListener('click', () => {
+                document.getElementById('btn-download-pdf').addEventListener('click', async () => {
                     if (!currentBoxKey || currentBoxItems.length === 0) {
                         alert("No box data available to download.");
                         return;
+                    }
+
+                    // Lazy-load the PDF library on first use (saves ~280KB on initial page load)
+                    const pdfBtn = document.getElementById('btn-download-pdf');
+                    const originalLabel = pdfBtn.textContent;
+                    if (!window.__libsLoaded.pdf) {
+                        pdfBtn.textContent = '⏳ Loading…';
+                        pdfBtn.disabled = true;
+                        try {
+                            await window.loadPdfLibs();
+                        } catch (e) {
+                            alert('Failed to load PDF library. Please check your internet and try again.');
+                            pdfBtn.textContent = originalLabel;
+                            pdfBtn.disabled = false;
+                            return;
+                        }
+                        pdfBtn.textContent = originalLabel;
+                        pdfBtn.disabled = false;
                     }
 
                     const { jsPDF } = window.jspdf;
@@ -1952,7 +2270,7 @@
                     doc.save(`Box_Report_${box.batchNo}_${box.boxNo}.pdf`);
                 });
 
-            }, 100); // Check every 100ms until Firebase loads properly
+            } // end bootApp
         });
     </script>
 </body>
