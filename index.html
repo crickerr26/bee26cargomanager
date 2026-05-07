@@ -477,10 +477,447 @@
         .badge-paid-expense { background-color: var(--red-light); color: var(--red); border: 1px solid var(--red-light); }
         .badge-paid-income { background-color: var(--green-light); color: #006644; border: 1px solid var(--green-light); }
 
+        /* --- Payments Page: Financial Command Center --- */
+        .pay-hero {
+            background: linear-gradient(135deg, #ffffff 0%, #f7f7fc 100%);
+            border-radius: 14px; padding: 24px;
+            box-shadow: 0 4px 20px rgba(88, 86, 214, 0.06);
+            border: 1px solid #ececf5; margin-bottom: 24px;
+        }
+        .pay-hero-title {
+            display: flex; align-items: center; justify-content: space-between;
+            margin-bottom: 18px; flex-wrap: wrap; gap: 10px;
+        }
+        .pay-hero-title h2 {
+            margin: 0; font-size: 1.05rem; font-weight: 700; color: #1a1a2e;
+            display: flex; align-items: center; gap: 8px;
+        }
+        .pay-hero-title .subtitle { font-size: 0.78rem; color: #888; font-weight: 400; }
+
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 12px;
+        }
+        .kpi-card {
+            background: #fff; border: 1px solid #ececf5; border-radius: 10px;
+            padding: 14px 16px; position: relative; overflow: hidden;
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+        }
+        .kpi-card:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(0,0,0,0.06); }
+        .kpi-card::before {
+            content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px;
+            background: var(--accent, #5856d6);
+        }
+        .kpi-card.kpi-income   { --accent: #00a86b; }
+        .kpi-card.kpi-cost     { --accent: #ff9500; }
+        .kpi-card.kpi-expense  { --accent: #e74c3c; }
+        .kpi-card.kpi-profit   { --accent: #5856d6; }
+        .kpi-card.kpi-batches  { --accent: #007aff; }
+
+        .kpi-label {
+            font-size: 0.68rem; font-weight: 700; text-transform: uppercase;
+            letter-spacing: 0.5px; color: #999; margin-bottom: 6px;
+        }
+        .kpi-value {
+            font-size: 1.35rem; font-weight: 800; color: #1a1a2e;
+            letter-spacing: -0.4px; line-height: 1.15;
+        }
+        .kpi-value.positive { color: #00a86b; }
+        .kpi-value.negative { color: #e74c3c; }
+        .kpi-meta {
+            font-size: 0.7rem; color: #888; margin-top: 4px; font-weight: 500;
+        }
+
+        /* Inline filter strip */
+        .pay-filters {
+            display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+            background: #fff; border: 1px solid #ececf5; border-radius: 10px;
+            padding: 10px 14px; margin-bottom: 14px;
+        }
+        .pay-filters .pay-search-wrap {
+            position: relative; flex: 1 1 280px; min-width: 200px;
+        }
+        .pay-filters .pay-search-wrap::before {
+            content: '🔍'; position: absolute; left: 12px; top: 50%;
+            transform: translateY(-50%); font-size: 0.85rem; opacity: 0.6;
+        }
+        .pay-filters input[type="text"] {
+            width: 100%; padding: 9px 12px 9px 34px;
+            border: 1px solid #e0e0e8; border-radius: 8px;
+            font-size: 0.88rem; background: #f8f9fb;
+            transition: border-color 0.15s ease, background 0.15s ease;
+        }
+        .pay-filters input[type="text"]:focus {
+            outline: none; border-color: #5856d6; background: #fff;
+        }
+        .pay-filters .pay-status-chips {
+            display: flex; gap: 6px; flex-wrap: wrap;
+        }
+        .pay-chip {
+            padding: 7px 14px; border-radius: 8px; font-size: 0.78rem; font-weight: 600;
+            cursor: pointer; border: 1px solid #e0e0e8; background: #fff; color: #555;
+            transition: all 0.15s ease; user-select: none;
+        }
+        .pay-chip:hover { border-color: #5856d6; color: #5856d6; }
+        .pay-chip.active {
+            background: #5856d6; color: #fff; border-color: #5856d6;
+            box-shadow: 0 2px 6px rgba(88,86,214,0.25);
+        }
+
+        /* Filtered selection bar (replaces the dead middle section) */
+        .pay-selection-bar {
+            display: flex; align-items: center; justify-content: space-between;
+            background: linear-gradient(90deg, #f7f7fc, #ffffff);
+            border: 1px solid #ececf5; border-left: 3px solid #5856d6;
+            border-radius: 8px; padding: 10px 16px; margin-bottom: 18px;
+            font-size: 0.85rem; flex-wrap: wrap; gap: 10px;
+        }
+        .pay-selection-bar .sel-label {
+            color: #888; font-size: 0.72rem; font-weight: 700; text-transform: uppercase;
+            letter-spacing: 0.4px;
+        }
+        .pay-selection-bar .sel-stat { display: flex; flex-direction: column; gap: 2px; min-width: 110px; }
+        .pay-selection-bar .sel-stat strong { font-size: 1rem; color: #1a1a2e; font-weight: 700; }
+        .pay-selection-bar .sel-stat strong.green { color: #00a86b; }
+        .pay-selection-bar .sel-stat strong.red { color: #e74c3c; }
+
+        /* Expenses drawer (collapsible) */
+        .pay-expense-drawer {
+            background: #fff; border: 1px solid #ececf5; border-radius: 10px;
+            margin-bottom: 18px; overflow: hidden;
+        }
+        .pay-expense-toggle {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 14px 18px; cursor: pointer; user-select: none;
+            background: linear-gradient(90deg, #fff5f5, #fff);
+            transition: background 0.15s ease;
+        }
+        .pay-expense-toggle:hover { background: linear-gradient(90deg, #ffe9e9, #fff); }
+        .pay-expense-toggle .pet-left { display: flex; align-items: center; gap: 10px; }
+        .pay-expense-toggle .pet-icon {
+            width: 32px; height: 32px; border-radius: 8px; background: #fde0e0;
+            display: flex; align-items: center; justify-content: center; font-size: 1rem;
+        }
+        .pay-expense-toggle .pet-title {
+            font-weight: 700; color: var(--red); font-size: 0.95rem;
+        }
+        .pay-expense-toggle .pet-subtitle { font-size: 0.75rem; color: #888; margin-top: 2px; }
+        .pay-expense-toggle .pet-total {
+            font-weight: 800; font-size: 1.1rem; color: var(--red);
+        }
+        .pay-expense-toggle .pet-arrow {
+            font-size: 0.9rem; color: #888; margin-left: 12px;
+            transition: transform 0.2s ease;
+        }
+        .pay-expense-drawer.open .pet-arrow { transform: rotate(180deg); }
+
+        .pay-expense-body {
+            max-height: 0; overflow: hidden;
+            transition: max-height 0.3s ease;
+            border-top: 1px solid transparent;
+        }
+        .pay-expense-drawer.open .pay-expense-body {
+            max-height: 600px; border-top-color: #ececf5;
+        }
+        .pay-expense-inner { padding: 18px; }
+        .pay-expense-add {
+            display: grid; grid-template-columns: 2fr 1fr auto; gap: 10px;
+            margin-bottom: 14px; align-items: end;
+        }
+        .pay-expense-add input {
+            padding: 9px 12px; border: 1px solid #e0e0e8; border-radius: 8px;
+            font-size: 0.88rem; background: #f8f9fb;
+        }
+        .pay-expense-add input:focus { outline: none; border-color: var(--red); background: #fff; }
+        .pay-expense-add label {
+            display: block; font-size: 0.72rem; color: #888;
+            font-weight: 600; margin-bottom: 4px; text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+        .pay-expense-add button {
+            padding: 9px 18px; background: var(--red); color: #fff; border: none;
+            border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 0.85rem;
+            transition: background 0.15s ease;
+        }
+        .pay-expense-add button:hover { background: #c0392b; }
+
+        /* --- v2 Batch Card Redesign --- */
+        .b2-card {
+            background: #fff; border: 1px solid #e7e7ef; border-radius: 14px;
+            box-shadow: 0 4px 20px rgba(20,20,40,0.04);
+            margin-bottom: 22px; overflow: hidden;
+            transition: box-shadow 0.2s ease;
+        }
+        .b2-card:hover { box-shadow: 0 8px 28px rgba(20,20,40,0.07); }
+        .b2-card.b2-collapsed .b2-body { display: none; }
+
+        .b2-header {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 14px 20px; cursor: pointer; user-select: none;
+            background: linear-gradient(90deg, #5856d6 0%, #4c4aba 100%);
+            color: #fff;
+        }
+        .b2-header-left { display: flex; align-items: center; gap: 12px; min-width: 0; }
+        .b2-header-icon {
+            width: 34px; height: 34px; border-radius: 8px;
+            background: rgba(255,255,255,0.15); display: flex;
+            align-items: center; justify-content: center; font-size: 1.05rem;
+            flex-shrink: 0;
+        }
+        .b2-header-title {
+            font-weight: 700; font-size: 1.05rem; letter-spacing: -0.2px;
+        }
+        .b2-header-meta {
+            font-size: 0.74rem; opacity: 0.85; margin-top: 1px;
+            font-weight: 500;
+        }
+        .b2-header-right {
+            display: flex; align-items: center; gap: 14px;
+        }
+        .b2-net-pill {
+            display: inline-flex; align-items: center; gap: 6px;
+            background: rgba(255,255,255,0.16); padding: 6px 12px;
+            border-radius: 20px; font-size: 0.8rem; font-weight: 700;
+            backdrop-filter: blur(2px);
+        }
+        .b2-net-pill.profit { background: rgba(46,204,113,0.25); }
+        .b2-net-pill.loss   { background: rgba(231,76,60,0.30); }
+        .b2-chev {
+            font-size: 0.75rem; opacity: 0.85;
+            transition: transform 0.25s ease;
+        }
+        .b2-card.b2-collapsed .b2-chev { transform: rotate(-90deg); }
+
+        /* Headline strip: 4 key metrics in a single row */
+        .b2-headline {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            background: #fafafe;
+            border-bottom: 1px solid #ececf5;
+        }
+        .b2-stat {
+            padding: 14px 18px;
+            border-right: 1px solid #ececf5;
+            display: flex; flex-direction: column; gap: 3px;
+            position: relative;
+        }
+        .b2-stat:last-child { border-right: none; }
+        .b2-stat-label {
+            font-size: 0.66rem; font-weight: 700; text-transform: uppercase;
+            letter-spacing: 0.5px; color: #888;
+        }
+        .b2-stat-value {
+            font-size: 1.15rem; font-weight: 800; color: #1a1a2e;
+            letter-spacing: -0.4px; line-height: 1.2;
+        }
+        .b2-stat-value.green { color: #00a86b; }
+        .b2-stat-value.red   { color: #e74c3c; }
+        .b2-stat-value.blue  { color: #5856d6; }
+        .b2-stat-sub {
+            font-size: 0.7rem; color: #999; font-weight: 500; margin-top: 1px;
+        }
+        .b2-stat-sub .pending-amt { color: #ff9500; font-weight: 700; }
+
+        /* Shipment table - clean modern */
+        .b2-table-wrap {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        .b2-table { width: 100%; border-collapse: collapse; font-size: 0.86rem; min-width: 740px; }
+        .b2-table thead th {
+            padding: 12px 16px; text-align: left;
+            font-size: 0.72rem; font-weight: 700; color: #666;
+            text-transform: uppercase; letter-spacing: 0.4px;
+            background: #fff; border-bottom: 1px solid #eee;
+            position: sticky; top: 0;
+        }
+        .b2-table tbody td {
+            padding: 14px 16px; border-bottom: 1px solid #f5f5fa;
+            vertical-align: middle;
+        }
+        .b2-table tbody tr:last-child td { border-bottom: none; }
+        .b2-table tbody tr:hover { background: #fafafe; }
+
+        .b2-invoice-cell strong {
+            color: #5856d6; font-weight: 700; font-size: 0.92rem;
+            display: block;
+        }
+        .b2-invoice-cell span { color: #888; font-size: 0.78rem; display: block; margin-top: 2px; }
+
+        .b2-status-pill {
+            display: inline-flex; align-items: center; gap: 4px;
+            padding: 4px 10px; border-radius: 12px;
+            font-size: 0.7rem; font-weight: 700; cursor: pointer;
+            user-select: none; transition: all 0.15s ease;
+            white-space: nowrap;
+        }
+        .b2-status-pill:active { transform: scale(0.95); }
+        .b2-status-pill.paid    { background: #d4edda; color: #155724; }
+        .b2-status-pill.unpaid  { background: #f8d7da; color: #721c24; }
+        .b2-status-pill.partial { background: #fff3cd; color: #856404; }
+        .b2-status-pill.recd    { background: #d4edda; color: #155724; }
+        .b2-status-pill.pending { background: #f0f0f5; color: #666; }
+        .b2-status-pill.clr-paid { background: #ffebee; color: #c62828; }
+
+        /* Friendly amount inputs */
+        .b2-amount-wrap {
+            position: relative; display: inline-block;
+            min-width: 130px;
+        }
+        .b2-amount-wrap .currency-prefix {
+            position: absolute; left: 10px; top: 50%; transform: translateY(-50%);
+            font-size: 0.7rem; color: #aaa; font-weight: 700; pointer-events: none;
+            letter-spacing: 0.3px;
+        }
+        .b2-amount-input {
+            width: 100%; padding: 8px 10px 8px 38px;
+            border: 1px solid #e0e0e8; border-radius: 8px;
+            font-size: 0.92rem; font-weight: 600; color: #1a1a2e;
+            background: #fff; font-family: inherit;
+            transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+            text-align: right;
+            -moz-appearance: textfield;
+        }
+        .b2-amount-input::-webkit-outer-spin-button,
+        .b2-amount-input::-webkit-inner-spin-button {
+            -webkit-appearance: none; margin: 0;
+        }
+        .b2-amount-input:hover { border-color: #c8c8d4; }
+        .b2-amount-input:focus {
+            outline: none; border-color: #5856d6;
+            box-shadow: 0 0 0 3px rgba(88,86,214,0.12); background: #fafaff;
+        }
+        .b2-amount-input.saving { border-color: #ff9500; background: #fffbf2; }
+        .b2-amount-input.saved {
+            border-color: #00a86b; background: #f0fbf5;
+            transition: border-color 1s ease, background 1s ease;
+        }
+
+        .b2-cell-money {
+            display: flex; align-items: center; gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        /* Receipt button */
+        .b2-receipt-btn {
+            background: linear-gradient(135deg, #5856d6, #4c4aba);
+            color: #fff; border: none;
+            padding: 6px 12px; border-radius: 8px;
+            font-size: 0.72rem; font-weight: 700; cursor: pointer;
+            display: inline-flex; align-items: center; gap: 4px;
+            box-shadow: 0 2px 6px rgba(88,86,214,0.3);
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+            white-space: nowrap;
+        }
+        .b2-receipt-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 10px rgba(88,86,214,0.4); }
+        .b2-receipt-btn:disabled,
+        .b2-receipt-btn.b2-receipt-btn-disabled {
+            background: #e8e8ee; color: #999; box-shadow: none;
+            cursor: not-allowed;
+        }
+
+        /* Batch footer with notes & extras */
+        .b2-footer {
+            background: #fafafe; padding: 16px 20px;
+            border-top: 1px solid #ececf5;
+            display: grid; grid-template-columns: 1fr 1fr; gap: 20px;
+        }
+        .b2-footer-section h4 {
+            margin: 0 0 8px 0; font-size: 0.7rem; font-weight: 700;
+            color: #5856d6; text-transform: uppercase; letter-spacing: 0.5px;
+        }
+        .b2-extras-list {
+            background: #fff; border: 1px solid #ececf5; border-radius: 8px;
+            padding: 8px 12px; min-height: 38px; max-height: 120px; overflow-y: auto;
+        }
+        .b2-extra-row {
+            display: flex; justify-content: space-between; align-items: center;
+            font-size: 0.82rem; padding: 4px 0;
+            border-bottom: 1px dashed #f0f0f5;
+        }
+        .b2-extra-row:last-child { border-bottom: none; }
+        .b2-extra-row .extra-desc { cursor: pointer; border-bottom: 1px dotted #ccc; color: #555; }
+        .b2-extra-row .extra-amt {
+            font-weight: 700; cursor: pointer; border-bottom: 1px dotted #ccc;
+        }
+        .b2-extra-row .extra-amt.pos { color: #00a86b; }
+        .b2-extra-row .extra-amt.neg { color: #e74c3c; }
+        .b2-extra-row .extra-del {
+            cursor: pointer; margin-left: 10px; color: #ccc;
+            font-size: 1rem; line-height: 1; padding: 2px 6px; border-radius: 4px;
+            transition: all 0.15s ease;
+        }
+        .b2-extra-row .extra-del:hover { color: #e74c3c; background: #fff0f0; }
+        .b2-extras-empty { font-size: 0.78rem; color: #bbb; font-style: italic; padding: 4px 0; }
+        .b2-add-extra-btn {
+            background: transparent; border: 1px dashed #5856d6;
+            color: #5856d6; padding: 6px 12px; border-radius: 6px;
+            font-size: 0.78rem; font-weight: 700; cursor: pointer;
+            margin-top: 8px; transition: all 0.15s ease;
+        }
+        .b2-add-extra-btn:hover { background: #5856d6; color: #fff; }
+
+        .b2-notes-textarea {
+            width: 100%; border: 1px solid #ececf5; border-radius: 8px;
+            padding: 10px 12px; font-size: 0.86rem; font-family: inherit;
+            resize: vertical; min-height: 60px; max-height: 160px;
+            background: #fff; color: #555;
+            transition: border-color 0.15s ease;
+        }
+        .b2-notes-textarea:focus { outline: none; border-color: #5856d6; }
+
+        /* Show-more reveal */
+        .b2-reveal-bar {
+            margin: 8px 0 24px; text-align: center;
+        }
+        .b2-reveal-btn {
+            background: #fff; border: 1px solid #ececf5;
+            padding: 12px 24px; border-radius: 10px;
+            font-size: 0.88rem; font-weight: 700; color: #5856d6;
+            cursor: pointer; transition: all 0.2s ease;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+            display: inline-flex; align-items: center; gap: 8px;
+        }
+        .b2-reveal-btn:hover {
+            background: #5856d6; color: #fff;
+            box-shadow: 0 4px 12px rgba(88,86,214,0.3);
+            transform: translateY(-1px);
+        }
+        .b2-reveal-btn .b2-reveal-count {
+            background: rgba(88,86,214,0.15); color: #5856d6;
+            padding: 2px 8px; border-radius: 10px; font-size: 0.78rem;
+        }
+        .b2-reveal-btn:hover .b2-reveal-count {
+            background: rgba(255,255,255,0.25); color: #fff;
+        }
+
+        /* Responsive for new payment page elements */
+        @media (max-width: 1100px) {
+            .kpi-grid { grid-template-columns: repeat(3, 1fr); }
+            .b2-headline { grid-template-columns: repeat(2, 1fr); }
+            .b2-stat:nth-child(2) { border-right: none; }
+            .b2-stat:nth-child(1), .b2-stat:nth-child(2) { border-bottom: 1px solid #ececf5; }
+        }
         @media (max-width: 900px) { .financial-dashboard-grid { grid-template-columns: 1fr 1fr; } }
+        @media (max-width: 720px) {
+            .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+            .pay-expense-add { grid-template-columns: 1fr; }
+            .pay-selection-bar .sel-stat { min-width: 0; flex: 1 1 30%; }
+            .b2-footer { grid-template-columns: 1fr; gap: 14px; }
+            .b2-header { padding: 12px 14px; }
+            .b2-header-title { font-size: 0.95rem; }
+            .b2-stat { padding: 12px 14px; }
+            .b2-stat-value { font-size: 1.05rem; }
+            .b2-amount-wrap { min-width: 110px; }
+        }
         @media (max-width: 600px) { 
             .financial-dashboard-grid { grid-template-columns: 1fr; } 
             .batch-shipment-row { grid-template-columns: 1fr 1fr; gap: 10px; }
+            .kpi-card { padding: 12px 14px; }
+            .kpi-value { font-size: 1.15rem; }
+            .b2-headline { grid-template-columns: 1fr 1fr; }
+            .b2-net-pill { font-size: 0.74rem; padding: 4px 9px; }
         }
 
 
@@ -901,92 +1338,126 @@
         </div>
 
         <div id="page-payments" class="page-content">
-            
-            <div class="card" style="border-left: 5px solid var(--purple);">
-                <h2 style="color: var(--purple);">Overall Batch Financials (Summary)</h2>
-                <div class="payment-summary-grid">
-                    <div class="payment-summary-card">
-                        <h3>Total Batch Collections (Gained)</h3>
-                        <div class="value" id="overall-batch-gained">$0.00</div>
+
+            <!-- 1. FINANCIAL COMMAND CENTER (consolidated KPI hero) -->
+            <div class="pay-hero">
+                <div class="pay-hero-title">
+                    <h2>💼 Financial Command Center</h2>
+                    <span class="subtitle">Live across all batches & shipments</span>
+                </div>
+                <div class="kpi-grid">
+                    <div class="kpi-card kpi-income">
+                        <div class="kpi-label">Income (Collected)</div>
+                        <div class="kpi-value positive" id="overall-batch-gained">$0.00</div>
+                        <div class="kpi-meta">Service fees + extras</div>
                     </div>
-                    <div class="payment-summary-card">
-                        <h3>Total Batch Costs (Expenses)</h3>
-                        <div class="value" id="overall-batch-cost">$0.00</div>
+                    <div class="kpi-card kpi-cost">
+                        <div class="kpi-label">Batch Costs</div>
+                        <div class="kpi-value" id="kpi-batch-cost-only">$0.00</div>
+                        <div class="kpi-meta" id="kpi-batch-cost-meta">Shipping & batch fees</div>
                     </div>
-                    <div class="payment-summary-card">
-                        <h3>Net Profit / Loss</h3>
-                        <div class="value" id="overall-batch-profit" style="color: var(--grey-dark);">$0.00</div>
+                    <div class="kpi-card kpi-expense">
+                        <div class="kpi-label">Overhead</div>
+                        <div class="kpi-value" id="kpi-overhead-only">$0.00</div>
+                        <div class="kpi-meta" id="kpi-overhead-meta">General expenses</div>
+                    </div>
+                    <div class="kpi-card kpi-profit">
+                        <div class="kpi-label">Net Profit / Loss</div>
+                        <div class="kpi-value" id="overall-batch-profit">$0.00</div>
+                        <div class="kpi-meta">Income − Costs</div>
+                    </div>
+                    <div class="kpi-card kpi-batches">
+                        <div class="kpi-label">Active Batches</div>
+                        <div class="kpi-value" id="kpi-active-batches">0</div>
+                        <div class="kpi-meta" id="kpi-shipments-meta">0 shipments total</div>
                     </div>
                 </div>
-                 <p style="font-size: 0.9rem; color: var(--text-secondary); margin-top: 0rem;">
-                    * Calculated from all batches and shipments with assigned batch numbers.
-                </p>
+                <!-- Hidden legacy element for backward compatibility (calculateOverallBatchStats writes to it) -->
+                <div id="overall-batch-cost" style="display:none;"></div>
             </div>
-            <div class="card">
-                <h2>Filter Payments</h2>
-                <div class="filters-bar">
-                     <div class="input-group" style="flex-grow: 1;">
-                        <label for="paymentSearch">Search Invoice # / Customer Name</label>
-                        <input type="text" id="paymentSearch" placeholder="Search...">
-                    </div>
-                    <div class="input-group">
-                        <label for="paymentStatusFilter">Filter by Status</label>
-                        <select id="paymentStatusFilter">
-                            <option value="All">All Statuses</option>
-                            <option value="Not-Paid">Not Paid</option>
-                            <option value="Partially-Paid">Partially Paid</option>
-                            <option value="Paid">Paid</option>
-                        </select>
-                    </div>
+
+            <!-- 2. INLINE FILTER STRIP -->
+            <div class="pay-filters">
+                <div class="pay-search-wrap">
+                    <input type="text" id="paymentSearch" placeholder="Search by invoice # or customer name…">
+                </div>
+                <div class="pay-status-chips" id="paymentStatusChips">
+                    <span class="pay-chip active" data-status="All">All</span>
+                    <span class="pay-chip" data-status="Not-Paid">Not Paid</span>
+                    <span class="pay-chip" data-status="Partially-Paid">Partial</span>
+                    <span class="pay-chip" data-status="Paid">Paid</span>
+                </div>
+                <!-- Hidden native select kept for backward compatibility with existing JS -->
+                <select id="paymentStatusFilter" style="display:none;">
+                    <option value="All">All Statuses</option>
+                    <option value="Not-Paid">Not Paid</option>
+                    <option value="Partially-Paid">Partially Paid</option>
+                    <option value="Paid">Paid</option>
+                </select>
+            </div>
+
+            <!-- 3. FILTERED SELECTION BAR (now actually live!) -->
+            <div class="pay-selection-bar">
+                <div class="sel-stat">
+                    <span class="sel-label">Showing</span>
+                    <strong><span id="payment-summary-count">0</span> shipments</strong>
+                </div>
+                <div class="sel-stat">
+                    <span class="sel-label">Total in Selection</span>
+                    <strong>$<span id="payment-summary-due">0.00</span></strong>
+                </div>
+                <div class="sel-stat">
+                    <span class="sel-label">Paid in Selection</span>
+                    <strong class="green">$<span id="payment-summary-paid">0.00</span></strong>
+                </div>
+                <div class="sel-stat">
+                    <span class="sel-label">Outstanding</span>
+                    <strong class="red">$<span id="payment-summary-outstanding">0.00</span></strong>
                 </div>
             </div>
 
-            <div class="payment-summary-grid">
-                <div class="payment-summary-card">
-                    <h3>Total Amount Due</h3>
-                    <div class="value" id="payment-summary-due">$0.00</div>
-                </div>
-                <div class="payment-summary-card">
-                    <h3>Total Amount Paid</h3>
-                    <div class="value" id="payment-summary-paid">$0.00</div>
-                </div>
-                <div class="payment-summary-card">
-                    <h3>Shipments Displayed</h3>
-                    <div class="value" id="payment-summary-count">0</div>
-                </div>
-            </div>
-
-            <div class="card" style="border-left: 5px solid var(--red); background: #fff5f5;">
-                <h2 style="color: var(--red);">General Expenses & Overhead</h2>
-                <div class="form-grid-two-col">
-                    <div class="input-group">
-                        <label>Expense Description</label>
-                        <input type="text" id="expenseDesc" placeholder="e.g. Warehouse Rent, Packing Tape">
+            <!-- 4. COLLAPSIBLE EXPENSES DRAWER -->
+            <div class="pay-expense-drawer" id="expenseDrawer">
+                <div class="pay-expense-toggle" id="expenseDrawerToggle">
+                    <div class="pet-left">
+                        <div class="pet-icon">📒</div>
+                        <div>
+                            <div class="pet-title">General Expenses & Overhead</div>
+                            <div class="pet-subtitle">Tap to add or review overhead expenses</div>
+                        </div>
                     </div>
-                    <div class="input-group">
-                        <label>Amount ($ CAD)</label>
-                        <div style="display: flex; gap: 10px;">
-                            <input type="number" id="expenseAmount" placeholder="0.00">
-                            <button class="btn btn-danger" id="addExpenseBtn">Add Expense</button>
+                    <div style="display:flex; align-items:center;">
+                        <span class="pet-total">$<span id="totalExpensesValue">0.00</span></span>
+                        <span class="pet-arrow">▼</span>
+                    </div>
+                </div>
+                <div class="pay-expense-body">
+                    <div class="pay-expense-inner">
+                        <div class="pay-expense-add">
+                            <div>
+                                <label>Description</label>
+                                <input type="text" id="expenseDesc" placeholder="e.g. Warehouse rent, packing tape">
+                            </div>
+                            <div>
+                                <label>Amount (CAD)</label>
+                                <input type="number" id="expenseAmount" placeholder="0.00" step="0.01">
+                            </div>
+                            <button id="addExpenseBtn">+ Add</button>
+                        </div>
+                        <div class="table-container" style="max-height: 220px; overflow-y: auto; border:1px solid #f0f0f5; border-radius:8px;">
+                            <table class="styled-table">
+                                <thead><tr><th>Date</th><th>Description</th><th>Amount</th><th></th></tr></thead>
+                                <tbody id="expensesTableTbody"><tr><td colspan="4" style="text-align:center; color:#888;">Loading…</td></tr></tbody>
+                            </table>
                         </div>
                     </div>
                 </div>
-                
-                <h3 style="margin-top: 20px; font-size: 1rem; color: #666;">Expense History</h3>
-                <div class="table-container" style="max-height: 200px; overflow-y: auto;">
-                    <table class="styled-table">
-                        <thead><tr><th>Date</th><th>Description</th><th>Amount</th><th>Action</th></tr></thead>
-                        <tbody id="expensesTableTbody"><tr><td colspan="4">Loading...</td></tr></tbody>
-                    </table>
-                </div>
-                <div style="text-align: right; margin-top: 10px; font-size: 1.2rem; font-weight: bold;">
-                    Total Expenses: <span id="totalExpensesValue" style="color: var(--red);">$0.00</span>
-                </div>
             </div>
 
+            <!-- 5. PER-BATCH FINANCIAL CARDS (untouched concept) -->
             <div class="batch-card-container" id="paymentsContainer">
                 <div style="text-align: center; padding: 40px; color: #888;">
-                    Loading Batch Financials...
+                    Loading Batch Financials…
                 </div>
             </div>
         </div>
@@ -1409,9 +1880,124 @@
                         `;
                     });
                 }
-                document.getElementById('totalExpensesValue').textContent = `$${totalExp.toFixed(2)}`;
+                const totalEl = document.getElementById('totalExpensesValue');
+                if (totalEl) totalEl.textContent = totalExp.toFixed(2);
                 return totalExp;
             }
+
+            // --- PAYMENTS PAGE: New UI Wiring (chips, drawer, live selection) ---
+            (function initPaymentsPageUI() {
+                // 1. Chip filter <-> hidden <select> sync
+                const chipsContainer = document.getElementById('paymentStatusChips');
+                const hiddenSelect = document.getElementById('paymentStatusFilter');
+                if (chipsContainer && hiddenSelect) {
+                    chipsContainer.addEventListener('click', (e) => {
+                        const chip = e.target.closest('.pay-chip');
+                        if (!chip) return;
+                        chipsContainer.querySelectorAll('.pay-chip').forEach(c => c.classList.remove('active'));
+                        chip.classList.add('active');
+                        hiddenSelect.value = chip.dataset.status;
+                        // Trigger the existing change handler that drives renderPaymentsTable()
+                        hiddenSelect.dispatchEvent(new Event('change', { bubbles: true }));
+                    });
+                }
+
+                // 2. Expense drawer collapse/expand
+                const drawer = document.getElementById('expenseDrawer');
+                const toggle = document.getElementById('expenseDrawerToggle');
+                if (drawer && toggle) {
+                    toggle.addEventListener('click', (e) => {
+                        // Don't collapse when clicking the inputs/buttons inside
+                        if (e.target.closest('.pay-expense-body')) return;
+                        drawer.classList.toggle('open');
+                    });
+                }
+            })();
+
+            // Recomputes the live "selection" stats based on the current filter state.
+            // Called from renderPaymentsTable so it always reflects what the user sees.
+            window.updatePaymentSelectionStats = function() {
+                try {
+                    const searchInput = document.getElementById('paymentSearch');
+                    const statusSelect = document.getElementById('paymentStatusFilter');
+                    if (!searchInput || !statusSelect || !Array.isArray(local_shipments_cache)) return;
+
+                    const term = (searchInput.value || '').toLowerCase();
+                    const status = statusSelect.value || 'All';
+
+                    let count = 0, total = 0, paid = 0;
+                    local_shipments_cache.forEach(s => {
+                        const nameMatch = (s.senderName || '').toLowerCase().includes(term)
+                                       || (s.receiverName || '').toLowerCase().includes(term)
+                                       || (s.invoiceNumber || '').toLowerCase().includes(term);
+                        const statusMatch = (status === 'All' || s.paymentStatus === status);
+                        if (!nameMatch || !statusMatch) return;
+                        count++;
+                        const amt = (parseFloat(s.paymentTotal) || 0) + (parseFloat(s.additionalChargesAmt) || 0);
+                        total += amt;
+                        if (s.paymentStatus === 'Paid') paid += amt;
+                    });
+
+                    const outstanding = Math.max(0, total - paid);
+                    const fmt = (n) => n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+                    const setTxt = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+                    setTxt('payment-summary-count', count);
+                    setTxt('payment-summary-due', fmt(total));
+                    setTxt('payment-summary-paid', fmt(paid));
+                    setTxt('payment-summary-outstanding', fmt(outstanding));
+                } catch (err) { console.error('updatePaymentSelectionStats error:', err); }
+            };
+
+            // Mirror calculateOverallBatchStats output into the new split KPI cards.
+            // We use a MutationObserver-free approach: monkey-patch the function so the
+            // original behaviour is preserved AND the new cards stay in sync.
+            (function patchOverallStats() {
+                if (typeof calculateOverallBatchStats !== 'function') return;
+                const original = calculateOverallBatchStats;
+                window.calculateOverallBatchStats = function() {
+                    original.apply(this, arguments);
+                    try {
+                        let totalBatchCost = 0;
+                        for (const k in local_batches_cache) {
+                            const b = local_batches_cache[k];
+                            if (b && b.cost) totalBatchCost += parseFloat(b.cost) || 0;
+                        }
+                        let totalOverhead = 0;
+                        for (const k in local_expenses_cache) {
+                            totalOverhead += parseFloat(local_expenses_cache[k].amount) || 0;
+                        }
+
+                        // Active batches = batches with at least one shipment
+                        const batchSet = new Set();
+                        let shipCount = 0;
+                        (local_shipments_cache || []).forEach(s => {
+                            if (s.batchNo && s.batchNo.trim() !== '') {
+                                batchSet.add(s.batchNo);
+                                shipCount++;
+                            }
+                        });
+
+                        const fmt = (n) => '$' + n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                        const setTxt = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+                        setTxt('kpi-batch-cost-only', fmt(totalBatchCost));
+                        setTxt('kpi-overhead-only', fmt(totalOverhead));
+                        setTxt('kpi-active-batches', batchSet.size);
+                        const meta = document.getElementById('kpi-shipments-meta');
+                        if (meta) meta.textContent = `${shipCount} shipment${shipCount===1?'':'s'} assigned`;
+
+                        // Color the profit value
+                        const profitEl = document.getElementById('overall-batch-profit');
+                        if (profitEl) {
+                            const raw = (profitEl.textContent || '').replace(/[^0-9.\-]/g, '');
+                            const v = parseFloat(raw) || 0;
+                            profitEl.classList.remove('positive', 'negative');
+                            if (v > 0) profitEl.classList.add('positive');
+                            else if (v < 0) profitEl.classList.add('negative');
+                        }
+                    } catch (e) { console.error('KPI mirror failed:', e); }
+                };
+            })();
 
 
             // --- 1. Page Navigation (Sidebar) ---
@@ -4103,10 +4689,66 @@
             };
 
             // --- D. RENDER LOGIC ---
+            // --- Module-level state for the redesigned payments view ---
+            // Tracks: which batches are "shown" beyond the default 5, and which are
+            // collapsed in the UI. Survives re-renders triggered by Firebase syncs.
+            const _payState = {
+                showAllBatches: false,
+                collapsed: new Set(), // batchKeys that user has collapsed
+                pendingSaves: new Map() // shipmentId+field -> timeout (for debounced writes)
+            };
+
+            // Smart batch sort: handles "Batch - 13" > "Batch - 9" correctly using natural numeric ordering.
+            function _sortBatchKeysDesc(keys) {
+                return keys.slice().sort((a, b) => {
+                    const na = parseInt((a.match(/\d+/) || ['0'])[0], 10);
+                    const nb = parseInt((b.match(/\d+/) || ['0'])[0], 10);
+                    if (a === 'Unassigned') return 1;
+                    if (b === 'Unassigned') return -1;
+                    return nb - na; // descending
+                });
+            }
+
+            // Format a number with thousand separators (no decimals for LKR, 2 decimals for CAD)
+            function _fmtAmount(n, withDecimals = false) {
+                const num = parseFloat(n) || 0;
+                return num.toLocaleString('en-US', {
+                    minimumFractionDigits: withDecimals ? 2 : 0,
+                    maximumFractionDigits: withDecimals ? 2 : 0
+                });
+            }
+
             function renderPaymentsTable() {
+                // Always refresh the live selection bar at the top of the page
+                if (typeof window.updatePaymentSelectionStats === 'function') {
+                    window.updatePaymentSelectionStats();
+                }
+
                 const container = document.getElementById('paymentsContainer');
                 if (!container) return;
-                container.innerHTML = ''; 
+
+                // 🔒 Preserve focus across re-renders (Firebase syncs back, etc.)
+                // This is the key fix that makes typing into amount inputs feel native.
+                const activeEl = document.activeElement;
+                const focusInfo = (activeEl && container.contains(activeEl) && activeEl.tagName === 'INPUT')
+                    ? {
+                        id: activeEl.dataset.id,
+                        field: activeEl.dataset.field,
+                        selStart: activeEl.selectionStart,
+                        selEnd: activeEl.selectionEnd,
+                        value: activeEl.value
+                      }
+                    : null;
+                const noteFocusInfo = (activeEl && container.contains(activeEl) && activeEl.tagName === 'TEXTAREA')
+                    ? {
+                        batch: activeEl.dataset.batch,
+                        selStart: activeEl.selectionStart,
+                        selEnd: activeEl.selectionEnd,
+                        scrollTop: activeEl.scrollTop
+                      }
+                    : null;
+
+                container.innerHTML = '';
 
                 const searchTerm = paymentSearchInput.value.toLowerCase();
                 const statusFilter = paymentStatusFilterSelect.value;
@@ -4118,7 +4760,7 @@
                 });
 
                 if (filteredShipments.length === 0) {
-                    container.innerHTML = '<div style="text-align:center; padding:20px; color:#888;">No shipments match search.</div>';
+                    container.innerHTML = '<div style="text-align:center; padding:40px 20px; color:#888; background:#fff; border:1px solid #ececf5; border-radius:12px;"><div style="font-size:2.5rem; margin-bottom:10px;">📭</div><div style="font-size:0.95rem;">No shipments match your search.</div></div>';
                     return;
                 }
 
@@ -4130,13 +4772,21 @@
                     batches[batchKey].push(s);
                 });
 
-                const sortedKeys = Object.keys(batches).sort().reverse();
+                const allKeys = _sortBatchKeysDesc(Object.keys(batches));
+                const TOP_N = 5;
+                const isFiltering = (searchTerm.trim() !== '' || statusFilter !== 'All');
+                // When user is filtering, show ALL matches. Otherwise respect the top-5 limit.
+                const visibleKeys = (isFiltering || _payState.showAllBatches)
+                    ? allKeys
+                    : allKeys.slice(0, TOP_N);
+                const hiddenCount = allKeys.length - visibleKeys.length;
 
-                sortedKeys.forEach(batchKey => {
+                visibleKeys.forEach(batchKey => {
                     const shipments = batches[batchKey];
                     shipments.sort((a, b) => new Date(b.invoiceDate) - new Date(a.invoiceDate));
                     const safeBatchKey = batchKey.replace(/[.#$\[\]]/g, "_");
                     const batchData = local_batches_cache[safeBatchKey] || local_batches_cache[batchKey] || {};
+                    const isCollapsed = _payState.collapsed.has(batchKey);
 
                     // 1. CAD
                     let totalCADCollected = 0;
@@ -4145,8 +4795,7 @@
                     const profitCAD = totalCADCollected - batchCostCAD;
 
                     // 2. Delivery (LKR)
-                    let totalDelCollected = 0;
-                    let pendingDelivery = 0;
+                    let totalDelCollected = 0, pendingDelivery = 0;
                     shipments.forEach(s => {
                         const chg = parseFloat(s.slDeliveryCharge) || 0;
                         if(s.slDeliveryPaid === true) totalDelCollected += chg; else pendingDelivery += chg;
@@ -4155,8 +4804,7 @@
                     const profitDel = totalDelCollected - manualDelCost;
 
                     // 3. Clearance (LKR)
-                    let totalClrCollected = 0;
-                    let pendingClearance = 0;
+                    let totalClrCollected = 0, pendingClearance = 0;
                     shipments.forEach(s => {
                         const cost = parseFloat(s.slClearanceCost) || 0;
                         if(s.slClearancePaid === true) totalClrCollected += cost; else pendingClearance += cost;
@@ -4164,186 +4812,330 @@
                     const manualClrCost = parseFloat(batchData.manualClearanceTotal) || 0;
                     const profitClr = totalClrCollected - manualClrCost;
 
-                    // 4. Extras (Editable)
+                    // 4. Extras
                     let extrasTotal = 0;
                     const extrasObj = batchData.extras || {};
                     let extrasHtml = '';
                     for(const [eId, eData] of Object.entries(extrasObj)) {
                         const amt = parseFloat(eData.amount || 0);
                         extrasTotal += amt;
-                        // EDITABLE ROWS
                         extrasHtml += `
-                            <div style="display:flex; justify-content:space-between; font-size:0.8rem; padding:3px 0; border-bottom:1px dashed #eee; align-items:center;">
-                                <span style="cursor:pointer; border-bottom:1px dotted #ccc;" 
-                                      data-batch="${batchKey}" 
-                                      data-field="extras/${eId}/desc" 
-                                      data-value="${eData.desc}" 
-                                      data-type="text"
-                                      onclick="window.enableBatchEdit(this)">
-                                    ${eData.desc}
-                                </span>
-                                <div>
-                                    <span style="font-weight:bold; cursor:pointer; color:${amt>=0?'green':'red'}; border-bottom:1px dotted #ccc;"
-                                          data-batch="${batchKey}" 
-                                          data-field="extras/${eId}/amount" 
-                                          data-value="${amt}" 
-                                          data-type="number"
-                                          onclick="window.enableBatchEdit(this)">
-                                        ${amt}
-                                    </span>
-                                    <span style="cursor:pointer; margin-left:8px; color:#999;" onclick="window.deleteBatchExtra('${batchKey}','${eId}')">×</span>
+                            <div class="b2-extra-row">
+                                <span class="extra-desc"
+                                      data-batch="${batchKey}" data-field="extras/${eId}/desc"
+                                      data-value="${eData.desc}" data-type="text"
+                                      onclick="window.enableBatchEdit(this)">${eData.desc}</span>
+                                <div style="display:flex; align-items:center;">
+                                    <span class="extra-amt ${amt>=0?'pos':'neg'}"
+                                          data-batch="${batchKey}" data-field="extras/${eId}/amount"
+                                          data-value="${amt}" data-type="number"
+                                          onclick="window.enableBatchEdit(this)">${amt>=0?'+':''}${_fmtAmount(amt)}</span>
+                                    <span class="extra-del" onclick="window.deleteBatchExtra('${batchKey}','${eId}')">×</span>
                                 </div>
                             </div>`;
                     }
 
                     // 5. NET LKR
                     const netLKR = profitDel + profitClr + extrasTotal;
+                    const netClass = netLKR >= 0 ? 'profit' : 'loss';
+                    const netSign = netLKR >= 0 ? '+' : '';
 
-                    // --- UI BUILD ---
+                    // ---- BUILD CARD ----
                     const card = document.createElement('div');
-                    card.className = 'batch-card';
-                    card.style.marginBottom = "30px";
-                    card.style.border = "1px solid #e0e0e0";
-                    card.style.boxShadow = "0 4px 12px rgba(0,0,0,0.05)";
-                    card.style.borderRadius = "10px";
-                    card.style.overflow = "hidden";
-                    card.style.background = "#fff";
+                    card.className = 'b2-card' + (isCollapsed ? ' b2-collapsed' : '');
+                    card.dataset.batchKey = batchKey;
 
-                    card.innerHTML = `
-                        <div style="background:linear-gradient(90deg, #5856d6, #4c4aba); color:white; padding:12px 20px; display:flex; justify-content:space-between; align-items:center;">
-                            <span style="font-weight:700; font-size:1.05rem;">📦 ${batchKey}</span>
-                            <span style="font-size:0.85rem; opacity:0.9;">${shipments.length} Shipments</span>
-                        </div>
-                        
-                        <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap:15px; padding:20px; background:#f8f9fa; border-bottom:1px solid #eee;">
-                            
-                            <div style="background:white; border:1px solid #e0e0e0; border-radius:8px; padding:15px; box-shadow:0 2px 4px rgba(0,0,0,0.02);">
-                                <div style="font-size:0.7rem; font-weight:800; color:#5856d6; text-transform:uppercase; margin-bottom:10px; border-bottom:2px solid #5856d6; padding-bottom:5px;">Batch Payment (CAD)</div>
-                                <div style="display:flex; justify-content:space-between; font-size:0.85rem; margin-bottom:5px;"><span>Collected:</span> <strong>$${totalCADCollected.toFixed(2)}</strong></div>
-                                <div style="display:flex; justify-content:space-between; font-size:0.85rem; margin-bottom:10px;">
-                                    <span>Batch Cost:</span> <span style="cursor:pointer; border-bottom:1px dashed #999;" data-batch="${batchKey}" data-field="batchCostCAD" data-value="${batchCostCAD}" data-type="number" onclick="window.enableBatchEdit(this)">$${batchCostCAD.toFixed(2)}</span>
+                    // Header (clickable to collapse/expand)
+                    const headerHTML = `
+                        <div class="b2-header" onclick="window._togglePayBatch('${batchKey.replace(/'/g,"\\'")}')">
+                            <div class="b2-header-left">
+                                <div class="b2-header-icon">📦</div>
+                                <div>
+                                    <div class="b2-header-title">${batchKey}</div>
+                                    <div class="b2-header-meta">${shipments.length} shipment${shipments.length===1?'':'s'} • Profit CAD $${_fmtAmount(profitCAD, true)}</div>
                                 </div>
-                                <div style="text-align:right; font-size:1.2rem; font-weight:800; color:${profitCAD>=0?'var(--blue)':'var(--red)'}; padding-top:8px; border-top:1px solid #f0f0f0;">Profit: $${profitCAD.toFixed(2)}</div>
                             </div>
-
-                            <div style="background:white; border:1px solid #e0e0e0; border-radius:8px; padding:15px; box-shadow:0 2px 4px rgba(0,0,0,0.02);">
-                                <div style="font-size:0.7rem; font-weight:800; color:#006644; text-transform:uppercase; margin-bottom:10px; border-bottom:2px solid #006644; padding-bottom:5px;">Delivery (Income)</div>
-                                <div style="display:flex; justify-content:space-between; font-size:0.85rem; margin-bottom:5px;"><span>Collected:</span> <strong style="color:#006644;">${totalDelCollected.toLocaleString()}</strong></div>
-                                <div style="display:flex; justify-content:space-between; font-size:0.85rem; margin-bottom:5px;">
-                                    <span>Cost:</span> <span style="cursor:pointer; border-bottom:1px dashed #999;" data-batch="${batchKey}" data-field="manualDeliveryTotal" data-value="${manualDelCost}" data-type="number" onclick="window.enableBatchEdit(this)">${manualDelCost.toLocaleString()}</span>
-                                </div>
-                                <div style="font-size:0.75rem; color:#e67e22; margin-bottom:10px;">Pending: ${pendingDelivery.toLocaleString()}</div>
-                                <div style="text-align:right; font-size:1.2rem; font-weight:800; color:${profitDel>=0?'#006644':'var(--red)'}; padding-top:8px; border-top:1px solid #f0f0f0;">Net: ${profitDel.toLocaleString()}</div>
-                            </div>
-
-                            <div style="background:white; border:1px solid #e0e0e0; border-radius:8px; padding:15px; box-shadow:0 2px 4px rgba(0,0,0,0.02);">
-                                <div style="font-size:0.7rem; font-weight:800; color:var(--red); text-transform:uppercase; margin-bottom:10px; border-bottom:2px solid var(--red); padding-bottom:5px;">Custom Clearance</div>
-                                <div style="display:flex; justify-content:space-between; font-size:0.85rem; margin-bottom:5px;"><span>Collected:</span> <strong style="color:#006644;">${totalClrCollected.toLocaleString()}</strong></div>
-                                <div style="display:flex; justify-content:space-between; font-size:0.85rem; margin-bottom:5px;">
-                                    <span>Charge:</span> <span style="cursor:pointer; border-bottom:1px dashed #999;" data-batch="${batchKey}" data-field="manualClearanceTotal" data-value="${manualClrCost}" data-type="number" onclick="window.enableBatchEdit(this)">${manualClrCost.toLocaleString()}</span>
-                                </div>
-                                <div style="font-size:0.75rem; color:#e67e22; margin-bottom:10px;">Pending: ${pendingClearance.toLocaleString()}</div>
-                                <div style="text-align:right; font-size:1.2rem; font-weight:800; color:${profitClr>=0?'#006644':'var(--red)'}; padding-top:8px; border-top:1px solid #f0f0f0;">Net: ${profitClr.toLocaleString()}</div>
-                            </div>
-
-                            <div style="background:white; border:1px solid #e0e0e0; border-radius:8px; padding:15px; box-shadow:0 2px 4px rgba(0,0,0,0.02); display:flex; flex-direction:column;">
-                                <div style="font-size:0.7rem; font-weight:800; color:var(--purple); text-transform:uppercase; margin-bottom:10px; border-bottom:2px solid var(--purple); padding-bottom:5px;">Total Net (LKR)</div>
-                                <div style="display:flex; justify-content:space-between; font-size:0.8rem; padding:2px 0; border-bottom:1px solid #f9f9f9; margin-bottom:4px;">
-                                    <span style="color:#666;">Delivery Profit</span>
-                                    <span style="font-weight:600; color:${profitDel>=0?'#006644':'var(--red)'}">${profitDel.toLocaleString()}</span>
-                                </div>
-                                <div style="display:flex; justify-content:space-between; font-size:0.8rem; padding:2px 0; border-bottom:1px solid #f9f9f9; margin-bottom:8px;">
-                                    <span style="color:#666;">Clearance Profit</span>
-                                    <span style="font-weight:600; color:${profitClr>=0?'#006644':'var(--red)'}">${profitClr.toLocaleString()}</span>
-                                </div>
-                                <div style="flex-grow:1; max-height:60px; overflow-y:auto; margin-bottom:5px;">
-                                    ${extrasHtml || '<div style="font-size:0.75rem; color:#ccc; font-style:italic;">No extras added</div>'}
-                                </div>
-                                <div style="text-align:right; font-size:1.3rem; font-weight:800; color:${netLKR>=0?'var(--purple)':'var(--red)'}; padding-top:8px; border-top:1px solid #f0f0f0;">LKR ${netLKR.toLocaleString()}</div>
-                                <div style="text-align:right; margin-top:5px;">
-                                    <button onclick="window.addBatchExtra('${batchKey}')" style="background:none; border:none; color:var(--blue); font-size:0.8rem; font-weight:bold; cursor:pointer;">+ Add Extra</button>
-                                </div>
+                            <div class="b2-header-right">
+                                <span class="b2-net-pill ${netClass}">LKR ${netSign}${_fmtAmount(netLKR)}</span>
+                                <span class="b2-chev">▼</span>
                             </div>
                         </div>
                     `;
 
-                    // TABLE
-                    const tableWrapper = document.createElement('div');
-                    tableWrapper.style.overflowX = 'auto';
-                    const table = document.createElement('table');
-                    table.style.width = '100%';
-                    table.style.borderCollapse = 'collapse';
-                    table.style.fontSize = '0.85rem';
-
-                    table.innerHTML = `
-                        <thead>
-                            <tr style="background:#fff; border-bottom:2px solid #eee;">
-                                <th style="padding:12px 15px; text-align:left; color:#5856d6;">Invoice / Name</th>
-                                <th style="padding:12px 15px; text-align:left; color:#666;">Weight</th>
-                                <th style="padding:12px 15px; text-align:left; color:#666;">Shipping (CAD)</th>
-                                <th style="padding:12px 15px; text-align:left; color:#666;">Payment Status</th>
-                                <th style="padding:12px 15px; text-align:left; color:#666;">Clearance (LKR)</th>
-                                <th style="padding:12px 15px; text-align:left; color:#666;">Delivery (LKR)</th>
-                            </tr>
-                        </thead>
+                    // Headline strip - 4 key metrics in a single clean row
+                    const headlineHTML = `
+                        <div class="b2-headline">
+                            <div class="b2-stat">
+                                <div class="b2-stat-label">CAD Collected</div>
+                                <div class="b2-stat-value">$${_fmtAmount(totalCADCollected, true)}</div>
+                                <div class="b2-stat-sub">Batch cost: <span class="editable-inline" data-batch="${batchKey}" data-field="batchCostCAD" data-value="${batchCostCAD}" data-type="number" onclick="window.enableBatchEdit(this); event.stopPropagation();" style="cursor:pointer; border-bottom:1px dotted #aaa;">$${_fmtAmount(batchCostCAD, true)}</span></div>
+                            </div>
+                            <div class="b2-stat">
+                                <div class="b2-stat-label">Delivery (LKR)</div>
+                                <div class="b2-stat-value ${profitDel>=0?'green':'red'}">${profitDel>=0?'+':''}${_fmtAmount(profitDel)}</div>
+                                <div class="b2-stat-sub">Cost: <span class="editable-inline" data-batch="${batchKey}" data-field="manualDeliveryTotal" data-value="${manualDelCost}" data-type="number" onclick="window.enableBatchEdit(this); event.stopPropagation();" style="cursor:pointer; border-bottom:1px dotted #aaa;">${_fmtAmount(manualDelCost)}</span>${pendingDelivery>0 ? ` • <span class="pending-amt">${_fmtAmount(pendingDelivery)} pending</span>` : ''}</div>
+                            </div>
+                            <div class="b2-stat">
+                                <div class="b2-stat-label">Clearance (LKR)</div>
+                                <div class="b2-stat-value ${profitClr>=0?'green':'red'}">${profitClr>=0?'+':''}${_fmtAmount(profitClr)}</div>
+                                <div class="b2-stat-sub">Charge: <span class="editable-inline" data-batch="${batchKey}" data-field="manualClearanceTotal" data-value="${manualClrCost}" data-type="number" onclick="window.enableBatchEdit(this); event.stopPropagation();" style="cursor:pointer; border-bottom:1px dotted #aaa;">${_fmtAmount(manualClrCost)}</span>${pendingClearance>0 ? ` • <span class="pending-amt">${_fmtAmount(pendingClearance)} pending</span>` : ''}</div>
+                            </div>
+                            <div class="b2-stat">
+                                <div class="b2-stat-label">Total Net</div>
+                                <div class="b2-stat-value ${netLKR>=0?'blue':'red'}">LKR ${netSign}${_fmtAmount(netLKR)}</div>
+                                <div class="b2-stat-sub">${Object.keys(extrasObj).length} extra${Object.keys(extrasObj).length===1?'':'s'} • <span style="color:#5856d6; cursor:pointer; font-weight:600;" onclick="window.addBatchExtra('${batchKey.replace(/'/g,"\\'")}'); event.stopPropagation();">+ Add</span></div>
+                            </div>
+                        </div>
                     `;
-                    
-                    const tbody = document.createElement('tbody');
+
+                    // Shipment table - clean, single tidy table
+                    let rowsHTML = '';
                     shipments.forEach(s => {
-                        const tr = document.createElement('tr');
-                        tr.style.borderBottom = '1px solid #f5f5f5';
-
                         const totalAmt = (parseFloat(s.paymentTotal)||0) + (parseFloat(s.additionalChargesAmt)||0);
                         const isPaid = s.paymentStatus === 'Paid';
+                        const isPartial = s.paymentStatus === 'Partially-Paid';
                         const isDelPaid = s.slDeliveryPaid === true;
                         const isClrPaid = s.slClearancePaid === true;
-
-                        const td1 = document.createElement('td'); td1.style.padding='12px 15px'; td1.innerHTML=`<div style="font-weight:700; color:#333; font-size:0.95rem;">${s.invoiceNumber}</div><div style="font-size:0.8rem; color:#888;">${s.senderName}</div>`; tr.appendChild(td1);
-                        const td2 = document.createElement('td'); td2.style.padding='12px 15px'; td2.textContent=`${s.totalWeight||0} kg`; tr.appendChild(td2);
-                        const td3 = document.createElement('td'); td3.style.padding='12px 15px'; td3.innerHTML=`<strong>$${totalAmt.toFixed(2)}</strong>`; tr.appendChild(td3);
-                        const td4 = document.createElement('td'); td4.style.padding='12px 15px'; td4.innerHTML=`<span style="padding:4px 10px; border-radius:4px; font-weight:bold; font-size:0.75rem; cursor:pointer; background:${isPaid?'#d4edda':'#f8d7da'}; color:${isPaid?'#155724':'#721c24'};" onclick="window.togglePaymentStatus('${s.id}','${s.paymentStatus}')">${isPaid?'PAID':'UNPAID'}</span>`; tr.appendChild(td4);
-                        
-                        const td5 = document.createElement('td'); td5.style.padding='12px 15px'; 
-                        td5.innerHTML=`<div style="display:flex; align-items:center; gap:8px;"><div style="position:relative;"><span style="font-size:0.7rem; color:#999; position:absolute; left:4px; top:50%; transform:translateY(-50%);">LKR</span><input type="number" class="payment-update" data-id="${s.id}" data-field="slClearanceCost" value="${s.slClearanceCost||''}" placeholder="0" style="padding:4px 4px 4px 28px; width:70px; border:1px solid #ddd; border-radius:4px;"></div><span style="padding:4px 8px; border-radius:4px; font-weight:bold; font-size:0.7rem; cursor:pointer; background:${isClrPaid?'#ffebee':'#f0f0f5'}; color:${isClrPaid?'#c62828':'#666'};" onclick="window.toggleSLStatus('${s.id}','slClearancePaid', ${isClrPaid})">${isClrPaid?'PAID':'PENDING'}</span></div>`; tr.appendChild(td5);
-
-                        const td6 = document.createElement('td'); td6.style.padding='12px 15px';
                         const canIssueReceipt = ((parseFloat(s.slDeliveryCharge)||0) + (parseFloat(s.slClearanceCost)||0)) > 0;
-                        const receiptReady = isDelPaid && isClrPaid; // Fully settled
-                        td6.innerHTML=`<div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;"><div style="position:relative;"><span style="font-size:0.7rem; color:#999; position:absolute; left:4px; top:50%; transform:translateY(-50%);">LKR</span><input type="number" class="payment-update" data-id="${s.id}" data-field="slDeliveryCharge" value="${s.slDeliveryCharge||''}" placeholder="0" style="padding:4px 4px 4px 28px; width:70px; border:1px solid #ddd; border-radius:4px;"></div><span style="padding:4px 8px; border-radius:4px; font-weight:bold; font-size:0.7rem; cursor:pointer; background:${isDelPaid?'#e8f5e9':'#f0f0f5'}; color:${isDelPaid?'#2e7d32':'#666'};" onclick="window.toggleSLStatus('${s.id}','slDeliveryPaid', ${isDelPaid})">${isDelPaid?'REC\'D':'PENDING'}</span>${canIssueReceipt ? `<button title="${receiptReady ? 'Generate Payment Receipt' : 'Mark both Clearance & Delivery as paid first'}" onclick="window.openReceiptDialog('${s.id}')" style="background:${receiptReady ? 'linear-gradient(135deg,#5856d6,#4c4aba)' : '#e0e0e0'}; color:${receiptReady ? '#fff' : '#999'}; border:none; padding:5px 10px; border-radius:6px; font-size:0.7rem; font-weight:700; cursor:pointer; display:inline-flex; align-items:center; gap:4px; box-shadow:${receiptReady ? '0 2px 4px rgba(88,86,214,0.25)' : 'none'};">📄 Receipt</button>` : ''}</div>`; tr.appendChild(td6);
+                        const receiptReady = isDelPaid && isClrPaid;
 
-                        tbody.appendChild(tr);
+                        const payClass = isPaid ? 'paid' : (isPartial ? 'partial' : 'unpaid');
+                        const payLabel = isPaid ? 'PAID' : (isPartial ? 'PARTIAL' : 'UNPAID');
+
+                        rowsHTML += `
+                            <tr>
+                                <td class="b2-invoice-cell">
+                                    <strong>${s.invoiceNumber || '—'}</strong>
+                                    <span>${s.senderName || ''}</span>
+                                </td>
+                                <td style="color:#888; font-weight:500;">${s.totalWeight||0} kg</td>
+                                <td><strong style="color:#1a1a2e;">$${_fmtAmount(totalAmt, true)}</strong></td>
+                                <td>
+                                    <span class="b2-status-pill ${payClass}" onclick="window.togglePaymentStatus('${s.id}','${s.paymentStatus}')">${payLabel}</span>
+                                </td>
+                                <td>
+                                    <div class="b2-cell-money">
+                                        <div class="b2-amount-wrap">
+                                            <span class="currency-prefix">LKR</span>
+                                            <input type="text" inputmode="numeric" class="b2-amount-input b2-pay-input"
+                                                   data-id="${s.id}" data-field="slClearanceCost"
+                                                   value="${s.slClearanceCost ? _fmtAmount(s.slClearanceCost) : ''}" placeholder="0">
+                                        </div>
+                                        <span class="b2-status-pill ${isClrPaid?'clr-paid':'pending'}"
+                                              onclick="window.toggleSLStatus('${s.id}','slClearancePaid', ${isClrPaid})">
+                                            ${isClrPaid?'PAID':'PENDING'}
+                                        </span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="b2-cell-money">
+                                        <div class="b2-amount-wrap">
+                                            <span class="currency-prefix">LKR</span>
+                                            <input type="text" inputmode="numeric" class="b2-amount-input b2-pay-input"
+                                                   data-id="${s.id}" data-field="slDeliveryCharge"
+                                                   value="${s.slDeliveryCharge ? _fmtAmount(s.slDeliveryCharge) : ''}" placeholder="0">
+                                        </div>
+                                        <span class="b2-status-pill ${isDelPaid?'recd':'pending'}"
+                                              onclick="window.toggleSLStatus('${s.id}','slDeliveryPaid', ${isDelPaid})">
+                                            ${isDelPaid?"REC'D":'PENDING'}
+                                        </span>
+                                        ${canIssueReceipt
+                                            ? `<button class="b2-receipt-btn ${receiptReady?'':'b2-receipt-btn-disabled'}"
+                                                       title="${receiptReady ? 'Generate Payment Receipt' : 'Mark Clearance & Delivery as paid first'}"
+                                                       onclick="window.openReceiptDialog('${s.id}')">📄 Receipt</button>`
+                                            : ''}
+                                    </div>
+                                </td>
+                            </tr>
+                        `;
                     });
 
-                    table.appendChild(tbody);
-                    tableWrapper.appendChild(table);
-                    card.appendChild(tableWrapper);
+                    const bodyHTML = `
+                        <div class="b2-body">
+                            ${headlineHTML}
+                            <div class="b2-table-wrap">
+                                <table class="b2-table">
+                                    <thead><tr>
+                                        <th>Invoice / Name</th>
+                                        <th>Weight</th>
+                                        <th>Shipping (CAD)</th>
+                                        <th>Status</th>
+                                        <th>Clearance (LKR)</th>
+                                        <th>Delivery (LKR)</th>
+                                    </tr></thead>
+                                    <tbody>${rowsHTML}</tbody>
+                                </table>
+                            </div>
+                            <div class="b2-footer">
+                                <div class="b2-footer-section">
+                                    <h4>Extras (LKR)</h4>
+                                    <div class="b2-extras-list">
+                                        ${extrasHtml || '<div class="b2-extras-empty">No extras added yet</div>'}
+                                    </div>
+                                    <button class="b2-add-extra-btn" onclick="window.addBatchExtra('${batchKey.replace(/'/g,"\\'")}')">+ Add Extra Item</button>
+                                </div>
+                                <div class="b2-footer-section">
+                                    <h4>Batch Notes</h4>
+                                    <textarea class="b2-notes-textarea batch-field-update"
+                                              data-batch="${batchKey}" data-field="notes"
+                                              placeholder="Add notes for this batch…">${batchData.notes || ''}</textarea>
+                                </div>
+                            </div>
+                        </div>
+                    `;
 
-                    const noteDiv = document.createElement('div');
-                    noteDiv.style.padding = '15px';
-                    noteDiv.style.borderTop = '1px solid #eee';
-                    noteDiv.style.background = '#fcfcfc';
-                    noteDiv.innerHTML = `<textarea class="batch-field-update" data-batch="${batchKey}" data-field="notes" placeholder="Batch Notes..." style="width:100%; border:1px solid #e0e0e0; border-radius:6px; padding:10px; font-size:0.9rem; height:50px; resize:none;">${batchData.notes || ''}</textarea>`;
-                    card.appendChild(noteDiv);
-
+                    card.innerHTML = headerHTML + bodyHTML;
                     container.appendChild(card);
                 });
+
+                // "Show all" reveal bar (only when not actively filtering and there are hidden batches)
+                if (!isFiltering && hiddenCount > 0 && !_payState.showAllBatches) {
+                    const revealBar = document.createElement('div');
+                    revealBar.className = 'b2-reveal-bar';
+                    revealBar.innerHTML = `
+                        <button class="b2-reveal-btn" onclick="window._showAllPayBatches()">
+                            Show all batches
+                            <span class="b2-reveal-count">+${hiddenCount} more</span>
+                        </button>
+                    `;
+                    container.appendChild(revealBar);
+                } else if (!isFiltering && _payState.showAllBatches && allKeys.length > TOP_N) {
+                    const collapseBar = document.createElement('div');
+                    collapseBar.className = 'b2-reveal-bar';
+                    collapseBar.innerHTML = `
+                        <button class="b2-reveal-btn" onclick="window._showLatestPayBatches()">
+                            ▲ Show latest 5 only
+                        </button>
+                    `;
+                    container.appendChild(collapseBar);
+                }
+
+                // 🔁 Restore focus & cursor position to whichever input the user was typing in
+                if (focusInfo) {
+                    const restored = container.querySelector(`input.b2-pay-input[data-id="${focusInfo.id}"][data-field="${focusInfo.field}"]`);
+                    if (restored) {
+                        restored.value = focusInfo.value; // keep the user's in-progress text
+                        restored.focus();
+                        try { restored.setSelectionRange(focusInfo.selStart, focusInfo.selEnd); } catch(e) {}
+                    }
+                }
+                if (noteFocusInfo) {
+                    const restoredNote = container.querySelector(`textarea.b2-notes-textarea[data-batch="${noteFocusInfo.batch}"]`);
+                    if (restoredNote) {
+                        restoredNote.focus();
+                        try { restoredNote.setSelectionRange(noteFocusInfo.selStart, noteFocusInfo.selEnd); } catch(e) {}
+                        restoredNote.scrollTop = noteFocusInfo.scrollTop;
+                    }
+                }
             }
 
+            // --- Reveal/collapse helpers exposed for inline onclick ---
+            window._togglePayBatch = (batchKey) => {
+                if (_payState.collapsed.has(batchKey)) _payState.collapsed.delete(batchKey);
+                else _payState.collapsed.add(batchKey);
+                // Toggle just the class instead of full re-render — preserves all input state.
+                const card = document.querySelector(`.b2-card[data-batch-key="${CSS.escape(batchKey)}"]`);
+                if (card) card.classList.toggle('b2-collapsed');
+            };
+            window._showAllPayBatches = () => { _payState.showAllBatches = true; renderPaymentsTable(); };
+            window._showLatestPayBatches = () => { _payState.showAllBatches = false; renderPaymentsTable(); window.scrollTo({ top: 0, behavior: 'smooth' }); };
+
             // --- EVENT LISTENERS ---
-            paymentsContainer.addEventListener('change', async (e) => {
-                if (e.target.classList.contains('payment-update')) {
-                    const id = e.target.dataset.id;
-                    const field = e.target.dataset.field;
-                    const val = parseFloat(e.target.value);
-                    if(!id || !field) return;
-                    try { const u={}; u[field]=isNaN(val)?0:val; await dbUpdate(dbRef(db,'shipments/'+id), u); } catch(e){}
+
+            // Helper: parse a thousand-separated string into a clean number
+            const _parseAmt = (str) => {
+                if (str === null || str === undefined) return 0;
+                const cleaned = String(str).replace(/[^0-9.\-]/g, '');
+                const n = parseFloat(cleaned);
+                return isNaN(n) ? 0 : n;
+            };
+
+            // Debounced save for amount inputs - 700ms after last keystroke.
+            // Saves silently to Firebase. Uses focus preservation in renderPaymentsTable
+            // so the user's typing flow is never interrupted.
+            paymentsContainer.addEventListener('input', (e) => {
+                if (e.target.classList.contains('b2-pay-input')) {
+                    const input = e.target;
+                    const id = input.dataset.id;
+                    const field = input.dataset.field;
+                    if (!id || !field) return;
+
+                    // Live thousand-separator formatting while typing
+                    // Keep cursor position relative to the digits the user has entered
+                    const raw = input.value;
+                    const cursorPos = input.selectionStart || 0;
+                    const digitsBeforeCursor = (raw.slice(0, cursorPos).match(/\d/g) || []).length;
+
+                    const numStr = raw.replace(/[^0-9]/g, '');
+                    const formatted = numStr === '' ? '' : parseInt(numStr, 10).toLocaleString('en-US');
+
+                    if (formatted !== raw) {
+                        input.value = formatted;
+                        // Re-position cursor after the same number of digits
+                        let newPos = 0, digitsSeen = 0;
+                        for (let i = 0; i < formatted.length && digitsSeen < digitsBeforeCursor; i++) {
+                            if (/\d/.test(formatted[i])) digitsSeen++;
+                            newPos = i + 1;
+                        }
+                        try { input.setSelectionRange(newPos, newPos); } catch(err) {}
+                    }
+
+                    input.classList.remove('saved');
+                    input.classList.add('saving');
+
+                    // Debounced write
+                    const key = id + '|' + field;
+                    if (_payState.pendingSaves.has(key)) clearTimeout(_payState.pendingSaves.get(key));
+                    _payState.pendingSaves.set(key, setTimeout(async () => {
+                        _payState.pendingSaves.delete(key);
+                        const val = _parseAmt(input.value);
+                        try {
+                            const u = {}; u[field] = val;
+                            await dbUpdate(dbRef(db, 'shipments/' + id), u);
+                            input.classList.remove('saving');
+                            input.classList.add('saved');
+                            // Fade the "saved" highlight after a moment
+                            setTimeout(() => input.classList.remove('saved'), 1200);
+                        } catch (err) {
+                            console.error('Amount save failed:', err);
+                            input.classList.remove('saving');
+                        }
+                    }, 700));
                 }
+
+                // Notes auto-save (debounced)
                 if (e.target.classList.contains('batch-field-update') && e.target.tagName === 'TEXTAREA') {
-                    const batchKey = e.target.dataset.batch;
+                    const ta = e.target;
+                    const batchKey = ta.dataset.batch;
                     const safeKey = batchKey.replace(/[.#$\[\]]/g, "_");
-                    try { await dbUpdate(dbRef(db, 'batches/' + safeKey), { notes: e.target.value }); } catch(e){}
+                    const key = 'note|' + safeKey;
+                    if (_payState.pendingSaves.has(key)) clearTimeout(_payState.pendingSaves.get(key));
+                    _payState.pendingSaves.set(key, setTimeout(async () => {
+                        _payState.pendingSaves.delete(key);
+                        try { await dbUpdate(dbRef(db, 'batches/' + safeKey), { notes: ta.value }); } catch(err){}
+                    }, 800));
                 }
             });
+
+            // Force-save on blur in case user clicks away before the 700ms debounce fires
+            paymentsContainer.addEventListener('blur', async (e) => {
+                if (e.target.classList && e.target.classList.contains('b2-pay-input')) {
+                    const input = e.target;
+                    const id = input.dataset.id;
+                    const field = input.dataset.field;
+                    if (!id || !field) return;
+                    const key = id + '|' + field;
+                    if (_payState.pendingSaves.has(key)) {
+                        clearTimeout(_payState.pendingSaves.get(key));
+                        _payState.pendingSaves.delete(key);
+                    }
+                    const val = _parseAmt(input.value);
+                    try {
+                        const u = {}; u[field] = val;
+                        await dbUpdate(dbRef(db, 'shipments/' + id), u);
+                    } catch(err) { console.error(err); }
+                }
+            }, true); // capture phase, since blur doesn't bubble
 
 
             // --- 7. PDF & Excel Export Functions ---
