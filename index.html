@@ -3703,6 +3703,405 @@
                 if(confirm("Delete this extra?")) await dbRemove(dbRef(db, `batches/${safeKey}/extras/${extraId}`));
             };
 
+            // --- C.2 PAYMENT RECEIPT (PDF + WHATSAPP) ---
+            // Builds an ultra-professional, customer-facing payment receipt for the
+            // Sri Lanka leg (Delivery + Clearance). Triggered from the batch payments
+            // table once the office has marked the LKR collections received.
+            window.openReceiptDialog = (shipmentId) => {
+                const shipment = local_shipments_cache.find(s => s.id === shipmentId);
+                if (!shipment) { alert('Shipment not found.'); return; }
+
+                const delCharge = parseFloat(shipment.slDeliveryCharge) || 0;
+                const clrCost   = parseFloat(shipment.slClearanceCost) || 0;
+                const isDelPaid = shipment.slDeliveryPaid === true;
+                const isClrPaid = shipment.slClearancePaid === true;
+
+                if (delCharge <= 0 && clrCost <= 0) {
+                    alert('Please enter the Delivery Charge and/or Clearance amount before generating a receipt.');
+                    return;
+                }
+
+                // Soft-warn when not yet fully settled but allow override (useful for partial receipts).
+                if (!isDelPaid || !isClrPaid) {
+                    const proceed = confirm(
+                        `This shipment is not yet fully settled:\n` +
+                        `• Delivery: ${isDelPaid ? 'Received' : 'PENDING'}\n` +
+                        `• Clearance: ${isClrPaid ? 'Received' : 'PENDING'}\n\n` +
+                        `Generate the receipt anyway?`
+                    );
+                    if (!proceed) return;
+                }
+
+                // Build the chooser modal
+                const existing = document.getElementById('bee26-receipt-modal');
+                if (existing) existing.remove();
+
+                const phoneRaw = (shipment.receiverPhone || '').toString();
+                const phoneClean = phoneRaw.replace(/[^\d]/g, '');
+                const hasPhone = phoneClean.length >= 7;
+
+                const modal = document.createElement('div');
+                modal.id = 'bee26-receipt-modal';
+                modal.style.cssText = 'position:fixed; inset:0; background:rgba(15,15,30,0.55); z-index:99999; display:flex; align-items:center; justify-content:center; backdrop-filter:blur(4px); animation:fadeIn 0.18s ease-out;';
+                modal.innerHTML = `
+                    <div style="background:#fff; border-radius:14px; padding:0; width:min(440px, 92vw); box-shadow:0 20px 60px rgba(0,0,0,0.3); overflow:hidden; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">
+                        <div style="background:linear-gradient(135deg,#5856d6,#4c4aba); color:#fff; padding:18px 22px;">
+                            <div style="font-size:0.7rem; font-weight:700; letter-spacing:1.5px; opacity:0.85;">PAYMENT RECEIPT</div>
+                            <div style="font-size:1.15rem; font-weight:800; margin-top:3px;">${(shipment.invoiceNumber||'--')}</div>
+                            <div style="font-size:0.8rem; opacity:0.9; margin-top:2px;">${(shipment.receiverName||shipment.senderName||'')}</div>
+                        </div>
+                        <div style="padding:18px 22px; background:#f8f9fa; border-bottom:1px solid #eee;">
+                            <div style="display:flex; justify-content:space-between; font-size:0.85rem; padding:4px 0;"><span style="color:#666;">Clearance Tax</span><strong>LKR ${clrCost.toLocaleString()}</strong></div>
+                            <div style="display:flex; justify-content:space-between; font-size:0.85rem; padding:4px 0;"><span style="color:#666;">Delivery Charge</span><strong>LKR ${delCharge.toLocaleString()}</strong></div>
+                            <div style="display:flex; justify-content:space-between; font-size:1rem; padding:8px 0 0; border-top:1px solid #e0e0e0; margin-top:6px;"><span style="font-weight:700;">Total</span><strong style="color:#5856d6;">LKR ${(clrCost+delCharge).toLocaleString()}</strong></div>
+                        </div>
+                        <div style="padding:18px 22px; display:flex; flex-direction:column; gap:10px;">
+                            <button id="bee26-receipt-save" style="background:linear-gradient(135deg,#5856d6,#4c4aba); color:#fff; border:none; padding:13px; border-radius:9px; font-size:0.95rem; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; box-shadow:0 3px 10px rgba(88,86,214,0.3);">📥 Save / Download PDF</button>
+                            <button id="bee26-receipt-whatsapp" ${hasPhone ? '' : 'disabled'} style="background:${hasPhone ? 'linear-gradient(135deg,#25d366,#1ebe5d)' : '#e0e0e0'}; color:${hasPhone ? '#fff' : '#999'}; border:none; padding:13px; border-radius:9px; font-size:0.95rem; font-weight:700; cursor:${hasPhone ? 'pointer' : 'not-allowed'}; display:flex; align-items:center; justify-content:center; gap:8px; box-shadow:${hasPhone ? '0 3px 10px rgba(37,211,102,0.3)' : 'none'};">📱 Share via WhatsApp${hasPhone ? '' : ' (no phone)'}</button>
+                            <button id="bee26-receipt-cancel" style="background:transparent; color:#888; border:none; padding:8px; font-size:0.85rem; cursor:pointer; margin-top:4px;">Cancel</button>
+                        </div>
+                    </div>
+                `;
+                document.body.appendChild(modal);
+
+                const close = () => modal.remove();
+                modal.addEventListener('click', (e) => { if (e.target === modal) close(); });
+                modal.querySelector('#bee26-receipt-cancel').onclick = close;
+                modal.querySelector('#bee26-receipt-save').onclick = async () => {
+                    close();
+                    await window.generatePaymentReceiptPDF(shipmentId, 'save');
+                };
+                modal.querySelector('#bee26-receipt-whatsapp').onclick = async () => {
+                    if (!hasPhone) return;
+                    close();
+                    await window.generatePaymentReceiptPDF(shipmentId, 'whatsapp');
+                };
+            };
+
+            window.generatePaymentReceiptPDF = async (shipmentId, action = 'save') => {
+                const shipment = local_shipments_cache.find(s => s.id === shipmentId);
+                if (!shipment) { alert('Shipment not found.'); return; }
+
+                try {
+                    const { jsPDF } = window.jspdf;
+                    if (!jsPDF) throw new Error('jsPDF library not loaded.');
+                    const doc = new jsPDF('p', 'pt', 'a4');
+
+                    const logoBase64Data = await fetchLogoAsBase64();
+                    const sealBase64Data = await fetchSealAsBase64();
+
+                    // --- Detect logo natural dimensions so it doesn't stretch ---
+                    const getImgDims = (dataUrl) => new Promise((resolve) => {
+                        if (!dataUrl) { resolve(null); return; }
+                        const img = new Image();
+                        img.onload = () => resolve({ w: img.naturalWidth, h: img.naturalHeight });
+                        img.onerror = () => resolve(null);
+                        img.src = dataUrl;
+                    });
+                    const logoDims = await getImgDims(logoBase64Data);
+
+                    const pageWidth = doc.internal.pageSize.width;
+                    const pageHeight = doc.internal.pageSize.height;
+                    const margin = 40;
+
+                    // ---- Brand colors ----
+                    const PURPLE = [88, 86, 214];
+                    const TEXT_DARK = [40, 40, 50];
+                    const TEXT_MUTED = [120, 120, 130];
+                    const LINE = [225, 225, 232];
+                    const BG_SOFT = [248, 249, 252];
+                    const GREEN = [0, 102, 68];
+                    const AMBER = [200, 80, 30];
+
+                    // ---- Top accent bar ----
+                    doc.setFillColor(...PURPLE);
+                    doc.rect(0, 0, pageWidth, 6, 'F');
+
+                    let currentY = 36;
+
+                    // ---- Header: Logo (proportional) + Company Block ----
+                    if (logoBase64Data && logoDims) {
+                        const targetH = 38;
+                        const ratio = logoDims.w / logoDims.h;
+                        const targetW = targetH * ratio;
+                        try { doc.addImage(logoBase64Data, 'PNG', margin, currentY, targetW, targetH); } catch(e) {}
+                    }
+
+                    doc.setFontSize(9); doc.setFont('helvetica', 'bold');
+                    doc.setTextColor(...TEXT_DARK);
+                    doc.text('BEE26 CARGO SERVICES', pageWidth - margin, currentY + 8, { align: 'right' });
+                    doc.setFont('helvetica', 'normal'); doc.setFontSize(8);
+                    doc.setTextColor(...TEXT_MUTED);
+                    doc.text('Milepost Place, East York, ON M4H 1C7', pageWidth - margin, currentY + 20, { align: 'right' });
+                    doc.text('+1 416-474-4994  |  bee26cargoservices@gmail.com', pageWidth - margin, currentY + 31, { align: 'right' });
+
+                    currentY += 56;
+
+                    // ---- Title strip ----
+                    doc.setFillColor(...PURPLE);
+                    doc.rect(margin, currentY, pageWidth - (margin * 2), 38, 'F');
+                    doc.setFontSize(15); doc.setFont('helvetica', 'bold');
+                    doc.setTextColor(255, 255, 255);
+                    doc.text('PAYMENT RECEIPT', margin + 16, currentY + 17);
+                    doc.setFontSize(9); doc.setFont('helvetica', 'normal');
+                    doc.text('Sri Lanka Clearance & Delivery', margin + 16, currentY + 30);
+
+                    // Receipt meta (right side of strip)
+                    const receiptNo = `RCT-${(shipment.invoiceNumber || shipment.id || '').toString().toUpperCase().replace(/[^A-Z0-9-]/g,'')}`;
+                    const issuedOn = new Date().toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' });
+                    doc.setFontSize(9); doc.setFont('helvetica', 'bold');
+                    doc.text(`Receipt No: ${receiptNo}`, pageWidth - margin - 16, currentY + 17, { align: 'right' });
+                    doc.setFont('helvetica', 'normal');
+                    doc.text(`Issued: ${issuedOn}`, pageWidth - margin - 16, currentY + 30, { align: 'right' });
+
+                    currentY += 58;
+
+                    // ---- Customer & Shipment block (two columns) ----
+                    const colGap = 12;
+                    const colW = (pageWidth - (margin * 2) - colGap) / 2;
+                    const blockY = currentY;
+                    const blockH = 92;
+
+                    // Left: Billed To
+                    doc.setFillColor(...BG_SOFT);
+                    doc.roundedRect(margin, blockY, colW, blockH, 5, 5, 'F');
+                    doc.setDrawColor(...LINE); doc.setLineWidth(0.5);
+                    doc.roundedRect(margin, blockY, colW, blockH, 5, 5, 'S');
+
+                    doc.setFontSize(8); doc.setFont('helvetica', 'bold');
+                    doc.setTextColor(...PURPLE);
+                    doc.text('BILLED TO', margin + 12, blockY + 16);
+
+                    doc.setFontSize(11); doc.setFont('helvetica', 'bold');
+                    doc.setTextColor(...TEXT_DARK);
+                    const recvName = shipment.receiverName || '-';
+                    doc.text(doc.splitTextToSize(recvName, colW - 24), margin + 12, blockY + 32);
+
+                    doc.setFontSize(8.5); doc.setFont('helvetica', 'normal');
+                    doc.setTextColor(...TEXT_MUTED);
+                    let metaY = blockY + 48;
+                    if (shipment.receiverPhone) { doc.text(`Phone: ${shipment.receiverPhone}`, margin + 12, metaY); metaY += 12; }
+                    if (shipment.receiverAddress) {
+                        const addrLines = doc.splitTextToSize(shipment.receiverAddress, colW - 24);
+                        doc.text(addrLines.slice(0, 2), margin + 12, metaY);
+                    }
+
+                    // Right: Shipment info
+                    const rX = margin + colW + colGap;
+                    doc.setFillColor(...BG_SOFT);
+                    doc.roundedRect(rX, blockY, colW, blockH, 5, 5, 'F');
+                    doc.setDrawColor(...LINE);
+                    doc.roundedRect(rX, blockY, colW, blockH, 5, 5, 'S');
+
+                    doc.setFontSize(8); doc.setFont('helvetica', 'bold');
+                    doc.setTextColor(...PURPLE);
+                    doc.text('SHIPMENT DETAILS', rX + 12, blockY + 16);
+
+                    doc.setFontSize(8.5); doc.setFont('helvetica', 'normal');
+                    doc.setTextColor(...TEXT_DARK);
+                    const rows = [
+                        ['Invoice No', shipment.invoiceNumber || '-'],
+                        ['Batch', shipment.batchNo || '-'],
+                        ['Weight', `${shipment.totalWeight || 0} kg`],
+                        ['Sender', shipment.senderName || '-']
+                    ];
+                    rows.forEach((r, i) => {
+                        const y = blockY + 32 + (i * 14);
+                        doc.setFont('helvetica', 'normal'); doc.setTextColor(...TEXT_MUTED);
+                        doc.text(r[0], rX + 12, y);
+                        doc.setFont('helvetica', 'bold'); doc.setTextColor(...TEXT_DARK);
+                        const valLines = doc.splitTextToSize(String(r[1]), colW - 90);
+                        doc.text(valLines[0] || '-', rX + 80, y);
+                    });
+
+                    currentY = blockY + blockH + 22;
+
+                    // ---- Charges Table ----
+                    const delCharge = parseFloat(shipment.slDeliveryCharge) || 0;
+                    const clrCost   = parseFloat(shipment.slClearanceCost) || 0;
+                    const isDelPaid = shipment.slDeliveryPaid === true;
+                    const isClrPaid = shipment.slClearancePaid === true;
+                    const total = delCharge + clrCost;
+                    const paidSoFar = (isClrPaid ? clrCost : 0) + (isDelPaid ? delCharge : 0);
+                    const balanceDue = Math.max(0, total - paidSoFar);
+                    const allPaid = isDelPaid && isClrPaid && total > 0;
+
+                    doc.autoTable({
+                        startY: currentY,
+                        head: [['#', 'Description', 'Status', 'Amount (LKR)']],
+                        body: [
+                            ['1', 'Customs Clearance Tax', isClrPaid ? 'PAID' : 'PENDING', clrCost.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })],
+                            ['2', 'Delivery Charge (Sri Lanka)', isDelPaid ? 'PAID' : 'PENDING', delCharge.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })]
+                        ],
+                        theme: 'grid',
+                        margin: { left: margin, right: margin },
+                        headStyles: {
+                            fillColor: PURPLE,
+                            textColor: [255, 255, 255],
+                            fontStyle: 'bold',
+                            fontSize: 9,
+                            halign: 'left',
+                            cellPadding: 8
+                        },
+                        bodyStyles: {
+                            fontSize: 9.5,
+                            textColor: TEXT_DARK,
+                            cellPadding: 8,
+                            lineColor: LINE,
+                            lineWidth: 0.4
+                        },
+                        columnStyles: {
+                            0: { halign: 'center', cellWidth: 30 },
+                            1: { cellWidth: 'auto' },
+                            2: { halign: 'center', cellWidth: 70, fontStyle: 'bold' },
+                            3: { halign: 'right', cellWidth: 100, fontStyle: 'bold' }
+                        },
+                        didParseCell: (data) => {
+                            if (data.section === 'body' && data.column.index === 2) {
+                                if (data.cell.raw === 'PAID') {
+                                    data.cell.styles.textColor = GREEN;
+                                } else {
+                                    data.cell.styles.textColor = AMBER;
+                                }
+                            }
+                        }
+                    });
+
+                    currentY = doc.lastAutoTable.finalY;
+
+                    // ---- Sri Lanka Customs Tax Method (small print under the table) ----
+                    currentY += 10;
+                    doc.setFontSize(7); doc.setFont('helvetica', 'bold');
+                    doc.setTextColor(...PURPLE);
+                    doc.text('CUSTOMS CLEARANCE TAX - CALCULATION METHOD (SRI LANKA)', margin, currentY);
+                    currentY += 9;
+                    doc.setFontSize(6.8); doc.setFont('helvetica', 'italic');
+                    doc.setTextColor(...TEXT_MUTED);
+                    const taxNoteLines = [
+                        'Sri Lanka Customs assesses duties on the CIF value (Cost + Insurance + Freight) of imported goods. The total clearance tax payable is computed as:',
+                        'Customs Duty (CID) = CIF x Duty Rate (per HS Code)   |   PAL (Port & Airport Levy) = CIF x 10%   |   VAT = (CIF + 10% of CIF + CID + PAL + applicable Cess/SSCL) x 18%',
+                        'Cess, SSCL and Excise Duty may apply on certain commodities. Final amounts are determined by Sri Lanka Customs at the time of clearance based on HS classification, declared value and prevailing gazette rates.'
+                    ];
+                    taxNoteLines.forEach(line => {
+                        const wrapped = doc.splitTextToSize(line, pageWidth - (margin * 2));
+                        doc.text(wrapped, margin, currentY);
+                        currentY += wrapped.length * 8;
+                    });
+
+                    // ---- Total panel (now shows BALANCE DUE = total - paid) ----
+                    const totalBoxY = currentY + 10;
+                    const totalBoxW = 240;
+                    const totalBoxX = pageWidth - margin - totalBoxW;
+                    const totalBoxH = allPaid ? 64 : 78;
+
+                    // Panel color: green when fully paid, purple otherwise
+                    if (allPaid) {
+                        doc.setFillColor(...GREEN);
+                    } else {
+                        doc.setFillColor(...PURPLE);
+                    }
+                    doc.roundedRect(totalBoxX, totalBoxY, totalBoxW, totalBoxH, 6, 6, 'F');
+
+                    doc.setTextColor(255, 255, 255);
+
+                    if (allPaid) {
+                        // Fully paid: simple, confident layout
+                        doc.setFontSize(9); doc.setFont('helvetica', 'bold');
+                        doc.text('TOTAL AMOUNT - FULLY PAID', totalBoxX + 14, totalBoxY + 22);
+                        doc.setFontSize(20); doc.setFont('helvetica', 'bold');
+                        doc.text(`LKR ${total.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, totalBoxX + 14, totalBoxY + 48);
+                    } else {
+                        // Outstanding: show total, paid, balance
+                        doc.setFontSize(8); doc.setFont('helvetica', 'normal');
+                        doc.text('Total Amount', totalBoxX + 14, totalBoxY + 18);
+                        doc.setFontSize(9); doc.setFont('helvetica', 'bold');
+                        doc.text(`LKR ${total.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, totalBoxX + totalBoxW - 14, totalBoxY + 18, { align: 'right' });
+
+                        doc.setFontSize(8); doc.setFont('helvetica', 'normal');
+                        doc.text('Amount Paid', totalBoxX + 14, totalBoxY + 33);
+                        doc.setFontSize(9); doc.setFont('helvetica', 'bold');
+                        doc.text(`LKR ${paidSoFar.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, totalBoxX + totalBoxW - 14, totalBoxY + 33, { align: 'right' });
+
+                        // Divider line
+                        doc.setDrawColor(255, 255, 255); doc.setLineWidth(0.4);
+                        doc.line(totalBoxX + 14, totalBoxY + 42, totalBoxX + totalBoxW - 14, totalBoxY + 42);
+
+                        doc.setFontSize(9); doc.setFont('helvetica', 'bold');
+                        doc.text('BALANCE DUE', totalBoxX + 14, totalBoxY + 58);
+                        doc.setFontSize(16); doc.setFont('helvetica', 'bold');
+                        doc.text(`LKR ${balanceDue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, totalBoxX + totalBoxW - 14, totalBoxY + 64, { align: 'right' });
+                    }
+
+                    currentY = totalBoxY + totalBoxH + 28;
+
+                    // ---- Thank-you note + Seal ----
+                    doc.setFontSize(10); doc.setFont('helvetica', 'bold');
+                    doc.setTextColor(...TEXT_DARK);
+                    doc.text('Thank you for choosing Bee26 Cargo Services.', margin, currentY);
+
+                    doc.setFontSize(8.5); doc.setFont('helvetica', 'normal');
+                    doc.setTextColor(...TEXT_MUTED);
+                    currentY += 14;
+                    const note = 'This receipt confirms the amounts collected for Sri Lanka customs clearance and final-mile delivery against the shipment listed above. Please retain this receipt for your records. For any queries, contact us at +1 416-474-4994 or bee26cargoservices@gmail.com.';
+                    doc.text(doc.splitTextToSize(note, pageWidth - (margin * 2) - 100), margin, currentY);
+
+                    // Seal (bottom-right) - proportional sizing
+                    if (sealBase64Data) {
+                        const sealDims = await getImgDims(sealBase64Data);
+                        if (sealDims) {
+                            const sH = 80;
+                            const sRatio = sealDims.w / sealDims.h;
+                            const sW = sH * sRatio;
+                            try { doc.addImage(sealBase64Data, 'PNG', pageWidth - margin - sW, currentY - 10, sW, sH); } catch(e) {}
+                        } else {
+                            try { doc.addImage(sealBase64Data, 'PNG', pageWidth - margin - 80, currentY - 10, 80, 80); } catch(e) {}
+                        }
+                    }
+
+                    // ---- Footer ----
+                    doc.setDrawColor(...LINE); doc.setLineWidth(0.5);
+                    doc.line(margin, pageHeight - 40, pageWidth - margin, pageHeight - 40);
+                    doc.setFontSize(7.5); doc.setFont('helvetica', 'normal');
+                    doc.setTextColor(...TEXT_MUTED);
+                    doc.text('Bee26 Cargo Services  |  Toronto, Canada  |  www.bee26.com', pageWidth / 2, pageHeight - 26, { align: 'center' });
+                    doc.text('This is a computer-generated receipt and does not require a physical signature.', pageWidth / 2, pageHeight - 14, { align: 'center' });
+
+                    // ---- Output ----
+                    const safeInv = (shipment.invoiceNumber || shipment.id || 'receipt').toString().replace(/[^A-Za-z0-9-_]/g, '_');
+                    const fileName = `BEE26_Receipt_${safeInv}.pdf`;
+
+                    if (action === 'whatsapp') {
+                        // Save the file locally so the user has the PDF to attach,
+                        // then open WhatsApp with a pre-filled message + amounts.
+                        doc.save(fileName);
+                        const phoneClean = (shipment.receiverPhone || '').replace(/[^\d]/g, '');
+                        const statusLine = allPaid
+                            ? '*Status: Fully Paid*'
+                            : `*Status: Partial / Pending*\nPaid: LKR ${paidSoFar.toLocaleString()}\nBalance Due: LKR ${balanceDue.toLocaleString()}`;
+                        const msg =
+                            `*Bee26 Cargo - Payment Receipt*\n\n` +
+                            `Invoice: *${shipment.invoiceNumber || '-'}*\n` +
+                            `Name: ${shipment.receiverName || '-'}\n\n` +
+                            `Clearance Tax: LKR ${clrCost.toLocaleString()}${isClrPaid ? ' (Paid)' : ' (Pending)'}\n` +
+                            `Delivery Charge: LKR ${delCharge.toLocaleString()}${isDelPaid ? ' (Paid)' : ' (Pending)'}\n` +
+                            `Total: LKR ${total.toLocaleString()}\n\n` +
+                            `${statusLine}\n` +
+                            `Receipt No: ${receiptNo}\n\n` +
+                            `Your receipt PDF (BEE26_Receipt_${safeInv}.pdf) has been downloaded - please attach it to this chat.\n\n` +
+                            `Thank you for choosing Bee26 Cargo Services.`;
+                        const waUrl = phoneClean
+                            ? `https://wa.me/${phoneClean}?text=${encodeURIComponent(msg)}`
+                            : `https://wa.me/?text=${encodeURIComponent(msg)}`;
+                        window.open(waUrl, '_blank', 'noopener,noreferrer');
+                    } else {
+                        doc.save(fileName);
+                    }
+                } catch (err) {
+                    console.error('Receipt generation failed:', err);
+                    alert('Failed to generate receipt: ' + err.message);
+                }
+            };
+
             // --- D. RENDER LOGIC ---
             function renderPaymentsTable() {
                 const container = document.getElementById('paymentsContainer');
@@ -3908,7 +4307,9 @@
                         td5.innerHTML=`<div style="display:flex; align-items:center; gap:8px;"><div style="position:relative;"><span style="font-size:0.7rem; color:#999; position:absolute; left:4px; top:50%; transform:translateY(-50%);">LKR</span><input type="number" class="payment-update" data-id="${s.id}" data-field="slClearanceCost" value="${s.slClearanceCost||''}" placeholder="0" style="padding:4px 4px 4px 28px; width:70px; border:1px solid #ddd; border-radius:4px;"></div><span style="padding:4px 8px; border-radius:4px; font-weight:bold; font-size:0.7rem; cursor:pointer; background:${isClrPaid?'#ffebee':'#f0f0f5'}; color:${isClrPaid?'#c62828':'#666'};" onclick="window.toggleSLStatus('${s.id}','slClearancePaid', ${isClrPaid})">${isClrPaid?'PAID':'PENDING'}</span></div>`; tr.appendChild(td5);
 
                         const td6 = document.createElement('td'); td6.style.padding='12px 15px';
-                        td6.innerHTML=`<div style="display:flex; align-items:center; gap:8px;"><div style="position:relative;"><span style="font-size:0.7rem; color:#999; position:absolute; left:4px; top:50%; transform:translateY(-50%);">LKR</span><input type="number" class="payment-update" data-id="${s.id}" data-field="slDeliveryCharge" value="${s.slDeliveryCharge||''}" placeholder="0" style="padding:4px 4px 4px 28px; width:70px; border:1px solid #ddd; border-radius:4px;"></div><span style="padding:4px 8px; border-radius:4px; font-weight:bold; font-size:0.7rem; cursor:pointer; background:${isDelPaid?'#e8f5e9':'#f0f0f5'}; color:${isDelPaid?'#2e7d32':'#666'};" onclick="window.toggleSLStatus('${s.id}','slDeliveryPaid', ${isDelPaid})">${isDelPaid?'REC\'D':'PENDING'}</span></div>`; tr.appendChild(td6);
+                        const canIssueReceipt = ((parseFloat(s.slDeliveryCharge)||0) + (parseFloat(s.slClearanceCost)||0)) > 0;
+                        const receiptReady = isDelPaid && isClrPaid; // Fully settled
+                        td6.innerHTML=`<div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;"><div style="position:relative;"><span style="font-size:0.7rem; color:#999; position:absolute; left:4px; top:50%; transform:translateY(-50%);">LKR</span><input type="number" class="payment-update" data-id="${s.id}" data-field="slDeliveryCharge" value="${s.slDeliveryCharge||''}" placeholder="0" style="padding:4px 4px 4px 28px; width:70px; border:1px solid #ddd; border-radius:4px;"></div><span style="padding:4px 8px; border-radius:4px; font-weight:bold; font-size:0.7rem; cursor:pointer; background:${isDelPaid?'#e8f5e9':'#f0f0f5'}; color:${isDelPaid?'#2e7d32':'#666'};" onclick="window.toggleSLStatus('${s.id}','slDeliveryPaid', ${isDelPaid})">${isDelPaid?'REC\'D':'PENDING'}</span>${canIssueReceipt ? `<button title="${receiptReady ? 'Generate Payment Receipt' : 'Mark both Clearance & Delivery as paid first'}" onclick="window.openReceiptDialog('${s.id}')" style="background:${receiptReady ? 'linear-gradient(135deg,#5856d6,#4c4aba)' : '#e0e0e0'}; color:${receiptReady ? '#fff' : '#999'}; border:none; padding:5px 10px; border-radius:6px; font-size:0.7rem; font-weight:700; cursor:pointer; display:inline-flex; align-items:center; gap:4px; box-shadow:${receiptReady ? '0 2px 4px rgba(88,86,214,0.25)' : 'none'};">📄 Receipt</button>` : ''}</div>`; tr.appendChild(td6);
 
                         tbody.appendChild(tr);
                     });
