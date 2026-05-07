@@ -134,6 +134,184 @@
             background: #fafafa;
         }
 
+        /* --- IMAGE PERFORMANCE OPTIMIZATION ---
+           Forces browser to render images at small sizes (saving GPU/memory),
+           uses async decoding, and lazy-loads images that are off-screen. */
+        .perf-img {
+            image-rendering: auto;
+            transform: translateZ(0); /* GPU layer for smoother scrolling */
+            will-change: transform;
+            content-visibility: auto;
+            background: #f0f0f5;
+        }
+
+        /* --- BATCH DIVIDER (groups boxes by batch on the home list) --- */
+        .batch-divider {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            margin: 14px 0 8px 0;
+            padding: 8px 12px;
+            background: linear-gradient(135deg, #1c1c1e, #3a3a3c);
+            color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+        }
+        .batch-divider:first-child { margin-top: 4px; }
+        .batch-divider-title {
+            font-size: 0.9rem;
+            font-weight: 800;
+            letter-spacing: 0.3px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            min-width: 0;
+        }
+        .batch-divider-stats {
+            font-size: 0.72rem;
+            font-weight: 600;
+            background: rgba(255,255,255,0.18);
+            padding: 3px 9px;
+            border-radius: 10px;
+            white-space: nowrap;
+        }
+        .batch-divider.delivered { background: linear-gradient(135deg, #1d6f2b, #28a745); }
+
+        /* Tighter spacing for the home list (better on mobile + desktop) */
+        .invoice-list-item {
+            padding: 10px 12px !important;
+            margin-bottom: 6px !important;
+        }
+        .invoice-list-item strong { font-size: 0.95rem !important; }
+        .invoice-list-item .invoice-status {
+            font-size: 0.72rem !important;
+            padding: 3px 8px !important;
+        }
+        .item-thumb {
+            width: 55px;
+            height: 55px;
+            border-radius: 6px;
+            object-fit: cover;
+            cursor: pointer;
+            border: 1px solid #ddd;
+            background: #f0f0f5;
+        }
+
+        /* --- RECEIVER GROUP STYLING (for category breakdown) --- */
+        .receiver-group {
+            border: 2px solid;
+            border-radius: 12px;
+            padding: 10px;
+            margin-bottom: 14px;
+            background: #fff;
+        }
+        .receiver-group-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 10px;
+            padding: 8px 10px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            font-weight: 700;
+            color: #fff;
+        }
+        .receiver-group-name {
+            font-size: 1rem;
+            line-height: 1.2;
+            margin-bottom: 4px;
+        }
+        .receiver-group-meta {
+            font-size: 0.75rem;
+            font-weight: 500;
+            opacity: 0.95;
+            line-height: 1.4;
+        }
+        .receiver-group-progress {
+            background: rgba(255,255,255,0.25);
+            border-radius: 12px;
+            padding: 4px 10px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            white-space: nowrap;
+            align-self: center;
+        }
+        .receiver-batch-badge {
+            display: inline-block;
+            background: rgba(255,255,255,0.22);
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            margin-right: 4px;
+            letter-spacing: 0.3px;
+        }
+
+        /* --- AUTO-SAVE SYNC INDICATOR --- */
+        .sync-indicator {
+            position: fixed;
+            top: 14px;
+            right: 14px;
+            background: rgba(28, 28, 30, 0.92);
+            color: #fff;
+            padding: 8px 14px;
+            border-radius: 20px;
+            font-size: 0.78rem;
+            font-weight: 600;
+            z-index: 2000;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            opacity: 0;
+            transform: translateY(-8px);
+            transition: opacity 0.25s ease, transform 0.25s ease;
+            pointer-events: none;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.18);
+        }
+        .sync-indicator.visible { opacity: 1; transform: translateY(0); }
+        .sync-indicator.saving { background: linear-gradient(135deg, #007aff, #5856d6); }
+        .sync-indicator.saved { background: linear-gradient(135deg, #28a745, #20a13b); }
+        .sync-indicator.error { background: linear-gradient(135deg, #ff3b30, #ff6b6b); }
+        .sync-indicator .spinner {
+            width: 12px;
+            height: 12px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* Live progress bar at top of details */
+        .live-progress-bar {
+            background: #f0f0f5;
+            border-radius: 10px;
+            padding: 10px 12px;
+            margin-bottom: 10px;
+            border: 1px solid var(--grey-mid);
+        }
+        .live-progress-track {
+            height: 8px;
+            background: #e5e5ea;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 6px;
+        }
+        .live-progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #28a745, #20a13b);
+            transition: width 0.35s ease;
+            border-radius: 4px;
+        }
+        .live-progress-text {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
         .item-header {
             display: flex;
             justify-content: space-between;
@@ -555,6 +733,17 @@
                     <button class="btn btn-outline btn-small" id="btn-receive-all" style="margin: 0; padding: 4px 8px; font-size: 0.75rem;">✓ Mark All Rcvd</button>
                 </div>
 
+                <!-- Live progress (auto-syncing to admin) -->
+                <div class="live-progress-bar" id="live-progress-bar">
+                    <div class="live-progress-text">
+                        <span id="live-progress-label">Receiving Progress</span>
+                        <span id="live-progress-count">0 / 0</span>
+                    </div>
+                    <div class="live-progress-track">
+                        <div class="live-progress-fill" id="live-progress-fill" style="width: 0%;"></div>
+                    </div>
+                </div>
+
                 <button class="scanner-fab" id="btn-open-scanner" type="button">
                     <span style="font-size:1.1rem;">📷</span> Scan Item Barcode to Identify
                 </button>
@@ -563,9 +752,15 @@
                 <div id="items-missing-container"></div>
                 <div id="items-received-container"></div>
 
-                <button class="btn btn-success" id="btn-submit-receipt" style="margin-top: 15px;">Submit Receiving Report</button>
+                <button class="btn btn-success" id="btn-submit-receipt" style="margin-top: 15px;">✓ Finalize & Submit Report</button>
+                <p style="text-align:center; font-size:0.75rem; color: var(--text-secondary); margin-top: 8px;">
+                    💾 Your changes are auto-saved as you scan — admin sees live updates.
+                </p>
             </div>
         </div>
+
+        <!-- Auto-save status indicator (top-right floating) -->
+        <div class="sync-indicator" id="sync-indicator"></div>
 
         <!-- Scanner Panel -->
         <div class="scanner-panel" id="scanner-panel">
@@ -626,10 +821,28 @@
                 let currentDeliveredPage = 1;
                 const deliveredItemsPerPage = 5;
 
-                // Helper to render delivered items grouped
+                // Natural sort for batch names like "Batch - 10" vs "Batch - 2"
+                // (so they sort numerically, not lexicographically)
+                function naturalBatchSort(a, b) {
+                    const ax = String(a).match(/(\d+)/g);
+                    const bx = String(b).match(/(\d+)/g);
+                    if (ax && bx) {
+                        const an = parseInt(ax[ax.length - 1], 10);
+                        const bn = parseInt(bx[bx.length - 1], 10);
+                        if (an !== bn) return an - bn;
+                    }
+                    return String(a).localeCompare(String(b));
+                }
+
+                // Lightweight escape (used in list rendering — avoids reflow from .textContent)
+                function escapeHtmlSafe(s) {
+                    return String(s == null ? '' : s)
+                        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+                        .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+                }
+
+                // Helper to render delivered items grouped by batch (single DOM write = fast on slow networks)
                 function renderDeliveredItems() {
-                    invoicesDeliveredContainer.innerHTML = '';
-                    
                     if (deliveredBoxesArray.length === 0) {
                         invoicesDeliveredContainer.innerHTML = '<p style="text-align:center; font-size:0.85rem;">No completed boxes.</p>';
                         paginationControls.style.display = 'none';
@@ -644,28 +857,50 @@
                     const endIndex = startIndex + deliveredItemsPerPage;
                     const itemsToDisplay = deliveredBoxesArray.slice(startIndex, endIndex);
 
+                    // Group the visible page by batch
+                    const byBatch = {};
                     itemsToDisplay.forEach(box => {
-                        const itemHtml = `
-                            <div class="invoice-list-item" onclick="openBox('${box.key}')">
-                                <div>
-                                    <strong style="font-size: 1.1rem; color: var(--green);">✅ Batch: ${box.batchNo} | ${box.boxNo}</strong>
-                                    <div style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 4px;">Total Items in Box: ${box.items.length}</div>
-                                </div>
-                                <div class="invoice-status" style="background: var(--green); color: white;">
-                                    Delivered
-                                </div>
+                        const k = box.batchNo || 'Unassigned Batch';
+                        if (!byBatch[k]) byBatch[k] = [];
+                        byBatch[k].push(box);
+                    });
+
+                    const batchNames = Object.keys(byBatch).sort(naturalBatchSort);
+                    let html = '';
+                    batchNames.forEach(batchName => {
+                        const boxes = byBatch[batchName];
+                        let totalItemsInBatch = 0;
+                        boxes.forEach(b => totalItemsInBatch += b.items.length);
+
+                        html += `
+                            <div class="batch-divider delivered">
+                                <div class="batch-divider-title">✅ ${escapeHtmlSafe(batchName)}</div>
+                                <div class="batch-divider-stats">${boxes.length} ${boxes.length === 1 ? 'box' : 'boxes'} · ${totalItemsInBatch} items</div>
                             </div>
                         `;
-                        invoicesDeliveredContainer.insertAdjacentHTML('beforeend', itemHtml);
+                        boxes.forEach(box => {
+                            html += `
+                                <div class="invoice-list-item" onclick="openBox('${box.key}')">
+                                    <div>
+                                        <strong style="color: var(--text-primary);">📦 ${escapeHtmlSafe(box.boxNo)}</strong>
+                                        <div style="font-size: 0.78rem; color: var(--text-secondary); margin-top: 2px;">${box.items.length} items</div>
+                                    </div>
+                                    <div class="invoice-status" style="background: var(--green); color: white;">
+                                        Delivered
+                                    </div>
+                                </div>
+                            `;
+                        });
                     });
-                    
+                    invoicesDeliveredContainer.innerHTML = html; // single DOM write
+
                     // Handle Pagination Controls
                     if (totalPages > 1) {
                         paginationControls.style.display = 'flex';
                         pageIndicator.textContent = `Page ${currentDeliveredPage} of ${totalPages}`;
                         btnPrevPage.disabled = currentDeliveredPage === 1;
                         btnNextPage.disabled = currentDeliveredPage === totalPages;
-                        
+
                         btnPrevPage.style.opacity = currentDeliveredPage === 1 ? '0.5' : '1';
                         btnNextPage.style.opacity = currentDeliveredPage === totalPages ? '0.5' : '1';
                     } else {
@@ -779,36 +1014,61 @@
                                 }
                             });
 
+                            // Build pending boxes grouped by batch (single DOM write = much faster on slow networks)
                             let pendingCount = 0;
-                            const sortedBoxKeys = Object.keys(allBoxes).sort();
+                            const sortedBoxKeys = Object.keys(allBoxes).sort(naturalBatchSort);
 
+                            // Group pending boxes by batch
+                            const pendingByBatch = {};
                             sortedBoxKeys.forEach(boxKey => {
                                 const box = allBoxes[boxKey];
                                 const isDelivered = box.totalReceived >= box.totalExpected && box.totalExpected > 0;
-                                
+
                                 if (isDelivered) {
                                     deliveredBoxesArray.push(box);
                                 } else {
-                                    const statusBg = '#fff9f0'; 
-                                    const statusColor = '#ff9500';
-                                    const itemHtml = `
-                                        <div class="invoice-list-item" onclick="openBox('${boxKey}')">
-                                            <div>
-                                                <strong style="font-size: 1.1rem; color: var(--purple);">📦 Batch: ${box.batchNo} | ${box.boxNo}</strong>
-                                                <div style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 4px;">Total Items in Box: ${box.items.length}</div>
-                                            </div>
-                                            <div class="invoice-status" style="background: ${statusBg}; color: ${statusColor};">
-                                                Pending
-                                            </div>
-                                        </div>
-                                    `;
-                                    invoicesPendingContainer.insertAdjacentHTML('beforeend', itemHtml);
+                                    const batchKey = box.batchNo || 'Unassigned Batch';
+                                    if (!pendingByBatch[batchKey]) pendingByBatch[batchKey] = [];
+                                    pendingByBatch[batchKey].push(box);
                                     pendingCount++;
                                 }
                             });
-                            
-                            if (pendingCount === 0) invoicesPendingContainer.innerHTML = '<p style="text-align:center; font-size:0.85rem;">No pending boxes.</p>';
-                            
+
+                            // Build the entire pending HTML in memory, inject in one go
+                            if (pendingCount === 0) {
+                                invoicesPendingContainer.innerHTML = '<p style="text-align:center; font-size:0.85rem;">No pending boxes.</p>';
+                            } else {
+                                const batchNames = Object.keys(pendingByBatch).sort(naturalBatchSort);
+                                let pendingHtml = '';
+                                batchNames.forEach(batchName => {
+                                    const boxes = pendingByBatch[batchName];
+                                    let totalItemsInBatch = 0;
+                                    boxes.forEach(b => totalItemsInBatch += b.items.length);
+
+                                    pendingHtml += `
+                                        <div class="batch-divider">
+                                            <div class="batch-divider-title">📋 ${escapeHtmlSafe(batchName)}</div>
+                                            <div class="batch-divider-stats">${boxes.length} ${boxes.length === 1 ? 'box' : 'boxes'} · ${totalItemsInBatch} items</div>
+                                        </div>
+                                    `;
+
+                                    boxes.forEach(box => {
+                                        pendingHtml += `
+                                            <div class="invoice-list-item" onclick="openBox('${box.key}')">
+                                                <div>
+                                                    <strong style="color: var(--text-primary);">📦 ${escapeHtmlSafe(box.boxNo)}</strong>
+                                                    <div style="font-size: 0.78rem; color: var(--text-secondary); margin-top: 2px;">${box.items.length} items</div>
+                                                </div>
+                                                <div class="invoice-status" style="background: #fff9f0; color: #ff9500;">
+                                                    Pending
+                                                </div>
+                                            </div>
+                                        `;
+                                    });
+                                });
+                                invoicesPendingContainer.innerHTML = pendingHtml; // single DOM write
+                            }
+
                             if (deliveredBoxesArray.length > 0) {
                                 deliveredSectionWrapper.style.display = 'block';
                                 // Only render if currently viewing delivered items
@@ -844,17 +1104,154 @@
 
                     // Populate UI
                     document.getElementById('display-invoice').textContent = `Batch: ${box.batchNo} | ${box.boxNo}`;
-                    document.getElementById('display-sender').textContent = senders.length > 1 ? 'Multiple Senders' : (senders[0] || 'N/A');
-                    document.getElementById('display-receiver').textContent = receivers.length > 1 ? 'Multiple Receivers' : (receivers[0] || 'N/A');
-                    document.getElementById('display-receiver-phone').textContent = '--';
-                    document.getElementById('display-receiver-address').textContent = '--';
+                    document.getElementById('display-sender').textContent = senders.length > 1 ? `${senders.length} Senders` : (senders[0] || 'N/A');
+                    document.getElementById('display-receiver').textContent = receivers.length > 1 ? `${receivers.length} Receivers` : (receivers[0] || 'N/A');
+                    document.getElementById('display-receiver-phone').textContent = receivers.length > 1 ? 'See per-receiver below' : (currentBoxItems[0]?.receiverPhone || '--');
+                    document.getElementById('display-receiver-address').textContent = receivers.length > 1 ? 'See per-receiver below' : (currentBoxItems[0]?.receiverAddress || '--');
                     document.getElementById('display-packages').textContent = `${currentBoxItems.length} Items`;
                     
+                    // Mark this session "in progress" so admin knows receiving has started
+                    markSessionStarted();
                     renderItems();
                     
                     invoiceListSection.style.display = "none";
                     detailsSection.style.display = "block";
                 };
+
+                // ============================================================
+                // AUTO-SAVE ENGINE
+                // Every change to receivedQty is debounced + batched to Firebase
+                // so the admin sees real-time progress (e.g. 15/20 paused).
+                // ============================================================
+                const syncIndicator = document.getElementById('sync-indicator');
+                let pendingUpdates = {};      // path -> value
+                let saveTimer = null;
+                const SAVE_DEBOUNCE_MS = 350; // small window to batch rapid clicks
+
+                function showSync(state, text) {
+                    if (!syncIndicator) return;
+                    syncIndicator.className = 'sync-indicator visible ' + state;
+                    if (state === 'saving') {
+                        syncIndicator.innerHTML = `<span class="spinner"></span> ${text || 'Saving…'}`;
+                    } else if (state === 'saved') {
+                        syncIndicator.innerHTML = `✓ ${text || 'Saved'}`;
+                        setTimeout(() => syncIndicator.classList.remove('visible'), 1400);
+                    } else if (state === 'error') {
+                        syncIndicator.innerHTML = `⚠ ${text || 'Save failed — retrying'}`;
+                        setTimeout(() => syncIndicator.classList.remove('visible'), 2500);
+                    }
+                }
+
+                function queueUpdate(path, value) {
+                    pendingUpdates[path] = value;
+                    if (saveTimer) clearTimeout(saveTimer);
+                    saveTimer = setTimeout(flushUpdates, SAVE_DEBOUNCE_MS);
+                }
+
+                async function flushUpdates() {
+                    if (Object.keys(pendingUpdates).length === 0) return;
+                    const batch = pendingUpdates;
+                    pendingUpdates = {};
+
+                    // Always include a fresh progress snapshot on the box so admin can see live status
+                    if (currentBoxKey) {
+                        Object.assign(batch, buildBoxProgressSnapshot());
+                    }
+
+                    showSync('saving');
+                    try {
+                        await window.dbUpdate(window.dbRef(db, '/'), batch);
+                        showSync('saved');
+                    } catch (err) {
+                        console.error('Auto-save failed:', err);
+                        // Re-queue failed writes so they retry on the next change
+                        Object.assign(pendingUpdates, batch);
+                        showSync('error');
+                        // Auto-retry after a short delay
+                        setTimeout(flushUpdates, 3000);
+                    }
+                }
+
+                // Build a denormalized progress snapshot for the admin dashboard
+                function buildBoxProgressSnapshot() {
+                    const updates = {};
+                    if (!currentBoxKey) return updates;
+                    const box = allBoxes[currentBoxKey];
+                    if (!box) return updates;
+
+                    let totalExpected = 0;
+                    let totalReceived = 0;
+                    currentBoxItems.forEach(bi => {
+                        const e = parseFloat(bi.data.qty) || 0;
+                        const r = bi.data.receivedQty !== undefined ? parseFloat(bi.data.receivedQty) : 0;
+                        totalExpected += e;
+                        totalReceived += r;
+                    });
+
+                    const status = totalReceived === 0
+                        ? 'not_started'
+                        : (totalReceived >= totalExpected ? 'completed' : 'in_progress');
+
+                    // Safe key derived from boxKey (Firebase keys can't contain '|', etc.)
+                    const safeKey = String(currentBoxKey).replace(/[\.\#\$\/\[\]\|]/g, '_');
+
+                    updates[`receivingProgress/${safeKey}/batchNo`] = box.batchNo;
+                    updates[`receivingProgress/${safeKey}/boxNo`] = box.boxNo;
+                    updates[`receivingProgress/${safeKey}/totalExpected`] = totalExpected;
+                    updates[`receivingProgress/${safeKey}/totalReceived`] = totalReceived;
+                    updates[`receivingProgress/${safeKey}/status`] = status;
+                    updates[`receivingProgress/${safeKey}/lastUpdatedAt`] = Date.now();
+                    updates[`receivingProgress/${safeKey}/itemCount`] = currentBoxItems.length;
+                    updates[`receivingProgress/${safeKey}/receivers`] = [...new Set(currentBoxItems.map(i => i.receiverName))].join(', ');
+
+                    return updates;
+                }
+
+                function markSessionStarted() {
+                    // Mark this box as actively being received (visible to admin)
+                    if (!currentBoxKey) return;
+                    const safeKey = String(currentBoxKey).replace(/[\.\#\$\/\[\]\|]/g, '_');
+                    queueUpdate(`receivingProgress/${safeKey}/sessionOpenedAt`, Date.now());
+                    Object.assign(pendingUpdates, buildBoxProgressSnapshot());
+                    if (saveTimer) clearTimeout(saveTimer);
+                    saveTimer = setTimeout(flushUpdates, SAVE_DEBOUNCE_MS);
+                }
+
+                // Auto-flush any pending changes before the page is closed/hidden
+                window.addEventListener('beforeunload', () => {
+                    if (Object.keys(pendingUpdates).length > 0) flushUpdates();
+                });
+                document.addEventListener('visibilitychange', () => {
+                    if (document.visibilityState === 'hidden' && Object.keys(pendingUpdates).length > 0) {
+                        flushUpdates();
+                    }
+                });
+
+                // Single function to update progress bar + queue auto-save for one item
+                function autoSaveItem(boxItem) {
+                    const received = boxItem.data.receivedQty !== undefined ? parseFloat(boxItem.data.receivedQty) : 0;
+                    queueUpdate(`shipments/${boxItem.shipmentId}/items/${boxItem.itemIndex}/receivedQty`, received);
+                    updateLiveProgress();
+                }
+
+                function updateLiveProgress() {
+                    let exp = 0, rec = 0;
+                    currentBoxItems.forEach(bi => {
+                        exp += parseFloat(bi.data.qty) || 0;
+                        rec += bi.data.receivedQty !== undefined ? parseFloat(bi.data.receivedQty) : 0;
+                    });
+                    const pct = exp > 0 ? Math.min(100, (rec / exp) * 100) : 0;
+                    const fillEl = document.getElementById('live-progress-fill');
+                    const countEl = document.getElementById('live-progress-count');
+                    const labelEl = document.getElementById('live-progress-label');
+                    if (fillEl) fillEl.style.width = pct + '%';
+                    if (countEl) countEl.textContent = `${rec} / ${exp}`;
+                    if (labelEl) {
+                        if (rec === 0) labelEl.textContent = '⏳ Not Started';
+                        else if (rec >= exp) labelEl.textContent = '✅ All Items Received';
+                        else labelEl.textContent = `📦 In Progress`;
+                    }
+                }
 
                 // --- BACK BUTTON ---
                 btnBack.addEventListener('click', () => {
@@ -877,11 +1274,12 @@
                     imageModal.style.display = "flex";
                 };
 
-                // --- QTY CHANGE HANDLER (Update Model & Re-render) ---
+                // --- QTY CHANGE HANDLER (Update Model, Auto-Save, Re-render) ---
                 window.handleQtyChange = function(elem, index) {
                     const val = parseInt(elem.value);
                     if (currentBoxItems[index]) {
                         currentBoxItems[index].data.receivedQty = val;
+                        autoSaveItem(currentBoxItems[index]); // instant Firebase sync to admin
                         renderItems(); // Re-render to move to correct category instantly
                     }
                 };
@@ -1094,6 +1492,7 @@
                         recvBtn.onclick = () => {
                             const newReceived = Math.min(expected, received + 1);
                             currentBoxItems[index].data.receivedQty = newReceived;
+                            autoSaveItem(currentBoxItems[index]); // instant Firebase sync to admin
                             renderItems();
                             beep(true); vibrate(40);
                             // Re-render the result so counts update; keep overlay open for further scans
@@ -1161,49 +1560,80 @@
                 // Auto-stop scanner if user navigates back
                 btnBack.addEventListener('click', () => { closeScanner(); scanResultOverlay.classList.remove('open'); });
 
-                // --- 2. RENDER ITEMS (Render all items for this Box) ---
+                // --- 2. RENDER ITEMS (Receiver-grouped + status-categorized) ---
+                // Layout strategy:
+                //   1. Group items by receiver (so receivers + addresses are highlighted together)
+                //   2. Within each receiver group, sub-categorize by status (Not Received / Partial / Fully Received)
+                //   3. Each receiver gets a unique header color tied to their batch+box+receiver
                 function renderItems() {
                     const notReceivedContainer = document.getElementById('items-not-received-container');
                     const missingContainer = document.getElementById('items-missing-container');
                     const receivedContainer = document.getElementById('items-received-container');
-                    
+
+                    // Use only the first container; clear the others (we render everything inside one flow now)
                     notReceivedContainer.innerHTML = '';
                     missingContainer.innerHTML = '';
                     receivedContainer.innerHTML = '';
 
-                    let notReceivedHtml = '';
-                    let missingHtml = '';
-                    let receivedHtml = '';
-                    let notReceivedCount = 0;
-                    let missingCount = 0;
-                    let receivedCount = 0;
-
                     if (currentBoxItems.length === 0) {
                         notReceivedContainer.innerHTML = '<p>No items found in this box.</p>';
+                        updateLiveProgress();
                         return;
                     }
 
+                    // ------- Group by Receiver -------
+                    // Key: receiverName + receiverPhone (so identical names with different phones don't merge)
+                    const groups = {};
+                    const groupOrder = [];
                     currentBoxItems.forEach((boxItem, index) => {
+                        const key = `${boxItem.receiverName || 'Unknown'}|||${boxItem.receiverPhone || ''}`;
+                        if (!groups[key]) {
+                            groups[key] = {
+                                receiverName: boxItem.receiverName || 'Unknown',
+                                receiverPhone: boxItem.receiverPhone || '',
+                                receiverAddress: boxItem.receiverAddress || '',
+                                batchNo: boxItem.batchNo || '',
+                                boxNo: boxItem.boxNo || '',
+                                items: []
+                            };
+                            groupOrder.push(key);
+                        }
+                        groups[key].items.push({ boxItem, index });
+                    });
+
+                    // Color palette for receiver headers (deterministic per name)
+                    const palette = [
+                        { bg: 'linear-gradient(135deg, #007aff, #5856d6)', border: '#007aff' },
+                        { bg: 'linear-gradient(135deg, #ff9500, #ff6b35)', border: '#ff9500' },
+                        { bg: 'linear-gradient(135deg, #28a745, #20a13b)', border: '#28a745' },
+                        { bg: 'linear-gradient(135deg, #af52de, #5856d6)', border: '#af52de' },
+                        { bg: 'linear-gradient(135deg, #ff3b30, #ff6b6b)', border: '#ff3b30' },
+                        { bg: 'linear-gradient(135deg, #00b8a9, #00d4b4)', border: '#00b8a9' },
+                        { bg: 'linear-gradient(135deg, #5856d6, #007aff)', border: '#5856d6' }
+                    ];
+                    function colorFor(str) {
+                        let h = 0;
+                        for (let i = 0; i < str.length; i++) h = (h * 31 + str.charCodeAt(i)) | 0;
+                        return palette[Math.abs(h) % palette.length];
+                    }
+
+                    // Helper to build single item card HTML
+                    function buildItemCard(boxItem, index) {
                         const item = boxItem.data;
                         const expectedQty = parseFloat(item.qty) || 0;
-                        
-                        // Default to 0 if undefined
                         const receivedQty = item.receivedQty !== undefined ? parseFloat(item.receivedQty) : 0;
 
-                        // Create select dropdown options
                         let optionsHtml = '';
                         for (let i = 0; i <= expectedQty; i++) {
                             optionsHtml += `<option value="${i}" ${i === receivedQty ? 'selected' : ''}>${i}</option>`;
                         }
 
-                        // Determine styles based on receiving status
                         let cardStyle = "";
                         let labelText = "";
                         let labelStyle = "";
-
                         if (receivedQty === 0) {
                             cardStyle = "border-color: #ff3b30; background-color: #fff0f0;";
-                            labelText = "Item Not Received:";
+                            labelText = "Not Received:";
                             labelStyle = "color: #ff3b30;";
                         } else if (receivedQty < expectedQty) {
                             const missing = expectedQty - receivedQty;
@@ -1216,7 +1646,12 @@
                             labelStyle = "color: #28a745;";
                         }
 
-                        const itemHtml = `
+                        // Lazy-loaded, low-overhead image (loading="lazy", decoding="async")
+                        const imgHtml = item.image
+                            ? `<img src="${item.image}" loading="lazy" decoding="async" onclick="window.openImageModal('${item.image}')" class="item-thumb perf-img">`
+                            : '';
+
+                        return `
                             <div class="item-card" id="item-card-${index}" style="${cardStyle}">
                                 <div class="item-header">
                                     <div style="flex-grow: 1; padding-right: 10px;">
@@ -1224,13 +1659,11 @@
                                         <div class="item-expected">
                                             <strong>Invoice:</strong> <span style="color: var(--blue); font-weight: 600;">${boxItem.invoiceNumber}</span> <br>
                                             <strong>Sender:</strong> ${boxItem.senderName || '--'} <br>
-                                            <strong>Receiver:</strong> ${boxItem.receiverName || '--'} <br>
-                                            <strong>Address:</strong> <span style="word-break: break-word;">${boxItem.receiverAddress || '--'}</span> <br>
                                             <strong>BC:</strong> ${item.barcode || '--'} | <strong>Br:</strong> ${item.brand || '--'} <br>
                                             <strong>Expected Qty:</strong> ${expectedQty}
                                         </div>
                                     </div>
-                                    ${item.image ? `<img src="${item.image}" onclick="window.openImageModal('${item.image}')" style="width: 55px; height: 55px; border-radius: 6px; object-fit: cover; cursor: pointer; border: 1px solid #ddd;">` : ''}
+                                    ${imgHtml}
                                 </div>
                                 <div class="item-action">
                                     <label id="item-label-${index}" style="${labelStyle}">${labelText}</label>
@@ -1240,42 +1673,109 @@
                                 </div>
                             </div>
                         `;
+                    }
 
-                        // Group them
-                        if (receivedQty === 0) {
-                            notReceivedHtml += itemHtml;
-                            notReceivedCount++;
-                        } else if (receivedQty < expectedQty) {
-                            missingHtml += itemHtml;
-                            missingCount++;
-                        } else {
-                            receivedHtml += itemHtml;
-                            receivedCount++;
-                        }
+                    // ------- Render each receiver group -------
+                    let totalNotReceived = 0, totalPartial = 0, totalFully = 0;
+                    let html = '';
+
+                    groupOrder.forEach(key => {
+                        const g = groups[key];
+                        const color = colorFor(g.receiverName + g.receiverPhone);
+
+                        // Compute progress for this receiver
+                        let gExp = 0, gRec = 0, gItems = g.items.length;
+                        const sortedItems = g.items.slice().sort((a, b) => {
+                            // Sort: not received -> partial -> fully received
+                            const sa = statusRank(a.boxItem.data);
+                            const sb = statusRank(b.boxItem.data);
+                            return sa - sb;
+                        });
+                        sortedItems.forEach(({ boxItem }) => {
+                            const e = parseFloat(boxItem.data.qty) || 0;
+                            const r = boxItem.data.receivedQty !== undefined ? parseFloat(boxItem.data.receivedQty) : 0;
+                            gExp += e; gRec += r;
+                            if (r === 0) totalNotReceived++;
+                            else if (r < e) totalPartial++;
+                            else totalFully++;
+                        });
+
+                        // Group header (highlighted receiver + address + batch/box)
+                        html += `
+                            <div class="receiver-group" style="border-color: ${color.border};">
+                                <div class="receiver-group-header" style="background: ${color.bg};">
+                                    <div style="flex: 1; min-width: 0;">
+                                        <div>
+                                            <span class="receiver-batch-badge">📋 ${escapeHtml(g.batchNo)}</span>
+                                            <span class="receiver-batch-badge">📦 ${escapeHtml(g.boxNo)}</span>
+                                        </div>
+                                        <div class="receiver-group-name" style="margin-top:6px;">👤 ${escapeHtml(g.receiverName)}</div>
+                                        <div class="receiver-group-meta">
+                                            ${g.receiverPhone ? `📞 ${escapeHtml(g.receiverPhone)}<br>` : ''}
+                                            ${g.receiverAddress ? `📍 ${escapeHtml(g.receiverAddress)}` : ''}
+                                        </div>
+                                    </div>
+                                    <div class="receiver-group-progress">${gRec} / ${gExp}</div>
+                                </div>
+                        `;
+
+                        // Items inside this receiver group
+                        sortedItems.forEach(({ boxItem, index }) => {
+                            html += buildItemCard(boxItem, index);
+                        });
+
+                        html += `</div>`;
                     });
 
-                    if (notReceivedCount > 0) notReceivedContainer.innerHTML = `<div class="category-header header-red">Not Received (${notReceivedCount})</div>` + notReceivedHtml;
-                    if (missingCount > 0) missingContainer.innerHTML = `<div class="category-header header-orange">Partially Received (${missingCount})</div>` + missingHtml;
-                    if (receivedCount > 0) receivedContainer.innerHTML = `<div class="category-header header-green">Fully Received (${receivedCount})</div>` + receivedHtml;
+                    // Status summary header at the top (compact)
+                    const summary = `
+                        <div style="display:flex; gap:6px; margin-bottom:12px; flex-wrap:wrap;">
+                            ${totalNotReceived > 0 ? `<span class="category-header header-red" style="margin:0; font-size:0.75rem; padding:4px 8px;">🔴 Not Rcvd: ${totalNotReceived}</span>` : ''}
+                            ${totalPartial > 0 ? `<span class="category-header header-orange" style="margin:0; font-size:0.75rem; padding:4px 8px;">🟠 Partial: ${totalPartial}</span>` : ''}
+                            ${totalFully > 0 ? `<span class="category-header header-green" style="margin:0; font-size:0.75rem; padding:4px 8px;">🟢 Rcvd: ${totalFully}</span>` : ''}
+                        </div>
+                    `;
+
+                    notReceivedContainer.innerHTML = summary + html;
+                    updateLiveProgress();
                 }
 
-                // --- 3. MARK ALL AS RECEIVED ---
+                // Helper: rank statuses for in-group sorting
+                function statusRank(itemData) {
+                    const e = parseFloat(itemData.qty) || 0;
+                    const r = itemData.receivedQty !== undefined ? parseFloat(itemData.receivedQty) : 0;
+                    if (r === 0) return 0;        // Not Received first
+                    if (r < e) return 1;           // Partial second
+                    return 2;                      // Fully Received last
+                }
+
+                // --- 3. MARK ALL AS RECEIVED (auto-saves) ---
                 document.getElementById('btn-receive-all').addEventListener('click', () => {
+                    if (!confirm('Mark all items in this box as fully received?')) return;
                     currentBoxItems.forEach(boxItem => {
                         if (boxItem && boxItem.data) {
                             boxItem.data.receivedQty = parseFloat(boxItem.data.qty) || 0;
+                            // Queue per-item updates in the same batch
+                            queueUpdate(
+                                `shipments/${boxItem.shipmentId}/items/${boxItem.itemIndex}/receivedQty`,
+                                boxItem.data.receivedQty
+                            );
                         }
                     });
                     renderItems(); // Re-render to move all to Fully Received
                 });
 
-                // --- 4. CROSS-SHIPMENT SUBMIT TO FIREBASE ---
+                // --- 4. FINALIZE SUBMIT (auto-save already happened — this just flushes & finalizes) ---
                 document.getElementById('btn-submit-receipt').addEventListener('click', async () => {
                     const submitBtn = document.getElementById('btn-submit-receipt');
-                    submitBtn.textContent = "Updating System...";
+                    submitBtn.textContent = "Finalizing...";
                     submitBtn.disabled = true;
 
-                    const updates = {};
+                    // Force-flush any pending in-flight auto-saves first
+                    if (saveTimer) { clearTimeout(saveTimer); saveTimer = null; }
+
+                    const updates = { ...pendingUpdates };
+                    pendingUpdates = {};
                     let shipmentsToRecheck = new Set();
 
                     // Step 1: Update specific items within their parent shipments
@@ -1295,7 +1795,6 @@
                             const expected = parseFloat(item.qty) || 0;
                             let received = 0;
 
-                            // Check if this item is the one we just updated in the UI
                             const updatedBoxItem = currentBoxItems.find(bi => bi.shipmentId === shipmentId && bi.itemIndex === index);
                             if (updatedBoxItem) {
                                 received = updatedBoxItem.data.receivedQty !== undefined ? parseFloat(updatedBoxItem.data.receivedQty) : 0;
@@ -1308,23 +1807,35 @@
                             }
                         });
 
-                        // Set the overall status of the shipment based on ALL its items
                         updates[`shipments/${shipmentId}/deliveryStatus`] = allFullyReceived ? 'Delivered' : 'Pending';
                     });
 
+                    // Mark the box session as finalized
+                    if (currentBoxKey) {
+                        Object.assign(updates, buildBoxProgressSnapshot());
+                        const safeKey = String(currentBoxKey).replace(/[\.\#\$\/\[\]\|]/g, '_');
+                        updates[`receivingProgress/${safeKey}/finalizedAt`] = Date.now();
+                        updates[`receivingProgress/${safeKey}/finalized`] = true;
+                    }
+
                     try {
+                        showSync('saving', 'Finalizing…');
                         await window.dbUpdate(window.dbRef(db, '/'), updates);
-                        
+                        showSync('saved', 'Submitted ✓');
+
                         alert("Thank you! The box receipt has been logged successfully.");
-                        submitBtn.textContent = "Submit Receiving Report";
+                        submitBtn.textContent = "✓ Finalize & Submit Report";
                         submitBtn.disabled = false;
                         document.getElementById('shipment-details').style.display = "none";
                         document.getElementById('invoice-list-section').style.display = "block";
                         loadAllInvoices();
                     } catch (error) {
                         console.error("Error updating receipt: ", error);
-                        alert("Failed to save. Please try again.");
-                        submitBtn.textContent = "Submit Receiving Report";
+                        showSync('error', 'Submit failed');
+                        alert("Failed to save. Please try again — your auto-saved progress is still safe.");
+                        // Re-queue the updates so they can retry
+                        Object.assign(pendingUpdates, updates);
+                        submitBtn.textContent = "✓ Finalize & Submit Report";
                         submitBtn.disabled = false;
                     }
                 });
