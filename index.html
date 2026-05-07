@@ -900,24 +900,315 @@
             .b2-stat:nth-child(1), .b2-stat:nth-child(2) { border-bottom: 1px solid #ececf5; }
         }
         @media (max-width: 900px) { .financial-dashboard-grid { grid-template-columns: 1fr 1fr; } }
-        @media (max-width: 720px) {
-            .kpi-grid { grid-template-columns: repeat(2, 1fr); }
-            .pay-expense-add { grid-template-columns: 1fr; }
+
+        /* === TABLET ≤ 760px ============================================ */
+        @media (max-width: 760px) {
+            .kpi-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+            .pay-expense-add { grid-template-columns: 1fr; gap: 8px; }
             .pay-selection-bar .sel-stat { min-width: 0; flex: 1 1 30%; }
-            .b2-footer { grid-template-columns: 1fr; gap: 14px; }
-            .b2-header { padding: 12px 14px; }
-            .b2-header-title { font-size: 0.95rem; }
-            .b2-stat { padding: 12px 14px; }
-            .b2-stat-value { font-size: 1.05rem; }
-            .b2-amount-wrap { min-width: 110px; }
+            .b2-footer { grid-template-columns: 1fr; gap: 14px; padding: 14px 16px; }
         }
-        @media (max-width: 600px) { 
-            .financial-dashboard-grid { grid-template-columns: 1fr; } 
-            .batch-shipment-row { grid-template-columns: 1fr 1fr; gap: 10px; }
-            .kpi-card { padding: 12px 14px; }
-            .kpi-value { font-size: 1.15rem; }
-            .b2-headline { grid-template-columns: 1fr 1fr; }
-            .b2-net-pill { font-size: 0.74rem; padding: 4px 9px; }
+
+        /* === MOBILE ≤ 600px ============================================ */
+        /* This is the big one — restructures the batch card from a horizontal
+           table into a vertical card-list. No more horizontal scrolling. */
+        @media (max-width: 600px) {
+
+            /* --- Page-level: tighter spacing on phones --- */
+            .pay-hero {
+                padding: 14px 12px;
+                margin-bottom: 12px;
+                border-radius: 12px;
+            }
+            .pay-hero-title { margin-bottom: 12px; }
+            .pay-hero-title h2 { font-size: 0.95rem; }
+            .pay-hero-title .subtitle { display: none; } /* save vertical space */
+            .financial-dashboard-grid { grid-template-columns: 1fr; }
+
+            /* --- KPI cards: compact 2×3 grid --- */
+            .kpi-grid { grid-template-columns: repeat(2, 1fr); gap: 6px; }
+            .kpi-card { padding: 10px 11px; border-radius: 8px; }
+            .kpi-card::before { width: 2px; }
+            .kpi-label { font-size: 0.6rem; margin-bottom: 3px; letter-spacing: 0.3px; }
+            .kpi-value { font-size: 1rem; letter-spacing: -0.3px; }
+            .kpi-meta { font-size: 0.62rem; margin-top: 2px; }
+            /* "Active Batches" 5th card spans full row alone */
+            .kpi-card.kpi-batches { grid-column: 1 / -1; }
+
+            /* --- Filter strip: search on its own row, chips horizontal-scroll --- */
+            .pay-filters {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 8px;
+                padding: 8px 10px;
+                margin-bottom: 10px;
+                border-radius: 10px;
+            }
+            .pay-filters .pay-search-wrap { flex: 1 1 auto; min-width: 0; }
+            .pay-filters input[type="text"] { padding: 10px 12px 10px 32px; font-size: 0.9rem; }
+            .pay-filters .pay-search-wrap::before { left: 10px; font-size: 0.8rem; }
+            .pay-filters .pay-status-chips {
+                flex-wrap: nowrap;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+                scrollbar-width: none;
+                margin: 0 -10px; /* extend chip rail edge-to-edge */
+                padding: 0 10px;
+            }
+            .pay-filters .pay-status-chips::-webkit-scrollbar { display: none; }
+            .pay-chip {
+                flex: 0 0 auto;
+                padding: 6px 12px;
+                font-size: 0.75rem;
+            }
+
+            /* --- Selection bar: 2×2 grid, no min-width tug-of-war --- */
+            .pay-selection-bar {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 8px 14px;
+                padding: 10px 12px;
+                border-radius: 8px;
+                margin-bottom: 12px;
+            }
+            .pay-selection-bar .sel-stat {
+                min-width: 0; flex: unset;
+                gap: 0;
+            }
+            .pay-selection-bar .sel-label { font-size: 0.62rem; letter-spacing: 0.3px; }
+            .pay-selection-bar .sel-stat strong { font-size: 0.9rem; }
+
+            /* --- Expense drawer: trim spacing --- */
+            .pay-expense-toggle { padding: 11px 13px; }
+            .pay-expense-toggle .pet-icon { width: 28px; height: 28px; font-size: 0.9rem; }
+            .pay-expense-toggle .pet-title { font-size: 0.88rem; }
+            .pay-expense-toggle .pet-subtitle { font-size: 0.68rem; }
+            .pay-expense-toggle .pet-total { font-size: 1rem; }
+            .pay-expense-inner { padding: 12px; }
+            .pay-expense-add {
+                grid-template-columns: 1fr;
+                gap: 8px;
+                margin-bottom: 10px;
+            }
+            .pay-expense-add label { font-size: 0.65rem; margin-bottom: 3px; }
+            .pay-expense-add input { padding: 10px 11px; font-size: 0.9rem; }
+            .pay-expense-add button { padding: 10px 16px; font-size: 0.85rem; }
+
+            /* ============================================================
+               BATCH CARD — compact mobile redesign
+               ============================================================ */
+            .b2-card {
+                margin-bottom: 14px;
+                border-radius: 10px;
+            }
+
+            /* Header — slimmer, tighter */
+            .b2-header { padding: 10px 12px; }
+            .b2-header-icon {
+                width: 28px; height: 28px;
+                font-size: 0.9rem;
+                border-radius: 7px;
+            }
+            .b2-header-title { font-size: 0.92rem; }
+            .b2-header-meta { font-size: 0.66rem; }
+            .b2-header-right { gap: 8px; }
+            .b2-net-pill { font-size: 0.7rem; padding: 4px 9px; }
+
+            /* Headline strip — 2x2 grid with normalized cell heights */
+            .b2-headline {
+                grid-template-columns: 1fr 1fr;
+            }
+            .b2-stat {
+                padding: 10px 12px;
+                gap: 2px;
+                min-height: 76px; /* normalized — kills the up/down jumping */
+                justify-content: center;
+            }
+            .b2-stat-label { font-size: 0.6rem; letter-spacing: 0.3px; }
+            .b2-stat-value { font-size: 0.98rem; letter-spacing: -0.3px; }
+            .b2-stat-sub {
+                font-size: 0.65rem;
+                line-height: 1.3;
+                /* Truncate so all 4 cells stay the same height */
+                display: -webkit-box;
+                -webkit-line-clamp: 2;
+                -webkit-box-orient: vertical;
+                overflow: hidden;
+            }
+
+            /* ============================================================
+               SHIPMENT LIST — Convert table → vertical stack cards
+               This is the biggest UX win on mobile.
+               ============================================================ */
+            .b2-table-wrap { overflow-x: visible; }
+            .b2-table { min-width: 0; display: block; font-size: 0.9rem; }
+            .b2-table thead { display: none; } /* hide column headers on mobile */
+            .b2-table tbody { display: block; }
+            .b2-table tbody tr {
+                display: grid;
+                grid-template-columns: 1fr auto;
+                gap: 6px 12px;
+                padding: 12px 14px;
+                border-bottom: 1px solid #f0f0f5;
+            }
+            .b2-table tbody tr:hover { background: transparent; }
+            .b2-table tbody td {
+                padding: 0;
+                border-bottom: none;
+                font-size: 0.85rem;
+            }
+
+            /* Row 1: Invoice / Name spans both columns */
+            .b2-table tbody td:nth-child(1) { /* invoice */
+                grid-column: 1 / -1;
+                padding-bottom: 4px;
+                border-bottom: 1px dashed #f0f0f5;
+                margin-bottom: 4px;
+            }
+            .b2-invoice-cell strong { font-size: 0.9rem; }
+            .b2-invoice-cell span { font-size: 0.74rem; }
+
+            /* Row 2: Weight (left) + Status pill (right) */
+            .b2-table tbody td:nth-child(2) { /* weight */
+                font-size: 0.78rem; color: #888;
+                display: flex; align-items: center;
+            }
+            .b2-table tbody td:nth-child(2)::before {
+                content: '⚖️ '; margin-right: 4px; opacity: 0.7;
+            }
+            .b2-table tbody td:nth-child(4) { /* status pill */
+                grid-column: 2;
+                grid-row: 2;
+                justify-self: end;
+                align-self: center;
+            }
+
+            /* Row 3: Shipping CAD spans alone (small) */
+            .b2-table tbody td:nth-child(3) { /* shipping CAD */
+                grid-column: 1 / -1;
+                font-size: 0.82rem;
+            }
+            .b2-table tbody td:nth-child(3)::before {
+                content: 'Shipping '; color: #888; font-weight: 500; font-size: 0.7rem;
+                margin-right: 4px;
+            }
+
+            /* Row 4 & 5: Clearance and Delivery — full-width labeled blocks */
+            .b2-table tbody td:nth-child(5),
+            .b2-table tbody td:nth-child(6) {
+                grid-column: 1 / -1;
+                background: #fafafe;
+                border-radius: 8px;
+                padding: 8px 10px;
+                margin-top: 2px;
+            }
+            .b2-table tbody td:nth-child(5)::before { content: 'Clearance'; }
+            .b2-table tbody td:nth-child(6)::before { content: 'Delivery'; }
+            .b2-table tbody td:nth-child(5)::before,
+            .b2-table tbody td:nth-child(6)::before {
+                display: block;
+                font-size: 0.62rem; font-weight: 700;
+                color: #888; text-transform: uppercase; letter-spacing: 0.4px;
+                margin-bottom: 6px;
+            }
+
+            /* Money cells: proper structured layout */
+            .b2-cell-money {
+                display: grid;
+                grid-template-columns: 1fr auto;
+                gap: 6px;
+                align-items: center;
+            }
+            .b2-cell-money .b2-amount-wrap {
+                grid-column: 1; min-width: 0; width: 100%;
+            }
+            .b2-cell-money .b2-status-pill {
+                grid-column: 2; justify-self: end;
+            }
+            .b2-cell-money .b2-receipt-btn {
+                grid-column: 1 / -1;
+                justify-self: stretch;
+                margin-top: 4px;
+                padding: 8px 12px;
+                font-size: 0.78rem;
+                justify-content: center;
+            }
+
+            /* Inputs — touch-friendly height */
+            .b2-amount-input {
+                font-size: 16px; /* prevents iOS zoom */
+                padding: 10px 12px 10px 38px;
+                min-height: 40px;
+            }
+            .b2-amount-wrap .currency-prefix { font-size: 0.72rem; }
+
+            /* Status pills bigger tap target */
+            .b2-status-pill {
+                padding: 6px 12px;
+                font-size: 0.7rem;
+                min-height: 28px;
+            }
+
+            /* Footer */
+            .b2-footer {
+                padding: 12px;
+                gap: 12px;
+            }
+            .b2-footer-section h4 {
+                font-size: 0.66rem;
+                margin: 0 0 6px 0;
+            }
+            .b2-extras-list { padding: 6px 10px; max-height: 100px; }
+            .b2-extra-row { font-size: 0.78rem; padding: 3px 0; }
+            .b2-add-extra-btn { padding: 7px 12px; font-size: 0.74rem; }
+            .b2-notes-textarea {
+                font-size: 16px; /* prevent iOS zoom */
+                min-height: 50px;
+                padding: 8px 10px;
+            }
+
+            /* Show-more reveal bar */
+            .b2-reveal-bar { margin: 4px 0 16px; }
+            .b2-reveal-btn {
+                padding: 10px 16px; font-size: 0.82rem; gap: 6px;
+            }
+            .b2-reveal-btn .b2-reveal-count { font-size: 0.72rem; padding: 2px 7px; }
+
+            /* Sync indicator on mobile — slimmer, top center */
+            #bee26-sync-indicator {
+                top: 10px !important;
+                right: 10px !important;
+                left: 10px !important;
+                padding: 6px 10px !important;
+                font-size: 0.7rem !important;
+                justify-content: center;
+            }
+        }
+
+        /* === SMALL PHONE ≤ 380px ======================================= */
+        @media (max-width: 380px) {
+            /* KPI cards drop to 1 column to give labels breathing room */
+            .kpi-grid { grid-template-columns: 1fr; }
+            .kpi-card.kpi-batches { grid-column: auto; }
+            .kpi-value { font-size: 1.05rem; }
+
+            /* Selection bar: stack 2 rows of 2 stats */
+            .pay-selection-bar { gap: 6px 10px; padding: 9px 10px; }
+            .pay-selection-bar .sel-stat strong { font-size: 0.82rem; }
+
+            /* Batch card extra-tight padding */
+            .b2-stat { padding: 9px 10px; min-height: 70px; }
+            .b2-stat-value { font-size: 0.92rem; }
+            .b2-table tbody tr { padding: 10px 12px; }
+        }
+
+        /* === LANDSCAPE / SHORT VIEWPORTS — keep things scannable ======== */
+        @media (max-width: 760px) and (orientation: landscape) {
+            .pay-hero { padding: 12px; }
+            .kpi-grid { grid-template-columns: repeat(3, 1fr); }
+            .kpi-card.kpi-batches { grid-column: auto; }
+            .b2-headline { grid-template-columns: repeat(4, 1fr); }
+            .b2-stat { min-height: 70px; padding: 10px 12px; }
         }
 
 
@@ -1769,27 +2060,199 @@
             const dbOnValue = window.dbOnValue;
             const dbRemove = window.dbRemove; 
             const dbSet = window.dbSet;
-
+            const dbGet = window.dbGet;
+            
             if (!db || !dbRef || !dbUpdate || !dbPush || !dbOnValue || !dbRemove) { 
-                alert("FATAL ERROR: Firebase Database functions not found. Check initialization.");
+                document.body.innerHTML = '<div style="padding: 50px; text-align: center; font-family: sans-serif; color: #cc0000;"><h1>FATAL ERROR: Firebase Connection Lost</h1><p>One or more required Firebase functions (set, push, onValue, remove, update) failed to load. Check your console.</p></div>';
                 return;
             }
+            // --- INTERNATIONAL DIAL CODES (for new shipment phone fields) ---
 
-            // --- Image handling is managed by the Item Wizard (see wizSaveItem / handlePhotoFile below) ---
 
-            // --- App State ---
-            let local_items = []; 
+            // --- Local Cache & Render Functions ---
             let local_shipments_cache = []; 
             let local_batches_cache = {}; 
             let local_expenses_cache = {}; // NEW: Expenses
             let local_web_submissions_cache = []; // NEW: Web Submissions
-            let currentEditItemId = null;
-            let currentEditShipmentId = null; 
-            let wizardCurrentStep = 1;
-            let dashboardChart = null; 
-            
+
             // --- NEW: DRAFT / AUTO-SAVE CONFIG ---
             const DRAFT_KEY = 'bee26_new_shipment_draft';
+
+            // ============================================================
+            // === SMART OFFLINE CACHE (Stale-While-Revalidate strategy) ===
+            // ============================================================
+            // Why: On a slow connection, Firebase can take 10-30 seconds to
+            // download the full shipments/batches tree before *any* UI can
+            // render. We solve this by mirroring Firebase data to IndexedDB
+            // on every update. On next page load, we hydrate the UI from
+            // IndexedDB in ~50ms, then quietly refresh from Firebase in the
+            // background. The user sees their data instantly, and any
+            // server-side updates flow in seamlessly when they arrive.
+            //
+            // - IndexedDB chosen over localStorage because async (no main-
+            //   thread blocking) and supports hundreds of MB.
+            // - Falls back gracefully if IndexedDB is unavailable.
+            // - Cleanly versioned — bump DB_VERSION to invalidate old caches.
+            const SmartCache = (() => {
+                const DB_NAME = 'bee26_cache';
+                const DB_VERSION = 1;
+                const STORE = 'kv';
+                let _dbPromise = null;
+                let _supported = ('indexedDB' in window);
+
+                function _open() {
+                    if (!_supported) return Promise.reject(new Error('IndexedDB not supported'));
+                    if (_dbPromise) return _dbPromise;
+                    _dbPromise = new Promise((resolve, reject) => {
+                        const req = indexedDB.open(DB_NAME, DB_VERSION);
+                        req.onupgradeneeded = (e) => {
+                            const idb = e.target.result;
+                            if (!idb.objectStoreNames.contains(STORE)) {
+                                idb.createObjectStore(STORE);
+                            }
+                        };
+                        req.onsuccess = (e) => resolve(e.target.result);
+                        req.onerror = (e) => { _supported = false; reject(e.target.error); };
+                        req.onblocked = () => reject(new Error('IndexedDB blocked'));
+                    });
+                    return _dbPromise;
+                }
+
+                async function get(key) {
+                    if (!_supported) return null;
+                    try {
+                        const idb = await _open();
+                        return await new Promise((resolve, reject) => {
+                            const tx = idb.transaction(STORE, 'readonly');
+                            const req = tx.objectStore(STORE).get(key);
+                            req.onsuccess = () => resolve(req.result || null);
+                            req.onerror = () => reject(req.error);
+                        });
+                    } catch (e) {
+                        console.warn('[SmartCache] get failed:', e);
+                        return null;
+                    }
+                }
+
+                async function set(key, value) {
+                    if (!_supported) return false;
+                    try {
+                        const idb = await _open();
+                        return await new Promise((resolve, reject) => {
+                            const tx = idb.transaction(STORE, 'readwrite');
+                            tx.objectStore(STORE).put(value, key);
+                            tx.oncomplete = () => resolve(true);
+                            tx.onerror = () => reject(tx.error);
+                        });
+                    } catch (e) {
+                        console.warn('[SmartCache] set failed:', e);
+                        return false;
+                    }
+                }
+
+                // Throttle disk writes — when Firebase fires 50 updates in a row
+                // (e.g. during a sync), we don't want 50 IndexedDB writes.
+                const _writeTimers = new Map();
+                function setThrottled(key, value, delayMs = 400) {
+                    if (_writeTimers.has(key)) clearTimeout(_writeTimers.get(key));
+                    _writeTimers.set(key, setTimeout(() => {
+                        _writeTimers.delete(key);
+                        set(key, value);
+                    }, delayMs));
+                }
+
+                return { get, set, setThrottled, supported: () => _supported };
+            })();
+
+            // ============================================================
+            // === SYNC STATUS INDICATOR (top-right ribbon) ===============
+            // ============================================================
+            const SyncIndicator = (() => {
+                let el = null;
+                let hideTimer = null;
+
+                function ensure() {
+                    if (el) return el;
+                    el = document.createElement('div');
+                    el.id = 'bee26-sync-indicator';
+                    el.style.cssText = `
+                        position: fixed; top: 16px; right: 16px; z-index: 99998;
+                        padding: 8px 14px; border-radius: 20px;
+                        font-size: 0.78rem; font-weight: 600;
+                        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+                        box-shadow: 0 4px 14px rgba(0,0,0,0.15);
+                        backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+                        display: flex; align-items: center; gap: 6px;
+                        transform: translateY(-80px); opacity: 0;
+                        transition: transform 0.3s ease, opacity 0.3s ease;
+                        pointer-events: none; user-select: none;
+                    `;
+                    document.body.appendChild(el);
+                    return el;
+                }
+
+                function show(state) {
+                    const node = ensure();
+                    if (hideTimer) { clearTimeout(hideTimer); hideTimer = null; }
+                    const styles = {
+                        cached:   { bg: 'rgba(88,86,214,0.95)',  color: '#fff', icon: '⚡', text: 'Showing cached data' },
+                        syncing:  { bg: 'rgba(255,149,0,0.95)',  color: '#fff', icon: '🔄', text: 'Syncing latest…' },
+                        synced:   { bg: 'rgba(0,168,107,0.95)',  color: '#fff', icon: '✓',  text: 'Up to date' },
+                        offline:  { bg: 'rgba(231,76,60,0.95)',  color: '#fff', icon: '📡', text: 'Offline – cached data' }
+                    };
+                    const s = styles[state] || styles.synced;
+                    node.style.background = s.bg;
+                    node.style.color = s.color;
+                    node.innerHTML = `<span style="font-size:0.9rem;">${s.icon}</span><span>${s.text}</span>`;
+                    requestAnimationFrame(() => {
+                        node.style.transform = 'translateY(0)';
+                        node.style.opacity = '1';
+                    });
+                    if (state === 'synced') {
+                        hideTimer = setTimeout(() => hide(), 1800);
+                    }
+                }
+
+                function hide() {
+                    if (!el) return;
+                    el.style.transform = 'translateY(-80px)';
+                    el.style.opacity = '0';
+                }
+
+                return { show, hide };
+            })();
+
+            // Inject skeleton-shimmer CSS once
+            (function injectSkeletonCSS() {
+                if (document.getElementById('bee26-skeleton-css')) return;
+                const style = document.createElement('style');
+                style.id = 'bee26-skeleton-css';
+                style.textContent = `
+                    @keyframes bee26-shimmer {
+                        0%   { background-position: -400px 0; }
+                        100% { background-position: 400px 0; }
+                    }
+                    .bee26-skeleton {
+                        background: linear-gradient(90deg, #f0f0f5 0%, #fafafe 50%, #f0f0f5 100%);
+                        background-size: 800px 100%;
+                        animation: bee26-shimmer 1.4s ease-in-out infinite;
+                        border-radius: 6px;
+                        display: inline-block;
+                        color: transparent !important;
+                    }
+                    .bee26-skeleton-row {
+                        height: 14px; margin: 6px 0; border-radius: 4px;
+                    }
+                    @keyframes bee26-fadein {
+                        from { opacity: 0; transform: translateY(4px); }
+                        to   { opacity: 1; transform: translateY(0); }
+                    }
+                    .bee26-cache-loaded {
+                        animation: bee26-fadein 0.25s ease-out;
+                    }
+                `;
+                document.head.appendChild(style);
+            })();
 
             // --- AUTHENTICATION LOGIC REMOVED ---
 
@@ -6861,7 +7324,7 @@ async function generateThermalLabel() {
                 const expensesRef = dbRef(db, 'expenses');
                 const webSubmissionsRef = dbRef(db, 'web_submissions'); // NEW LISTENER
                 
-                // Web Submissions Listener
+                // Web Submissions Listener — with smart cache mirror
                 dbOnValue(webSubmissionsRef, (snapshot) => {
                     local_web_submissions_cache = [];
                     if (snapshot.exists()) {
@@ -6871,13 +7334,17 @@ async function generateThermalLabel() {
                         }
                     }
                     renderWebSubmissionsTable();
+                    SmartCache.setThrottled('web_submissions', local_web_submissions_cache);
+                    _markFirebaseSynced('web_submissions');
                 });
 
-                // Expenses Listener
+                // Expenses Listener — with smart cache mirror
                 dbOnValue(expensesRef, (snapshot) => {
                     local_expenses_cache = snapshot.exists() ? snapshot.val() : {};
                     renderExpenses();
                     calculateOverallBatchStats();
+                    SmartCache.setThrottled('expenses', local_expenses_cache);
+                    _markFirebaseSynced('expenses');
                 });
 
                 // --- NEW: RECEIVING DETAILS MODAL LOGIC ---
@@ -7103,7 +7570,7 @@ async function generateThermalLabel() {
                     }
                 });
 
-                // Shipments Listener
+                // Shipments Listener — with smart cache mirror
                 dbOnValue(shipmentsRef, (snapshot) => {
                     local_shipments_cache = []; 
                     if (snapshot.exists()) {
@@ -7126,11 +7593,14 @@ async function generateThermalLabel() {
                     // Trigger Batch Stats Calc
                     calculateOverallBatchStats();
 
+                    SmartCache.setThrottled('shipments', local_shipments_cache);
+                    _markFirebaseSynced('shipments');
                 }, (error) => {
                     console.error("Firebase data read failed: ", error);
+                    SyncIndicator.show(navigator.onLine ? 'cached' : 'offline');
                 });
                 
-                // Batches Listener
+                // Batches Listener — with smart cache mirror
                 dbOnValue(batchesRef, (snapshot) => {
                     local_batches_cache = {};
                     if(snapshot.exists()) {
@@ -7144,6 +7614,9 @@ async function generateThermalLabel() {
                     
                     // --- VITAL FIX: Force Payments Table to Redraw when Batches (Extras/Costs) Change ---
                     renderPaymentsTable(); 
+
+                    SmartCache.setThrottled('batches', local_batches_cache);
+                    _markFirebaseSynced('batches');
                 });
             }
             
@@ -7179,9 +7652,118 @@ async function generateThermalLabel() {
                 });
             }
 
-            // --- RESTORE DRAFT ON LOAD ---
-            listenForData();
-            restoreDraft(); // Try restoring local draft immediately on load
+            // --- SMART CACHE HYDRATION + Firebase listener attach ---
+            //
+            // Strategy: We try to render from IndexedDB first (instant, even on
+            // 3G or offline), then attach Firebase listeners which silently
+            // refresh the UI when fresh data arrives.
+            //
+            // - If cache exists → user sees real data in <100ms with a small
+            //   "⚡ Showing cached data" pill at the top, then "🔄 Syncing…"
+            //   while Firebase loads, then "✓ Up to date" briefly, then nothing.
+            // - If no cache (first ever load or after clear) → standard load.
+            // - If offline → "📡 Offline – cached data" stays visible.
+            //
+            // The set of pending sources is tracked so we know when ALL
+            // four (shipments / batches / expenses / web_submissions) have
+            // arrived from Firebase, at which point we flip to "✓ Up to date".
+
+            const _pendingSources = new Set(['shipments', 'batches', 'expenses', 'web_submissions']);
+            let _hydratedFromCache = false;
+
+            function _markFirebaseSynced(source) {
+                _pendingSources.delete(source);
+                if (_pendingSources.size === 0) {
+                    // All four data sources have flowed in from Firebase
+                    if (_hydratedFromCache) {
+                        SyncIndicator.show('synced');
+                    } else {
+                        SyncIndicator.hide();
+                    }
+                } else if (_hydratedFromCache && navigator.onLine) {
+                    SyncIndicator.show('syncing');
+                }
+            }
+
+            async function hydrateFromCache() {
+                if (!SmartCache.supported()) return false;
+                try {
+                    const [cShip, cBatch, cExp, cWeb] = await Promise.all([
+                        SmartCache.get('shipments'),
+                        SmartCache.get('batches'),
+                        SmartCache.get('expenses'),
+                        SmartCache.get('web_submissions')
+                    ]);
+
+                    let any = false;
+                    if (Array.isArray(cShip) && cShip.length > 0) {
+                        local_shipments_cache = cShip;
+                        any = true;
+                    }
+                    if (cBatch && typeof cBatch === 'object') {
+                        local_batches_cache = cBatch;
+                        any = true;
+                    }
+                    if (cExp && typeof cExp === 'object') {
+                        local_expenses_cache = cExp;
+                        any = true;
+                    }
+                    if (Array.isArray(cWeb) && cWeb.length > 0) {
+                        local_web_submissions_cache = cWeb;
+                        any = true;
+                    }
+
+                    if (any) {
+                        // Render everything with cached data — instant
+                        try {
+                            if (typeof renderShipmentsTable === 'function') renderShipmentsTable();
+                            if (typeof renderCustomersTable === 'function') renderCustomersTable();
+                            if (typeof renderPaymentsTable === 'function') renderPaymentsTable();
+                            if (typeof updateDashboardStats === 'function') updateDashboardStats();
+                            if (typeof renderExpenses === 'function') renderExpenses();
+                            if (typeof renderWebSubmissionsTable === 'function') renderWebSubmissionsTable();
+                            if (typeof calculateOverallBatchStats === 'function') calculateOverallBatchStats();
+                            if (typeof window.renderReceivingTable === 'function') window.renderReceivingTable();
+                        } catch (e) {
+                            console.warn('Cache render error:', e);
+                        }
+                        _hydratedFromCache = true;
+
+                        // Add fade-in animation to the body for cached load
+                        document.body.classList.add('bee26-cache-loaded');
+                        setTimeout(() => document.body.classList.remove('bee26-cache-loaded'), 300);
+                    }
+                    return any;
+                } catch (e) {
+                    console.warn('hydrateFromCache failed:', e);
+                    return false;
+                }
+            }
+
+            // Online/offline awareness
+            window.addEventListener('offline', () => {
+                if (_hydratedFromCache) SyncIndicator.show('offline');
+            });
+            window.addEventListener('online', () => {
+                if (_pendingSources.size > 0) SyncIndicator.show('syncing');
+            });
+
+            // 1. Hydrate UI from cache instantly (parallel to Firebase startup)
+            // 2. Then attach Firebase listeners — they'll quietly refresh when fresh data lands
+            (async () => {
+                const hadCache = await hydrateFromCache();
+                if (hadCache) {
+                    SyncIndicator.show(navigator.onLine ? 'cached' : 'offline');
+                    // Promote the cached pill to "syncing" once we know we're attached
+                    setTimeout(() => {
+                        if (_pendingSources.size > 0 && navigator.onLine) {
+                            SyncIndicator.show('syncing');
+                        }
+                    }, 600);
+                }
+                listenForData();
+                restoreDraft(); // Try restoring local draft immediately on load
+            })();
 // --- UPDATED: AUTOMATIC HS CODE GENERATOR (WEIGHTED RULES ENGINE) ---
     const autoHsDescInput = document.getElementById('modalItemDesc');
     const autoHsCatInput = document.getElementById('modalItemCat');
