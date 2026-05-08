@@ -1661,7 +1661,19 @@
                     }
 
                     window.dbOnValue(shipmentsRef, (snapshot) => {
-                        // Throttle: coalesce rapid Firebase updates into one render
+                        // ── INSTANT MIRROR for the currently-open box ──
+                        // The full list rebuild stays throttled (250ms) for performance, BUT if a box
+                        // is currently open we refresh its items + re-render IMMEDIATELY so admin/other-device
+                        // changes appear with zero perceived lag — true real-time mirror behavior.
+                        if (snapshot && snapshot.exists() && currentBoxKey && detailsSection.style.display === 'block') {
+                            try {
+                                refreshOpenBoxFromSnapshot(snapshot);
+                            } catch (e) {
+                                console.warn('Open-box mirror refresh failed (will recover on next snapshot):', e);
+                            }
+                        }
+
+                        // Throttle: coalesce rapid Firebase updates into one full list render
                         pendingSnapshot = snapshot;
                         if (renderThrottleTimer) return; // already scheduled
                         renderThrottleTimer = setTimeout(() => {
@@ -1675,6 +1687,134 @@
                         loadingInvoices.style.display = 'block';
                         loadingInvoices.innerHTML = '<span style="color: red; font-weight: bold;">Connection issue. Reconnecting…</span>';
                     });
+                }
+
+                // ============================================================
+                // INSTANT MIRROR: refresh the currently-open box from a fresh snapshot
+                // Called on every Firebase update so changes from admin or other receivers
+                // appear in the open-box view instantly (no refresh, no close/reopen).
+                //
+                // CRITICAL: we MERGE — local pending writes (still in `pendingUpdates`) are
+                // preserved so the user's in-flight typing/clicks don't get clobbered by an
+                // older server echo.
+                // ============================================================
+                function refreshOpenBoxFromSnapshot(snapshot) {
+                    if (!currentBoxKey) return;
+                    const fresh = snapshot.val();
+                    if (!fresh) return;
+
+                    // Re-aggregate just the items that belong to the currently-open box
+                    const [openBatchNo, openBoxNo] = String(currentBoxKey).split('|||');
+                    const rebuiltItems = [];
+
+                    Object.keys(fresh).forEach(shipmentId => {
+                        const shipment = fresh[shipmentId];
+                        if (!shipment || !shipment.items) return;
+                        const batchNo = shipment.batchNo || 'Unassigned Batch';
+                        if (batchNo !== openBatchNo) return;
+
+                        shipment.items.forEach((item, index) => {
+                            if (!item) return;
+                            const boxNo = item.boxNo || 'Unassigned Box';
+                            if (boxNo !== openBoxNo) return;
+
+                            // ── Preserve in-flight local writes ──
+                            // If the user just changed receivedQty locally and the write is still
+                            // queued in pendingUpdates, we trust the local value (it will sync soon).
+                            const pendingPath = `shipments/${shipmentId}/items/${index}/receivedQty`;
+                            const localItemCopy = { ...item };
+                            if (Object.prototype.hasOwnProperty.call(pendingUpdates, pendingPath)) {
+                                localItemCopy.receivedQty = pendingUpdates[pendingPath];
+                            }
+
+                            // Backward compatibility (same rule used in processSnapshot)
+                            let expected = parseFloat(localItemCopy.qty) || 0;
+                            let received = localItemCopy.receivedQty !== undefined ? parseFloat(localItemCopy.receivedQty) : 0;
+                            if (shipment.deliveryStatus === 'Delivered' && received === 0 && expected > 0) {
+                                received = expected;
+                                localItemCopy.receivedQty = received;
+                            }
+
+                            rebuiltItems.push({
+                                shipmentId: shipmentId,
+                                itemIndex: index,
+                                data: localItemCopy,
+                                invoiceNumber: shipment.invoiceNumber,
+                                senderName: shipment.senderName || localItemCopy.senderName || 'Unknown',
+                                senderPhone: shipment.senderPhone || '',
+                                receiverName: shipment.receiverName || 'Unknown',
+                                receiverPhone: shipment.receiverPhone || '',
+                                receiverAddress: shipment.receiverAddress || '',
+                                batchNo: batchNo,
+                                boxNo: boxNo
+                            });
+                        });
+                    });
+
+                    // If the box vanished from the database (admin deleted it), bail back to the list
+                    if (rebuiltItems.length === 0) {
+                        // Don't auto-bail — just leave the current state alone; the list refresh
+                        // will surface the change. Avoids yanking the user out mid-edit.
+                        return;
+                    }
+
+                    // Detect if anything actually changed before doing DOM work — saves CPU on irrelevant snapshots
+                    const changed = hasOpenBoxChanged(currentBoxItems, rebuiltItems);
+                    if (!changed) return;
+
+                    // ── Swap in the fresh items reference ──
+                    // We mutate the existing array's contents (not the reference) so any closure
+                    // that captured `currentBoxItems` (scanner code, etc.) still sees the new data.
+                    currentBoxItems.length = 0;
+                    rebuiltItems.forEach(it => currentBoxItems.push(it));
+
+                    // Update the open-box header counters that openBox() originally set
+                    try {
+                        const senders = [...new Set(currentBoxItems.map(i => i.senderName))];
+                        const receivers = [...new Set(currentBoxItems.map(i => i.receiverName))];
+                        const elInv = document.getElementById('display-invoice');
+                        const elSender = document.getElementById('display-sender');
+                        const elRecv = document.getElementById('display-receiver');
+                        const elRecvPhone = document.getElementById('display-receiver-phone');
+                        const elRecvAddr = document.getElementById('display-receiver-address');
+                        const elPkgs = document.getElementById('display-packages');
+                        if (elSender) elSender.textContent = senders.length > 1 ? `${senders.length} Senders` : (senders[0] || 'N/A');
+                        if (elRecv) elRecv.textContent = receivers.length > 1 ? `${receivers.length} Receivers` : (receivers[0] || 'N/A');
+                        if (elRecvPhone) elRecvPhone.textContent = receivers.length > 1 ? 'See per-receiver below' : (currentBoxItems[0]?.receiverPhone || '--');
+                        if (elRecvAddr) elRecvAddr.textContent = receivers.length > 1 ? 'See per-receiver below' : (currentBoxItems[0]?.receiverAddress || '--');
+                        if (elPkgs) elPkgs.textContent = `${currentBoxItems.length} Items`;
+                    } catch (e) { /* header is cosmetic — never block a re-render on it */ }
+
+                    // ── Re-render the open box view INSTANTLY (no throttle) ──
+                    renderItems();
+
+                    // Subtle visual cue so the user sees that something updated
+                    try {
+                        if (typeof showSync === 'function') showSync('saved', 'Updated');
+                    } catch (e) { /* ignore */ }
+                }
+
+                // Cheap shallow comparison — only re-render if something the UI cares about actually changed
+                function hasOpenBoxChanged(oldItems, newItems) {
+                    if (oldItems.length !== newItems.length) return true;
+                    for (let i = 0; i < newItems.length; i++) {
+                        const a = oldItems[i];
+                        const b = newItems[i];
+                        if (!a || !b) return true;
+                        if (a.shipmentId !== b.shipmentId) return true;
+                        if (a.itemIndex !== b.itemIndex) return true;
+                        const aData = a.data || {};
+                        const bData = b.data || {};
+                        if ((aData.receivedQty ?? 0) !== (bData.receivedQty ?? 0)) return true;
+                        if ((aData.qty ?? 0) !== (bData.qty ?? 0)) return true;
+                        if ((aData.desc ?? '') !== (bData.desc ?? '')) return true;
+                        if ((aData.barcode ?? '') !== (bData.barcode ?? '')) return true;
+                        if ((aData.image ?? '') !== (bData.image ?? '')) return true;
+                        if ((a.receiverName ?? '') !== (b.receiverName ?? '')) return true;
+                        if ((a.receiverPhone ?? '') !== (b.receiverPhone ?? '')) return true;
+                        if ((a.receiverAddress ?? '') !== (b.receiverAddress ?? '')) return true;
+                    }
+                    return false;
                 }
 
                 // Call the function immediately to load data
@@ -1929,23 +2069,178 @@
                         alert('Scanner library not loaded. Please check your internet connection and reload.');
                         return;
                     }
+
+                    // ── Pre-flight check 1: secure context (HTTPS / localhost) ──
+                    // getUserMedia silently fails on plain HTTP. Catch it early with a clear message.
+                    const isSecure = window.isSecureContext ||
+                                     location.protocol === 'https:' ||
+                                     location.hostname === 'localhost' ||
+                                     location.hostname === '127.0.0.1';
+                    if (!isSecure) {
+                        showScannerError(
+                            'Camera blocked: insecure connection',
+                            'The camera only works on HTTPS. Please open this page using https:// (or use the manual barcode input below).',
+                            true
+                        );
+                        return;
+                    }
+
+                    // ── Pre-flight check 2: getUserMedia API exists ──
+                    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                        showScannerError(
+                            'Camera not supported',
+                            'Your browser does not support camera access. Please use a modern browser like Chrome, Safari, or Firefox — or type the barcode manually below.',
+                            true
+                        );
+                        return;
+                    }
+
+                    // ── Critical fix: fully tear down any stale scanner instance BEFORE creating a new one ──
+                    // The original code assigned `html5QrScanner = new Html5Qrcode(...)` BEFORE awaiting start().
+                    // If start() threw (permission denied, no camera, etc.), the instance was left in a half-initialised
+                    // state. The next click then created a SECOND Html5Qrcode on the same DOM node while the first
+                    // still held references to it — the library would silently no-op. This was the root "nothing happens" bug.
+                    if (html5QrScanner) {
+                        try {
+                            const state = html5QrScanner.getState && html5QrScanner.getState();
+                            if (state === 2 /* SCANNING */ || state === 3 /* PAUSED */) {
+                                await html5QrScanner.stop();
+                            }
+                            await html5QrScanner.clear();
+                        } catch (e) { /* ignore — we're disposing anyway */ }
+                        html5QrScanner = null;
+                    }
+                    // Also wipe the reader div in case the library left orphan <video>/<canvas> nodes
+                    const readerEl = document.getElementById('scanner-reader');
+                    if (readerEl) readerEl.innerHTML = '';
+
                     scannerPanel.classList.add('open');
                     scannerManualInput.value = '';
                     scannerBusy = false;
 
+                    // ── Build a responsive qrbox so it never exceeds the viewport ──
+                    // Fixed 260×160 caused init failures on narrow phones. Compute from actual reader size.
+                    const qrboxFn = (viewfinderWidth, viewfinderHeight) => {
+                        const minEdge = Math.min(viewfinderWidth, viewfinderHeight);
+                        // Wider, shorter box — works well for both 1D barcodes (cargo) and 2D QR codes
+                        const boxW = Math.floor(Math.min(viewfinderWidth * 0.85, 320));
+                        const boxH = Math.floor(Math.min(minEdge * 0.55, 200));
+                        return { width: boxW, height: boxH };
+                    };
+
+                    // ── Limit formats to the ones cargo/courier actually use ──
+                    // Default (all formats) is slow & error-prone. These cover Code128, Code39, EAN, UPC, ITF + QR.
+                    let formatsToSupport;
                     try {
-                        html5QrScanner = new Html5Qrcode('scanner-reader');
-                        const config = { fps: 10, qrbox: { width: 260, height: 160 }, aspectRatio: 1.5 };
+                        const F = Html5QrcodeSupportedFormats;
+                        formatsToSupport = [
+                            F.QR_CODE, F.CODE_128, F.CODE_39, F.CODE_93,
+                            F.EAN_13, F.EAN_8, F.UPC_A, F.UPC_E, F.ITF, F.CODABAR
+                        ].filter(v => v !== undefined);
+                    } catch (e) { formatsToSupport = undefined; /* fall back to all */ }
+
+                    const config = {
+                        fps: 10,
+                        qrbox: qrboxFn,
+                        aspectRatio: 1.7777778, // 16:9 — matches most phone cameras
+                        disableFlip: false,
+                        experimentalFeatures: { useBarCodeDetectorIfSupported: true },
+                        ...(formatsToSupport ? { formatsToSupport } : {})
+                    };
+
+                    // ── Try environment-facing camera first; fall back to enumerated rear camera ──
+                    const tryStart = async (cameraConfig) => {
+                        html5QrScanner = new Html5Qrcode('scanner-reader', { verbose: false });
                         await html5QrScanner.start(
-                            { facingMode: 'environment' },
+                            cameraConfig,
                             config,
                             (decodedText) => onBarcodeDetected(decodedText, true),
-                            () => { /* per-frame fail callback — silenced */ }
+                            () => { /* per-frame decode fail — silenced */ }
                         );
-                    } catch (err) {
-                        console.error('Camera start error:', err);
-                        // Camera unavailable — manual input still works
-                        scannerManualInput.focus();
+                    };
+
+                    try {
+                        await tryStart({ facingMode: { exact: 'environment' } });
+                    } catch (errExact) {
+                        // Some Android browsers reject `exact: environment` — retry with loose facingMode
+                        try {
+                            // Clear failed instance before retry
+                            if (html5QrScanner) {
+                                try { await html5QrScanner.clear(); } catch(_) {}
+                                html5QrScanner = null;
+                            }
+                            await tryStart({ facingMode: 'environment' });
+                        } catch (errLoose) {
+                            // Final fallback: enumerate cameras and pick the back one (or first available)
+                            try {
+                                if (html5QrScanner) {
+                                    try { await html5QrScanner.clear(); } catch(_) {}
+                                    html5QrScanner = null;
+                                }
+                                const cams = await Html5Qrcode.getCameras();
+                                if (!cams || cams.length === 0) {
+                                    throw new Error('NO_CAMERAS');
+                                }
+                                // Prefer a camera whose label suggests "back"/"rear"; else last camera (usually rear on phones)
+                                const rear = cams.find(c => /back|rear|environment/i.test(c.label || '')) || cams[cams.length - 1];
+                                await tryStart(rear.id);
+                            } catch (errFinal) {
+                                console.error('Camera start error:', errFinal, errLoose, errExact);
+                                // Make sure we don't leak a half-built instance
+                                if (html5QrScanner) {
+                                    try { await html5QrScanner.clear(); } catch(_) {}
+                                    html5QrScanner = null;
+                                }
+                                // Show user-friendly error based on what went wrong
+                                const errName = (errFinal && errFinal.name) || (errLoose && errLoose.name) || (errExact && errExact.name) || '';
+                                const errMsg  = (errFinal && errFinal.message) || (errLoose && errLoose.message) || (errExact && errExact.message) || '';
+                                let title = 'Camera unavailable';
+                                let detail = 'Could not start the camera. You can still type the barcode manually below.';
+                                if (errName === 'NotAllowedError' || /permission|denied/i.test(errMsg)) {
+                                    title = 'Camera permission denied';
+                                    detail = 'Please allow camera access in your browser settings and try again, or type the barcode manually below.';
+                                } else if (errName === 'NotFoundError' || errMsg === 'NO_CAMERAS' || /no camera|not found/i.test(errMsg)) {
+                                    title = 'No camera found';
+                                    detail = 'No camera is available on this device. Please type the barcode manually below.';
+                                } else if (errName === 'NotReadableError' || /in use|busy/i.test(errMsg)) {
+                                    title = 'Camera is busy';
+                                    detail = 'Another app is using the camera. Close it (e.g. WhatsApp, Zoom) and tap Retry.';
+                                }
+                                showScannerError(title, detail, false);
+                                // Keep panel open so the user can use manual input
+                                setTimeout(() => scannerManualInput.focus(), 100);
+                            }
+                        }
+                    }
+                }
+
+                // Render an inline error banner inside the scanner panel (instead of silent failure)
+                function showScannerError(title, detail, closePanel) {
+                    const reader = document.getElementById('scanner-reader');
+                    if (reader) {
+                        reader.innerHTML = `
+                            <div style="position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:24px; text-align:center; color:#fff; background:#000;">
+                                <div style="font-size:2.4rem; margin-bottom:12px;">📷❌</div>
+                                <div style="font-size:1.05rem; font-weight:700; margin-bottom:8px;">${escapeHtml(title)}</div>
+                                <div style="font-size:0.88rem; color:rgba(255,255,255,0.75); line-height:1.5; max-width:320px;">${escapeHtml(detail)}</div>
+                                <button id="scanner-retry-btn" type="button" style="margin-top:18px; background:#007aff; color:#fff; border:none; border-radius:8px; padding:10px 22px; font-weight:700; cursor:pointer; font-size:0.92rem;">Retry Camera</button>
+                            </div>
+                        `;
+                        const retryBtn = document.getElementById('scanner-retry-btn');
+                        if (retryBtn) {
+                            retryBtn.addEventListener('click', async () => {
+                                await closeScanner();
+                                openScanner();
+                            });
+                        }
+                    }
+                    if (closePanel) {
+                        // For pre-flight failures (HTTPS, no API), close the camera panel and use a plain alert instead
+                        scannerPanel.classList.remove('open');
+                        alert(title + '\n\n' + detail);
+                    } else {
+                        // Make sure the panel is visible so the user sees the error + manual input
+                        scannerPanel.classList.add('open');
                     }
                 }
 
@@ -1953,13 +2248,18 @@
                     scannerPanel.classList.remove('open');
                     if (html5QrScanner) {
                         try {
-                            if (html5QrScanner.getState && html5QrScanner.getState() === 2) {
+                            const state = html5QrScanner.getState && html5QrScanner.getState();
+                            // 2 = SCANNING, 3 = PAUSED — both need stop() before clear()
+                            if (state === 2 || state === 3) {
                                 await html5QrScanner.stop();
                             }
                             await html5QrScanner.clear();
-                        } catch (e) { /* ignore */ }
+                        } catch (e) { /* ignore — disposing */ }
                         html5QrScanner = null;
                     }
+                    // Wipe orphan video/canvas nodes that the library sometimes leaves behind
+                    const readerEl = document.getElementById('scanner-reader');
+                    if (readerEl) readerEl.innerHTML = '';
                 }
 
                 function onBarcodeDetected(code, fromCamera) {
