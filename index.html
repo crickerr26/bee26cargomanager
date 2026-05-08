@@ -1212,40 +1212,82 @@
         }
 
 
+        /* Hide notification badges on desktop sidebar */
+        .nav-badge { display: none; }
+
         /* --- 12. Responsive (Mobile) --- */
         @media (max-width: 900px) {
-            /* 1. PROFESSIONAL BOTTOM NAV BAR */
+            /* 1. FLOATING DOCK BOTTOM NAV (iOS-style pill) */
             .sidebar { 
-                width: 100%; height: auto; min-height: 60px; 
-                position: fixed; bottom: 0; top: auto; left: 0; 
-                flex-direction: row; border-top: 1px solid #eee;
-                background: rgba(255, 255, 255, 0.95); /* Glass effect */
-                backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
-                box-shadow: 0 -4px 20px rgba(0,0,0,0.08); /* Soft shadow up */
-                padding-bottom: env(safe-area-inset-bottom); /* iPhone X+ Safe Area support */
+                width: auto; height: auto; min-height: 0;
+                position: fixed; bottom: calc(12px + env(safe-area-inset-bottom));
+                top: auto; left: 50%; transform: translateX(-50%);
+                flex-direction: row; border: 1px solid rgba(0,0,0,0.06);
+                background: rgba(255, 255, 255, 0.85);
+                backdrop-filter: saturate(180%) blur(20px); 
+                -webkit-backdrop-filter: saturate(180%) blur(20px);
+                box-shadow: 0 10px 30px rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.06);
+                border-radius: 999px;
+                padding: 8px 10px;
+                max-width: calc(100vw - 20px);
                 z-index: 9000;
+                overflow: visible;
             }
             .sidebar-logo, .sidebar-bottom { display: none; }
             .sidebar-nav { 
-                display: flex; flex-direction: row; justify-content: space-between; 
-                width: 100%; margin: 0; padding: 0 5px; 
+                display: flex; flex-direction: row; justify-content: center; 
+                align-items: center; gap: 4px;
+                width: auto; margin: 0; padding: 0; 
+                overflow-x: auto; overflow-y: visible;
+                scrollbar-width: none; -ms-overflow-style: none;
             }
-            .sidebar-nav li { flex: 1; display: flex; justify-content: center; }
+            .sidebar-nav::-webkit-scrollbar { display: none; }
+            .sidebar-nav li { flex: 0 0 auto; display: flex; justify-content: center; }
             .sidebar-nav li a { 
-                flex-direction: column; justify-content: center; align-items: center; 
-                height: 60px; padding: 0; width: 100%; color: #8a8a8e; 
-                background: transparent !important; /* Remove desktop hover bg */
-                border-radius: 0;
+                position: relative;
+                display: flex; flex-direction: column; 
+                justify-content: center; align-items: center; 
+                width: 44px; height: 44px; padding: 0; 
+                color: #1c1c1e; 
+                background: transparent !important;
+                border-radius: 50%;
+                transition: background-color 0.25s ease, color 0.25s ease, transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             }
-            /* Active State Styling */
-            .sidebar-nav li a.active { color: var(--blue); }
-            .sidebar-nav li a.active .nav-icon { transform: translateY(-3px); }
-            .sidebar-nav li a.active .nav-text { font-weight: 700; }
+            .sidebar-nav li a:hover { background: rgba(0,0,0,0.05) !important; }
+            .sidebar-nav li a:active { transform: scale(0.92); }
+
+            /* Active State — filled brand-color circle (matches your #850000 brand) */
+            .sidebar-nav li a.active { 
+                background: #850000 !important; 
+                color: #ffffff;
+                box-shadow: 0 4px 10px rgba(133, 0, 0, 0.35);
+            }
+            .sidebar-nav li a.active .nav-icon { transform: none; }
+            .sidebar-nav li a.active .nav-text { display: none; }
             
-            .nav-icon { font-size: 1.1rem; margin-bottom: 2px; transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-            .nav-text { 
-                font-size: 0.5rem; margin: 0; font-weight: 500; 
-                line-height: 1.1; opacity: 1; visibility: visible; white-space: normal; text-align: center;
+            .nav-icon { 
+                font-size: 1.15rem; margin: 0; width: auto;
+                transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
+                line-height: 1;
+            }
+            /* Hide labels for clean icon-only dock look */
+            .nav-text { display: none; }
+
+            /* Notification Badge (shows on mobile dock) */
+            .nav-badge {
+                display: flex;
+                position: absolute;
+                top: -2px; right: -2px;
+                min-width: 18px; height: 18px;
+                padding: 0 5px; box-sizing: border-box;
+                background: #ff3b30; color: #ffffff;
+                font-size: 0.65rem; font-weight: 700;
+                border-radius: 999px;
+                align-items: center; justify-content: center;
+                border: 2px solid rgba(255, 255, 255, 0.95);
+                line-height: 1;
+                pointer-events: none;
+                box-shadow: 0 1px 3px rgba(0,0,0,0.2);
             }
 
             /* 2. MAIN CONTENT LAYOUT */
@@ -1330,11 +1372,11 @@
         <ul class="sidebar-nav">
             <li><a class="nav-link active" data-page="page-dashboard"><span class="nav-icon">🏠</span><span class="nav-text">DB</span></a></li>
             <li><a class="nav-link" data-page="page-new-shipment"><span class="nav-icon">➕</span><span class="nav-text">New Shipment</span></a></li>
-            <li><a class="nav-link" data-page="page-all-shipments"><span class="nav-icon">🚚</span><span class="nav-text">All Shipments</span></a></li>
-            <li><a class="nav-link" data-page="page-web-submissions"><span class="nav-icon">📥</span><span class="nav-text">Web Subm.</span></a></li>
+            <li><a class="nav-link" data-page="page-all-shipments"><span class="nav-icon">🚚</span><span class="nav-text">All Shipments</span><span class="nav-badge" id="badge-shipments" style="display:none;">0</span></a></li>
+            <li><a class="nav-link" data-page="page-web-submissions"><span class="nav-icon">📥</span><span class="nav-text">Web Subm.</span><span class="nav-badge" id="badge-submissions" style="display:none;">0</span></a></li>
             <li><a class="nav-link" data-page="page-customers"><span class="nav-icon">👥</span><span class="nav-text">Customers</span></a></li>
-            <li><a class="nav-link" data-page="page-payments"><span class="nav-icon">💳</span><span class="nav-text">Payments & Exp.</span></a></li>
-            <li><a class="nav-link" data-page="page-receiving"><span class="nav-icon">✅</span><span class="nav-text">Receiving</span></a></li>
+            <li><a class="nav-link" data-page="page-payments"><span class="nav-icon">💳</span><span class="nav-text">Payments & Exp.</span><span class="nav-badge" id="badge-payments" style="display:none;">0</span></a></li>
+            <li><a class="nav-link" data-page="page-receiving"><span class="nav-icon">✅</span><span class="nav-text">Receiving</span><span class="nav-badge" id="badge-receiving" style="display:none;">0</span></a></li>
         </ul>
         <div class="sidebar-bottom">
             <ul class="sidebar-nav" style="margin: 0;">
