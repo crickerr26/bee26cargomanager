@@ -757,8 +757,48 @@
         .b2-status-pill.unpaid  { background: #f8d7da; color: #721c24; }
         .b2-status-pill.partial { background: #fff3cd; color: #856404; }
         .b2-status-pill.recd    { background: #d4edda; color: #155724; }
-        .b2-status-pill.pending { background: #f0f0f5; color: #666; }
-        .b2-status-pill.clr-paid { background: #ffebee; color: #c62828; }
+        /* PENDING / NOT PAID — RED to make unpaid status visually urgent */
+        .b2-status-pill.pending { background: #fde4e4; color: #b71c1c; }
+        /* Clearance PAID — GREEN (was incorrectly red previously) */
+        .b2-status-pill.clr-paid { background: #d4edda; color: #155724; }
+
+        /* Header sender line + senders count */
+        .b2-header-text { min-width: 0; }
+        .b2-header-senders {
+            font-size: 0.78rem; font-weight: 600;
+            opacity: 0.95; margin-top: 2px;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+            max-width: 100%;
+        }
+
+        /* Sender header row inside batch table — clearly separates senders */
+        .b2-table tbody tr.b2-sender-header td {
+            background: linear-gradient(90deg, #f4f3fc 0%, #ffffff 100%);
+            padding: 8px 16px;
+            border-top: 2px solid #e7e6f5;
+            border-bottom: 1px solid #ececf5;
+            font-size: 0.78rem;
+            font-weight: 700;
+            color: #5856d6;
+            letter-spacing: 0.2px;
+        }
+        .b2-table tbody tr.b2-sender-header:first-child td {
+            border-top: none;
+        }
+        .b2-table tbody tr.b2-sender-header .b2-sender-icon {
+            margin-right: 6px;
+            opacity: 0.85;
+        }
+        .b2-table tbody tr.b2-sender-header .b2-sender-name {
+            color: #1a1a2e;
+        }
+        .b2-table tbody tr.b2-sender-header:hover td {
+            background: linear-gradient(90deg, #f4f3fc 0%, #ffffff 100%);
+        }
+        /* The first row after a sender header gets a slim accent on the left */
+        .b2-table tbody tr.b2-sender-divider td:first-child {
+            position: relative;
+        }
 
         /* Friendly amount inputs */
         .b2-amount-wrap {
@@ -979,14 +1019,26 @@
                ============================================================ */
             .b2-card { margin-bottom: 12px; border-radius: 10px; }
 
-            .b2-header { padding: 10px 12px; }
+            .b2-header { padding: 10px 12px; align-items: flex-start; }
+            .b2-header-left { align-items: flex-start; }
             .b2-header-icon {
                 width: 28px; height: 28px; font-size: 0.9rem; border-radius: 7px;
+                margin-top: 2px;
             }
-            .b2-header-title { font-size: 0.92rem; }
-            .b2-header-meta { font-size: 0.66rem; }
-            .b2-header-right { gap: 8px; }
+            .b2-header-title { font-size: 0.95rem; line-height: 1.2; }
+            .b2-header-senders {
+                font-size: 0.74rem; margin-top: 2px;
+                line-height: 1.25;
+            }
+            .b2-header-meta { font-size: 0.68rem; margin-top: 2px; opacity: 0.85; }
+            .b2-header-right { gap: 8px; align-self: flex-start; margin-top: 2px; }
             .b2-net-pill { font-size: 0.7rem; padding: 4px 9px; }
+
+            /* Sender header row — compact on mobile */
+            .b2-table tbody tr.b2-sender-header td {
+                padding: 8px 12px;
+                font-size: 0.76rem;
+            }
 
             /* Headline strip — 2x2 grid, READABLE sub-text */
             .b2-headline { grid-template-columns: 1fr 1fr; }
@@ -1131,15 +1183,11 @@
             }
 
             /* ============================================================
-               MONEY CELL (pro fix)
+               MONEY CELL (pro layout — amount + status pill on SAME line)
                
-               Layout: status pill PINNED top-right of the block via absolute
-               positioning, input takes the full row underneath.
-               
-               Why: side-by-side grid kept causing the input to render over
-               the pill on iOS/Safari due to currency-prefix absolute child
-               + width:100% interaction. Stacking instead removes the bug
-               class entirely AND looks cleaner.
+               Layout: amount input (left, flexible) + PAID/NOT PAID pill (right, fixed).
+               They live on a single flex row that wraps cleanly. Receipt button drops
+               to its own row underneath as a full-width CTA.
                ============================================================ */
             .b2-table tbody td:nth-child(5),
             .b2-table tbody td:nth-child(6) {
@@ -1147,23 +1195,26 @@
             }
             .b2-cell-money {
                 display: flex;
-                flex-direction: column;
+                flex-wrap: wrap;
                 gap: 8px;
-                align-items: stretch;
+                align-items: center;
             }
             .b2-cell-money .b2-amount-wrap {
-                width: 100%; min-width: 0;
-                order: 2;
-            }
-            /* Status pill — anchored top-right of the block (same line as label) */
-            .b2-cell-money .b2-status-pill {
-                position: absolute;
-                top: 6px; right: 10px;
+                flex: 1 1 0;
+                min-width: 0;
+                width: auto;
                 order: 1;
+            }
+            /* Status pill — same row as input, fixed width on the right */
+            .b2-cell-money .b2-status-pill {
+                position: static;
+                flex: 0 0 auto;
+                order: 2;
                 margin: 0;
             }
-            /* Receipt button — full-width primary CTA underneath */
+            /* Receipt button — wraps to its own row (full width) */
             .b2-cell-money .b2-receipt-btn {
+                flex: 1 1 100%;
                 order: 3;
                 width: 100%;
                 justify-content: center;
@@ -5341,7 +5392,14 @@
 
                 visibleKeys.forEach(batchKey => {
                     const shipments = batches[batchKey];
-                    shipments.sort((a, b) => new Date(b.invoiceDate) - new Date(a.invoiceDate));
+                    // Group by sender name first, then by invoice date desc within each sender group.
+                    // This clusters shipments from the same sender together so dividers visually separate them.
+                    shipments.sort((a, b) => {
+                        const sa = (a.senderName || '').toLowerCase();
+                        const sb = (b.senderName || '').toLowerCase();
+                        if (sa !== sb) return sa.localeCompare(sb);
+                        return new Date(b.invoiceDate) - new Date(a.invoiceDate);
+                    });
                     const safeBatchKey = batchKey.replace(/[.#$\[\]]/g, "_");
                     const batchData = local_batches_cache[safeBatchKey] || local_batches_cache[batchKey] || {};
                     const isCollapsed = _payState.collapsed.has(batchKey);
@@ -5403,14 +5461,31 @@
                     card.className = 'b2-card' + (isCollapsed ? ' b2-collapsed' : '');
                     card.dataset.batchKey = batchKey;
 
+                    // Build a unique-sender summary for the header
+                    const _senderSet = [];
+                    shipments.forEach(s => {
+                        const nm = (s.senderName || '').trim();
+                        if (nm && !_senderSet.includes(nm)) _senderSet.push(nm);
+                    });
+                    let _sendersLabel = '';
+                    if (_senderSet.length === 1) {
+                        _sendersLabel = _senderSet[0];
+                    } else if (_senderSet.length === 2) {
+                        _sendersLabel = `${_senderSet[0]} + 1 other`;
+                    } else if (_senderSet.length > 2) {
+                        _sendersLabel = `${_senderSet[0]} + ${_senderSet.length - 1} others`;
+                    }
+                    const _sendersTitle = _senderSet.join(', ').replace(/"/g, '&quot;');
+
                     // Header (clickable to collapse/expand)
                     const headerHTML = `
                         <div class="b2-header" onclick="window._togglePayBatch('${batchKey.replace(/'/g,"\\'")}')">
                             <div class="b2-header-left">
                                 <div class="b2-header-icon">📦</div>
-                                <div>
+                                <div class="b2-header-text">
                                     <div class="b2-header-title">${batchKey}</div>
-                                    <div class="b2-header-meta">${shipments.length} shipment${shipments.length===1?'':'s'} • Profit CAD $${_fmtAmount(profitCAD, true)}</div>
+                                    ${_sendersLabel ? `<div class="b2-header-senders" title="${_sendersTitle}">👤 ${_sendersLabel}</div>` : ''}
+                                    <div class="b2-header-meta">${shipments.length} shipment${shipments.length===1?'':'s'} • ${_senderSet.length} sender${_senderSet.length===1?'':'s'} • Profit CAD $${_fmtAmount(profitCAD, true)}</div>
                                 </div>
                             </div>
                             <div class="b2-header-right">
@@ -5447,8 +5522,10 @@
                     `;
 
                     // Shipment table - clean, single tidy table
+                    // Add a divider class whenever the sender changes from the previous row.
                     let rowsHTML = '';
-                    shipments.forEach(s => {
+                    let _prevSender = null;
+                    shipments.forEach((s, idx) => {
                         const totalAmt = (parseFloat(s.paymentTotal)||0) + (parseFloat(s.additionalChargesAmt)||0);
                         const isPaid = s.paymentStatus === 'Paid';
                         const isPartial = s.paymentStatus === 'Partially-Paid';
@@ -5460,8 +5537,18 @@
                         const payClass = isPaid ? 'paid' : (isPartial ? 'partial' : 'unpaid');
                         const payLabel = isPaid ? 'PAID' : (isPartial ? 'PARTIAL' : 'UNPAID');
 
-                        rowsHTML += `
-                            <tr>
+                        const curSender = (s.senderName || '').trim();
+                        const isFirstOfSender = idx > 0 && curSender !== _prevSender;
+                        _prevSender = curSender;
+
+                        // Sender header row — appears whenever the sender changes (and on first row too)
+                        const showSenderHeader = idx === 0 || isFirstOfSender;
+                        const senderHeaderRow = showSenderHeader
+                            ? `<tr class="b2-sender-header"><td colspan="6"><span class="b2-sender-icon">👤</span><span class="b2-sender-name">${curSender || 'Unknown sender'}</span></td></tr>`
+                            : '';
+
+                        rowsHTML += senderHeaderRow + `
+                            <tr class="${isFirstOfSender ? 'b2-sender-divider' : ''}">
                                 <td class="b2-invoice-cell">
                                     <strong>${s.invoiceNumber || '—'}</strong>
                                     <span>${s.senderName || ''}</span>
@@ -5481,7 +5568,7 @@
                                         </div>
                                         <span class="b2-status-pill ${isClrPaid?'clr-paid':'pending'}"
                                               onclick="window.toggleSLStatus('${s.id}','slClearancePaid', ${isClrPaid})">
-                                            ${isClrPaid?'PAID':'PENDING'}
+                                            ${isClrPaid?'PAID':'NOT PAID'}
                                         </span>
                                     </div>
                                 </td>
@@ -5495,7 +5582,7 @@
                                         </div>
                                         <span class="b2-status-pill ${isDelPaid?'recd':'pending'}"
                                               onclick="window.toggleSLStatus('${s.id}','slDeliveryPaid', ${isDelPaid})">
-                                            ${isDelPaid?"REC'D":'PENDING'}
+                                            ${isDelPaid?'PAID':'NOT PAID'}
                                         </span>
                                         ${canIssueReceipt
                                             ? `<button class="b2-receipt-btn ${receiptReady?'':'b2-receipt-btn-disabled'}"
