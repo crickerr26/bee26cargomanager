@@ -495,6 +495,149 @@
             letter-spacing: 0.3px;
         }
 
+        /* --- COLLAPSIBLE RECEIVER GROUP --- */
+        /* Tap the header to collapse/expand the items inside this receiver group.
+           Saves a lot of vertical scrolling when a box has many receivers. */
+        .receiver-group-header {
+            cursor: pointer;
+            user-select: none;
+            -webkit-tap-highlight-color: rgba(255,255,255,0.15);
+            transition: filter 0.15s ease;
+            position: relative;
+        }
+        .receiver-group-header:active { filter: brightness(0.95); }
+        .receiver-group-toggle-icon {
+            position: absolute;
+            right: 10px;
+            bottom: 8px;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.25);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+            font-weight: 900;
+            color: #fff;
+            transition: transform 0.2s ease;
+            pointer-events: none;
+        }
+        .receiver-group.collapsed .receiver-group-toggle-icon {
+            transform: rotate(-90deg);
+        }
+        .receiver-group-items {
+            display: block;
+            overflow: hidden;
+        }
+        .receiver-group.collapsed .receiver-group-items {
+            display: none;
+        }
+        .receiver-group.collapsed {
+            margin-bottom: 8px;
+        }
+        .receiver-group-collapsed-summary {
+            display: none;
+            padding: 8px 10px;
+            font-size: 0.78rem;
+            color: var(--text-secondary);
+            background: #fafbfc;
+            border-radius: 6px;
+            margin-top: -4px;
+            font-style: italic;
+            text-align: center;
+        }
+        .receiver-group.collapsed .receiver-group-collapsed-summary {
+            display: block;
+        }
+
+        /* --- DELIVERED LIST ITEM (rich card with sender/receiver info) --- */
+        .delivered-list-item {
+            background: #fff;
+            border: 1px solid #e8eaed;
+            border-left: 5px solid #28a745;
+            border-radius: 10px;
+            padding: 10px 12px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: transform 0.08s ease, box-shadow 0.15s ease;
+        }
+        .delivered-list-item:active {
+            transform: scale(0.99);
+            box-shadow: 0 2px 6px rgba(40, 167, 69, 0.15);
+        }
+        .delivered-list-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 8px;
+            padding-bottom: 6px;
+            border-bottom: 1px dashed #eef0f3;
+        }
+        .delivered-list-title {
+            font-weight: 700;
+            color: var(--text-primary);
+            font-size: 0.95rem;
+        }
+        .delivered-list-meta {
+            font-size: 0.72rem;
+            color: var(--text-secondary);
+            margin-top: 2px;
+        }
+        .delivered-list-status {
+            background: #28a745;
+            color: #fff;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.72rem;
+            font-weight: 700;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+        .delivered-receiver-row {
+            background: #f7faf8;
+            border: 1px solid #e0ebe3;
+            border-left: 4px solid #28a745;
+            border-radius: 8px;
+            padding: 8px 10px;
+            margin-bottom: 6px;
+        }
+        .delivered-receiver-row:last-child { margin-bottom: 0; }
+        .delivered-receiver-name {
+            font-weight: 700;
+            font-size: 0.9rem;
+            color: var(--text-primary);
+            word-break: break-word;
+        }
+        .delivered-receiver-line {
+            font-size: 0.8rem;
+            color: var(--text-primary);
+            margin-top: 2px;
+            word-break: break-word;
+            line-height: 1.35;
+        }
+        .delivered-receiver-line.muted {
+            color: var(--text-secondary);
+        }
+        .delivered-sender-tag {
+            display: inline-block;
+            background: #f0f2f5;
+            color: #495057;
+            padding: 2px 8px;
+            border-radius: 5px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-right: 4px;
+            margin-top: 4px;
+        }
+        .delivered-completed-when {
+            font-size: 0.7rem;
+            color: #28a745;
+            font-weight: 700;
+            margin-top: 4px;
+        }
+
         /* --- AUTO-SAVE SYNC INDICATOR --- */
         .sync-indicator {
             position: fixed;
@@ -1374,7 +1517,30 @@
                         .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
                 }
 
-                // Helper to render delivered items grouped by batch (single DOM write = fast on slow networks)
+                // Format a "completed N ago" label for delivered list (small UX touch — not strict requirement)
+                function formatRelativeTime(ts) {
+                    if (!ts) return '';
+                    const diffMs = Date.now() - ts;
+                    if (diffMs < 0) return 'just now';
+                    const sec = Math.floor(diffMs / 1000);
+                    if (sec < 60) return 'just now';
+                    const min = Math.floor(sec / 60);
+                    if (min < 60) return `${min} min ago`;
+                    const hr = Math.floor(min / 60);
+                    if (hr < 24) return `${hr} hr ago`;
+                    const day = Math.floor(hr / 24);
+                    if (day < 7) return `${day} day${day === 1 ? '' : 's'} ago`;
+                    const wk = Math.floor(day / 7);
+                    if (wk < 5) return `${wk} wk${wk === 1 ? '' : 's'} ago`;
+                    const mo = Math.floor(day / 30);
+                    if (mo < 12) return `${mo} mo${mo === 1 ? '' : 's'} ago`;
+                    const yr = Math.floor(day / 365);
+                    return `${yr} yr${yr === 1 ? '' : 's'} ago`;
+                }
+
+                // Build a flat delivered list — LATEST ON TOP — with full receiver/sender info.
+                // No batch grouping here: the whole point of the delivered list is "what was just completed",
+                // so freshness ordering is more useful than batch ordering.
                 function renderDeliveredItems() {
                     if (deliveredBoxesArray.length === 0) {
                         invoicesDeliveredContainer.innerHTML = '<p style="text-align:center; font-size:0.85rem;">No completed boxes.</p>';
@@ -1390,40 +1556,64 @@
                     const endIndex = startIndex + deliveredItemsPerPage;
                     const itemsToDisplay = deliveredBoxesArray.slice(startIndex, endIndex);
 
-                    // Group the visible page by batch
-                    const byBatch = {};
-                    itemsToDisplay.forEach(box => {
-                        const k = box.batchNo || 'Unassigned Batch';
-                        if (!byBatch[k]) byBatch[k] = [];
-                        byBatch[k].push(box);
-                    });
-
-                    const batchNames = Object.keys(byBatch).sort(naturalBatchSort);
                     let html = '';
-                    batchNames.forEach(batchName => {
-                        const boxes = byBatch[batchName];
-                        let totalItemsInBatch = 0;
-                        boxes.forEach(b => totalItemsInBatch += b.items.length);
+                    itemsToDisplay.forEach(box => {
+                        // ── Aggregate receivers (mirrors the pending-box preview shape) ──
+                        const receiverGroups = {};
+                        (box.items || []).forEach(it => {
+                            const rName = it.receiverName || 'Unknown';
+                            const rPhone = it.receiverPhone || '';
+                            const rAddress = it.receiverAddress || '';
+                            const key = `${rName}|||${rPhone}`;
+                            if (!receiverGroups[key]) {
+                                receiverGroups[key] = {
+                                    receiverName: rName,
+                                    receiverPhone: rPhone,
+                                    receiverAddress: rAddress,
+                                    senders: new Set(),
+                                    itemCount: 0
+                                };
+                            }
+                            if (rAddress && rAddress.length > (receiverGroups[key].receiverAddress || '').length) {
+                                receiverGroups[key].receiverAddress = rAddress;
+                            }
+                            receiverGroups[key].senders.add(it.senderName || 'Unknown');
+                            receiverGroups[key].itemCount += 1;
+                        });
+                        const receiverArr = Object.values(receiverGroups);
 
-                        html += `
-                            <div class="batch-divider delivered">
-                                <div class="batch-divider-title">✅ ${escapeHtmlSafe(batchName)}</div>
-                                <div class="batch-divider-stats">${boxes.length} ${boxes.length === 1 ? 'box' : 'boxes'} · ${totalItemsInBatch} items</div>
-                            </div>
-                        `;
-                        boxes.forEach(box => {
-                            html += `
-                                <div class="invoice-list-item" onclick="openBox('${box.key}')">
-                                    <div>
-                                        <strong style="color: var(--text-primary);">📦 ${escapeHtmlSafe(box.boxNo)}</strong>
-                                        <div style="font-size: 0.78rem; color: var(--text-secondary); margin-top: 2px;">${box.items.length} items</div>
-                                    </div>
-                                    <div class="invoice-status" style="background: var(--green); color: white;">
-                                        Delivered
-                                    </div>
+                        // ── Build the per-receiver block: name → address → phone → senders ──
+                        let receiverHtml = '';
+                        receiverArr.forEach(g => {
+                            const sendersArr = Array.from(g.senders);
+                            const sendersHtml = sendersArr.map(s =>
+                                `<span class="delivered-sender-tag">📤 ${escapeHtmlSafe(s)}</span>`
+                            ).join('');
+                            receiverHtml += `
+                                <div class="delivered-receiver-row">
+                                    <div class="delivered-receiver-name">👤 ${escapeHtmlSafe(g.receiverName)}</div>
+                                    ${g.receiverPhone ? `<div class="delivered-receiver-line">📞 ${escapeHtmlSafe(g.receiverPhone)}</div>` : ''}
+                                    ${g.receiverAddress ? `<div class="delivered-receiver-line">📍 ${escapeHtmlSafe(g.receiverAddress)}</div>` : ''}
+                                    ${sendersHtml ? `<div>${sendersHtml}</div>` : ''}
+                                    <div class="delivered-receiver-line muted" style="margin-top:4px;">${g.itemCount} ${g.itemCount === 1 ? 'item' : 'items'}</div>
                                 </div>
                             `;
                         });
+
+                        const completedWhen = box.latestActivity ? formatRelativeTime(box.latestActivity) : '';
+
+                        html += `
+                            <div class="delivered-list-item" onclick="openBox('${box.key}')">
+                                <div class="delivered-list-header">
+                                    <div style="flex:1; min-width:0;">
+                                        <div class="delivered-list-title">📋 ${escapeHtmlSafe(box.batchNo)} · 📦 ${escapeHtmlSafe(box.boxNo)}</div>
+                                        <div class="delivered-list-meta">${box.items.length} ${box.items.length === 1 ? 'item' : 'items'} · ${receiverArr.length} ${receiverArr.length === 1 ? 'receiver' : 'receivers'}${completedWhen ? ` · <span class="delivered-completed-when">✓ ${completedWhen}</span>` : ''}</div>
+                                    </div>
+                                    <div class="delivered-list-status">✓ Delivered</div>
+                                </div>
+                                ${receiverHtml}
+                            </div>
+                        `;
                     });
                     invoicesDeliveredContainer.innerHTML = html; // single DOM write
 
@@ -1503,9 +1693,16 @@
                         if (snapshot.exists()) {
                             allShipments = snapshot.val();
 
+                            // Pull receivingProgress timestamps so we can sort delivered boxes by "latest first".
+                            // The auto-save engine writes lastUpdatedAt / finalizedAt under receivingProgress/<safeKey>.
+                            const receivingProgress = (allShipments && allShipments.receivingProgress) || {};
+
                             // Aggregate Items into physical Boxes
                             Object.keys(allShipments).forEach(shipmentId => {
+                                // Skip the receivingProgress branch — it is metadata, not a shipment
+                                if (shipmentId === 'receivingProgress') return;
                                 const shipment = allShipments[shipmentId];
+                                if (!shipment || typeof shipment !== 'object') return;
                                 const batchNo = shipment.batchNo || 'Unassigned Batch';
                                 
                                 if (shipment.items) {
@@ -1521,7 +1718,8 @@
                                                 key: boxKey,
                                                 items: [],
                                                 totalExpected: 0,
-                                                totalReceived: 0
+                                                totalReceived: 0,
+                                                latestActivity: 0   // unix ms — used to sort delivered list "latest first"
                                             };
                                         }
                                         
@@ -1554,6 +1752,18 @@
                                 }
                             });
 
+                            // Hydrate latestActivity for each box from receivingProgress (used to sort delivered list)
+                            Object.keys(allBoxes).forEach(boxKey => {
+                                const box = allBoxes[boxKey];
+                                const safeKey = String(boxKey).replace(/[\.\#\$\/\[\]\|]/g, '_');
+                                const prog = receivingProgress[safeKey];
+                                if (prog) {
+                                    // Prefer finalizedAt, then lastUpdatedAt, then sessionOpenedAt
+                                    const ts = Number(prog.finalizedAt || prog.lastUpdatedAt || prog.sessionOpenedAt || 0) || 0;
+                                    box.latestActivity = ts;
+                                }
+                            });
+
                             // Build pending boxes grouped by batch (single DOM write = much faster on slow networks)
                             let pendingCount = 0;
                             const sortedBoxKeys = Object.keys(allBoxes).sort(naturalBatchSort);
@@ -1572,6 +1782,15 @@
                                     pendingByBatch[batchKey].push(box);
                                     pendingCount++;
                                 }
+                            });
+
+                            // ── Sort delivered: latest activity first; fall back to batch/box natural sort ──
+                            deliveredBoxesArray.sort((a, b) => {
+                                const ta = a.latestActivity || 0;
+                                const tb = b.latestActivity || 0;
+                                if (tb !== ta) return tb - ta;   // newer first
+                                // Tie-break with reverse natural sort so "Batch 12" beats "Batch 1" when timestamps tie
+                                return naturalBatchSort(b.key, a.key);
                             });
 
                             // Build the entire pending HTML in memory, inject in one go
@@ -1644,10 +1863,10 @@
                                             return previewPalette[h % previewPalette.length];
                                         };
 
-                                        // Show up to 4 receivers in preview, summarize the rest
-                                        const MAX_PREVIEW = 4;
-                                        const visibleGroups = groupArr.slice(0, MAX_PREVIEW);
-                                        const hiddenCount = groupArr.length - visibleGroups.length;
+                                        // Show ALL receivers — no truncation. Each one renders in full
+                                        // with name, address, phone, and senders so the receiver-on-the-floor
+                                        // sees the entire box at a glance from the home page.
+                                        const visibleGroups = groupArr;
 
                                         let previewHtml = '';
                                         visibleGroups.forEach(g => {
@@ -1717,9 +1936,6 @@
                                                 </div>
                                             `;
                                         });
-                                        if (hiddenCount > 0) {
-                                            previewHtml += `<div class="box-preview-more">+ ${hiddenCount} more receiver${hiddenCount === 1 ? '' : 's'} — tap to view all</div>`;
-                                        }
 
                                         const hasPreview = groupArr.length > 0;
                                         pendingHtml += `
@@ -2780,9 +2996,20 @@
                     let totalNotReceived = 0, totalPartial = 0, totalFully = 0;
                     let html = '';
 
+                    // Persist collapsed state across re-renders so the live-mirror update doesn't keep
+                    // re-expanding groups the user has chosen to collapse. Stored on a per-box basis so
+                    // opening a different box starts fresh.
+                    if (!window.__collapsedReceiverGroups) window.__collapsedReceiverGroups = {};
+                    const collapseStateKey = currentBoxKey || '__nokey__';
+                    if (!window.__collapsedReceiverGroups[collapseStateKey]) {
+                        window.__collapsedReceiverGroups[collapseStateKey] = {};
+                    }
+                    const collapsedMap = window.__collapsedReceiverGroups[collapseStateKey];
+
                     groupOrder.forEach(key => {
                         const g = groups[key];
                         const color = colorFor(g.receiverName + g.receiverPhone);
+                        const isCollapsed = !!collapsedMap[key];
 
                         // Compute progress for this receiver
                         let gExp = 0, gRec = 0, gItems = g.items.length;
@@ -2801,11 +3028,14 @@
                             else totalFully++;
                         });
 
-                        // Group header (highlighted receiver + address + batch/box)
+                        // Safe key for the data attribute (HTML-attr-safe encoding)
+                        const dataKey = encodeURIComponent(key);
+
+                        // Group header — TAP to collapse/expand. Chevron rotates to signal state.
                         html += `
-                            <div class="receiver-group" style="border-color: ${color.border};">
-                                <div class="receiver-group-header" style="background: ${color.bg};">
-                                    <div style="flex: 1; min-width: 0;">
+                            <div class="receiver-group ${isCollapsed ? 'collapsed' : ''}" data-rg-key="${dataKey}" style="border-color: ${color.border};">
+                                <div class="receiver-group-header" data-rg-toggle="${dataKey}" style="background: ${color.bg};" title="Tap to ${isCollapsed ? 'expand' : 'collapse'}">
+                                    <div style="flex: 1; min-width: 0; padding-right: 30px;">
                                         <div>
                                             <span class="receiver-batch-badge">📋 ${escapeHtml(g.batchNo)}</span>
                                             <span class="receiver-batch-badge">📦 ${escapeHtml(g.boxNo)}</span>
@@ -2817,7 +3047,12 @@
                                         </div>
                                     </div>
                                     <div class="receiver-group-progress">${gRec} / ${gExp}</div>
+                                    <span class="receiver-group-toggle-icon">▼</span>
                                 </div>
+                                <div class="receiver-group-collapsed-summary">
+                                    ${gItems} ${gItems === 1 ? 'item' : 'items'} · ${gRec}/${gExp} received — tap header to expand
+                                </div>
+                                <div class="receiver-group-items">
                         `;
 
                         // Items inside this receiver group
@@ -2825,19 +3060,58 @@
                             html += buildItemCard(boxItem, index);
                         });
 
-                        html += `</div>`;
+                        html += `</div></div>`;
                     });
 
                     // Status summary header at the top (compact)
                     const summary = `
-                        <div style="display:flex; gap:6px; margin-bottom:12px; flex-wrap:wrap;">
+                        <div style="display:flex; gap:6px; margin-bottom:12px; flex-wrap:wrap; align-items:center;">
                             ${totalNotReceived > 0 ? `<span class="category-header header-red" style="margin:0; font-size:0.75rem; padding:4px 8px;">🔴 Not Rcvd: ${totalNotReceived}</span>` : ''}
                             ${totalPartial > 0 ? `<span class="category-header header-orange" style="margin:0; font-size:0.75rem; padding:4px 8px;">🟠 Partial: ${totalPartial}</span>` : ''}
                             ${totalFully > 0 ? `<span class="category-header header-green" style="margin:0; font-size:0.75rem; padding:4px 8px;">🟢 Rcvd: ${totalFully}</span>` : ''}
+                            ${groupOrder.length > 1 ? `<button id="rg-collapse-all" type="button" style="margin-left:auto; background:#f0f0f5; border:none; border-radius:6px; padding:4px 10px; font-size:0.72rem; font-weight:700; color:#1c1c1e; cursor:pointer;">Collapse all</button>` : ''}
+                            ${groupOrder.length > 1 ? `<button id="rg-expand-all" type="button" style="background:#e6f2ff; border:none; border-radius:6px; padding:4px 10px; font-size:0.72rem; font-weight:700; color:#0a4ea8; cursor:pointer;">Expand all</button>` : ''}
                         </div>
                     `;
 
                     notReceivedContainer.innerHTML = summary + html;
+
+                    // ── Wire collapse/expand interactions ──
+                    // Header tap toggles its own group; "Collapse/Expand all" buttons act on every group.
+                    notReceivedContainer.querySelectorAll('[data-rg-toggle]').forEach(headerEl => {
+                        headerEl.addEventListener('click', (e) => {
+                            // Don't toggle if the click was on an interactive child (qty select, image, etc.)
+                            if (e.target.closest('select, input, button, img, audio, a')) return;
+                            const dk = headerEl.getAttribute('data-rg-toggle');
+                            const groupKey = decodeURIComponent(dk);
+                            const groupEl = headerEl.closest('.receiver-group');
+                            if (!groupEl) return;
+                            const willCollapse = !groupEl.classList.contains('collapsed');
+                            groupEl.classList.toggle('collapsed', willCollapse);
+                            collapsedMap[groupKey] = willCollapse;
+                        });
+                    });
+                    const collapseAllBtn = document.getElementById('rg-collapse-all');
+                    if (collapseAllBtn) {
+                        collapseAllBtn.addEventListener('click', () => {
+                            notReceivedContainer.querySelectorAll('.receiver-group').forEach(el => {
+                                el.classList.add('collapsed');
+                                const dk = el.getAttribute('data-rg-key');
+                                if (dk) collapsedMap[decodeURIComponent(dk)] = true;
+                            });
+                        });
+                    }
+                    const expandAllBtn = document.getElementById('rg-expand-all');
+                    if (expandAllBtn) {
+                        expandAllBtn.addEventListener('click', () => {
+                            notReceivedContainer.querySelectorAll('.receiver-group').forEach(el => {
+                                el.classList.remove('collapsed');
+                                const dk = el.getAttribute('data-rg-key');
+                                if (dk) collapsedMap[decodeURIComponent(dk)] = false;
+                            });
+                        });
+                    }
+
                     updateLiveProgress();
                 }
 
