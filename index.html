@@ -910,86 +910,66 @@
         }
 
         /* === MOBILE ≤ 600px ============================================ */
-        /* This is the big one — restructures the batch card from a horizontal
-           table into a vertical card-list. No more horizontal scrolling. */
+        /* Restructures each shipment row from a horizontal table into a
+           clean transaction-card. No clipped pills, no overlapping labels,
+           no overlong padding. */
         @media (max-width: 600px) {
 
             /* --- Page-level: tighter spacing on phones --- */
             .pay-hero {
-                padding: 14px 12px;
-                margin-bottom: 12px;
+                padding: 12px 10px;
+                margin-bottom: 10px;
                 border-radius: 12px;
             }
-            .pay-hero-title { margin-bottom: 12px; }
+            .pay-hero-title { margin-bottom: 10px; }
             .pay-hero-title h2 { font-size: 0.95rem; }
-            .pay-hero-title .subtitle { display: none; } /* save vertical space */
+            .pay-hero-title .subtitle { display: none; }
             .financial-dashboard-grid { grid-template-columns: 1fr; }
 
-            /* --- KPI cards: compact 2×3 grid --- */
+            /* --- KPI cards: compact 2-col grid --- */
             .kpi-grid { grid-template-columns: repeat(2, 1fr); gap: 6px; }
             .kpi-card { padding: 10px 11px; border-radius: 8px; }
             .kpi-card::before { width: 2px; }
             .kpi-label { font-size: 0.6rem; margin-bottom: 3px; letter-spacing: 0.3px; }
             .kpi-value { font-size: 1rem; letter-spacing: -0.3px; }
             .kpi-meta { font-size: 0.62rem; margin-top: 2px; }
-            /* "Active Batches" 5th card spans full row alone */
             .kpi-card.kpi-batches { grid-column: 1 / -1; }
 
-            /* --- Filter strip: search on its own row, chips horizontal-scroll --- */
+            /* --- Filter strip --- */
             .pay-filters {
-                flex-direction: column;
-                align-items: stretch;
-                gap: 8px;
-                padding: 8px 10px;
-                margin-bottom: 10px;
-                border-radius: 10px;
+                flex-direction: column; align-items: stretch;
+                gap: 8px; padding: 8px 10px;
+                margin-bottom: 10px; border-radius: 10px;
             }
             .pay-filters .pay-search-wrap { flex: 1 1 auto; min-width: 0; }
             .pay-filters input[type="text"] { padding: 10px 12px 10px 32px; font-size: 0.9rem; }
             .pay-filters .pay-search-wrap::before { left: 10px; font-size: 0.8rem; }
             .pay-filters .pay-status-chips {
-                flex-wrap: nowrap;
-                overflow-x: auto;
-                -webkit-overflow-scrolling: touch;
-                scrollbar-width: none;
-                margin: 0 -10px; /* extend chip rail edge-to-edge */
-                padding: 0 10px;
+                flex-wrap: nowrap; overflow-x: auto;
+                -webkit-overflow-scrolling: touch; scrollbar-width: none;
+                margin: 0 -10px; padding: 0 10px;
             }
             .pay-filters .pay-status-chips::-webkit-scrollbar { display: none; }
-            .pay-chip {
-                flex: 0 0 auto;
-                padding: 6px 12px;
-                font-size: 0.75rem;
-            }
+            .pay-chip { flex: 0 0 auto; padding: 6px 12px; font-size: 0.75rem; }
 
-            /* --- Selection bar: 2×2 grid, no min-width tug-of-war --- */
+            /* --- Selection bar: 2x2 grid --- */
             .pay-selection-bar {
-                display: grid;
-                grid-template-columns: 1fr 1fr;
-                gap: 8px 14px;
-                padding: 10px 12px;
-                border-radius: 8px;
-                margin-bottom: 12px;
+                display: grid; grid-template-columns: 1fr 1fr;
+                gap: 6px 12px; padding: 9px 11px;
+                border-radius: 8px; margin-bottom: 10px;
             }
-            .pay-selection-bar .sel-stat {
-                min-width: 0; flex: unset;
-                gap: 0;
-            }
+            .pay-selection-bar .sel-stat { min-width: 0; flex: unset; gap: 0; }
             .pay-selection-bar .sel-label { font-size: 0.62rem; letter-spacing: 0.3px; }
             .pay-selection-bar .sel-stat strong { font-size: 0.9rem; }
 
-            /* --- Expense drawer: trim spacing --- */
-            .pay-expense-toggle { padding: 11px 13px; }
+            /* --- Expense drawer --- */
+            .pay-expense-toggle { padding: 10px 12px; }
             .pay-expense-toggle .pet-icon { width: 28px; height: 28px; font-size: 0.9rem; }
             .pay-expense-toggle .pet-title { font-size: 0.88rem; }
             .pay-expense-toggle .pet-subtitle { font-size: 0.68rem; }
             .pay-expense-toggle .pet-total { font-size: 1rem; }
             .pay-expense-inner { padding: 12px; }
-            .pay-expense-add {
-                grid-template-columns: 1fr;
-                gap: 8px;
-                margin-bottom: 10px;
-            }
+            .pay-expense-add { grid-template-columns: 1fr; gap: 8px; margin-bottom: 10px; }
             .pay-expense-add label { font-size: 0.65rem; margin-bottom: 3px; }
             .pay-expense-add input { padding: 10px 11px; font-size: 0.9rem; }
             .pay-expense-add button { padding: 10px 16px; font-size: 0.85rem; }
@@ -997,184 +977,193 @@
             /* ============================================================
                BATCH CARD — compact mobile redesign
                ============================================================ */
-            .b2-card {
-                margin-bottom: 14px;
-                border-radius: 10px;
-            }
+            .b2-card { margin-bottom: 12px; border-radius: 10px; }
 
-            /* Header — slimmer, tighter */
             .b2-header { padding: 10px 12px; }
             .b2-header-icon {
-                width: 28px; height: 28px;
-                font-size: 0.9rem;
-                border-radius: 7px;
+                width: 28px; height: 28px; font-size: 0.9rem; border-radius: 7px;
             }
             .b2-header-title { font-size: 0.92rem; }
             .b2-header-meta { font-size: 0.66rem; }
             .b2-header-right { gap: 8px; }
             .b2-net-pill { font-size: 0.7rem; padding: 4px 9px; }
 
-            /* Headline strip — 2x2 grid with normalized cell heights */
-            .b2-headline {
-                grid-template-columns: 1fr 1fr;
-            }
+            /* Headline strip — 2x2 grid */
+            .b2-headline { grid-template-columns: 1fr 1fr; }
             .b2-stat {
-                padding: 10px 12px;
-                gap: 2px;
-                min-height: 76px; /* normalized — kills the up/down jumping */
-                justify-content: center;
+                padding: 9px 11px; gap: 2px;
+                min-height: 64px; justify-content: center;
             }
             .b2-stat-label { font-size: 0.6rem; letter-spacing: 0.3px; }
-            .b2-stat-value { font-size: 0.98rem; letter-spacing: -0.3px; }
+            .b2-stat-value { font-size: 0.95rem; letter-spacing: -0.3px; }
             .b2-stat-sub {
-                font-size: 0.65rem;
-                line-height: 1.3;
-                /* Truncate so all 4 cells stay the same height */
-                display: -webkit-box;
-                -webkit-line-clamp: 2;
-                -webkit-box-orient: vertical;
-                overflow: hidden;
+                font-size: 0.64rem; line-height: 1.3;
+                display: -webkit-box; -webkit-line-clamp: 2;
+                -webkit-box-orient: vertical; overflow: hidden;
             }
 
             /* ============================================================
-               SHIPMENT LIST — Convert table → vertical stack cards
-               This is the biggest UX win on mobile.
+               SHIPMENT ROW — Transaction-card layout
+               
+               Cell map (from JS):
+                 1 = Invoice + sender name      → header
+                 2 = Weight                     → meta line
+                 3 = Total amount (CAD)         → headline figure (right of header)
+                 4 = Payment status pill        → status row
+                 5 = Clearance (input + pill)   → labeled mini-row
+                 6 = Delivery (input + pill + receipt) → labeled mini-row
                ============================================================ */
             .b2-table-wrap { overflow-x: visible; }
             .b2-table { min-width: 0; display: block; font-size: 0.9rem; }
-            .b2-table thead { display: none; } /* hide column headers on mobile */
+            .b2-table thead { display: none; }
             .b2-table tbody { display: block; }
+
             .b2-table tbody tr {
                 display: grid;
-                grid-template-columns: 1fr auto;
-                gap: 6px 12px;
-                padding: 12px 14px;
+                grid-template-columns: minmax(0, 1fr) auto;
+                column-gap: 10px;
+                row-gap: 6px;
+                padding: 11px 12px;
                 border-bottom: 1px solid #f0f0f5;
             }
             .b2-table tbody tr:hover { background: transparent; }
             .b2-table tbody td {
-                padding: 0;
-                border-bottom: none;
-                font-size: 0.85rem;
+                padding: 0; border-bottom: none;
+                font-size: 0.84rem; min-width: 0;
             }
 
-            /* Row 1: Invoice / Name spans both columns */
-            .b2-table tbody td:nth-child(1) { /* invoice */
-                grid-column: 1 / -1;
+            /* (1) Invoice + name — top-left */
+            .b2-table tbody td:nth-child(1) {
+                grid-column: 1; grid-row: 1; min-width: 0;
+            }
+            .b2-invoice-cell strong {
+                font-size: 0.9rem;
+                white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+                display: block;
+            }
+            .b2-invoice-cell span {
+                font-size: 0.74rem;
+                white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+                display: block;
+            }
+
+            /* (3) Total amount (CAD) — top-right, prominent */
+            .b2-table tbody td:nth-child(3) {
+                grid-column: 2; grid-row: 1;
+                justify-self: end; align-self: start;
+                text-align: right;
+            }
+            .b2-table tbody td:nth-child(3) strong {
+                font-size: 1.05rem; font-weight: 800; color: #1a1a2e;
+                white-space: nowrap;
+            }
+            .b2-table tbody td:nth-child(3)::before {
+                content: 'TOTAL';
+                display: block;
+                font-size: 0.56rem; font-weight: 700;
+                color: #aaa; letter-spacing: 0.4px;
+                margin-bottom: 1px;
+            }
+
+            /* (2) Weight — sits below invoice/name as meta */
+            .b2-table tbody td:nth-child(2) {
+                grid-column: 1; grid-row: 2;
+                font-size: 0.74rem; color: #888;
+                display: flex; align-items: center;
                 padding-bottom: 4px;
                 border-bottom: 1px dashed #f0f0f5;
                 margin-bottom: 4px;
             }
-            .b2-invoice-cell strong { font-size: 0.9rem; }
-            .b2-invoice-cell span { font-size: 0.74rem; }
-
-            /* Row 2: Weight (left) + Status pill (right) */
-            .b2-table tbody td:nth-child(2) { /* weight */
-                font-size: 0.78rem; color: #888;
-                display: flex; align-items: center;
-            }
             .b2-table tbody td:nth-child(2)::before {
-                content: '⚖️ '; margin-right: 4px; opacity: 0.7;
-            }
-            .b2-table tbody td:nth-child(4) { /* status pill */
-                grid-column: 2;
-                grid-row: 2;
-                justify-self: end;
-                align-self: center;
+                content: '⚖️'; margin-right: 5px; opacity: 0.65;
             }
 
-            /* Row 3: Shipping CAD spans alone (small) */
-            .b2-table tbody td:nth-child(3) { /* shipping CAD */
-                grid-column: 1 / -1;
-                font-size: 0.82rem;
-            }
-            .b2-table tbody td:nth-child(3)::before {
-                content: 'Shipping '; color: #888; font-weight: 500; font-size: 0.7rem;
-                margin-right: 4px;
+            /* (4) Payment status pill — top-right second row */
+            .b2-table tbody td:nth-child(4) {
+                grid-column: 2; grid-row: 2;
+                justify-self: end; align-self: center;
+                padding-bottom: 4px; margin-bottom: 4px;
+                border-bottom: 1px dashed #f0f0f5;
+                /* keep border invisible on the right side only */
+                border-right: 0;
             }
 
-            /* Row 4 & 5: Clearance and Delivery — full-width labeled blocks */
+            /* (5) Clearance + (6) Delivery — labeled mini blocks */
             .b2-table tbody td:nth-child(5),
             .b2-table tbody td:nth-child(6) {
                 grid-column: 1 / -1;
                 background: #fafafe;
                 border-radius: 8px;
                 padding: 8px 10px;
-                margin-top: 2px;
+                margin-top: 0;
             }
-            .b2-table tbody td:nth-child(5)::before { content: 'Clearance'; }
-            .b2-table tbody td:nth-child(6)::before { content: 'Delivery'; }
+            .b2-table tbody td:nth-child(5)::before { content: 'CLEARANCE'; }
+            .b2-table tbody td:nth-child(6)::before { content: 'DELIVERY'; }
             .b2-table tbody td:nth-child(5)::before,
             .b2-table tbody td:nth-child(6)::before {
                 display: block;
-                font-size: 0.62rem; font-weight: 700;
-                color: #888; text-transform: uppercase; letter-spacing: 0.4px;
-                margin-bottom: 6px;
+                font-size: 0.58rem; font-weight: 700;
+                color: #999; letter-spacing: 0.5px;
+                margin-bottom: 5px;
             }
 
-            /* Money cells: proper structured layout */
+            /* Money cell — input on left, pill on right, NEVER overlap */
             .b2-cell-money {
                 display: grid;
-                grid-template-columns: 1fr auto;
-                gap: 6px;
+                grid-template-columns: minmax(0, 1fr) auto;
+                column-gap: 8px;
+                row-gap: 6px;
                 align-items: center;
             }
             .b2-cell-money .b2-amount-wrap {
-                grid-column: 1; min-width: 0; width: 100%;
+                grid-column: 1; grid-row: 1;
+                min-width: 0; width: 100%;
             }
             .b2-cell-money .b2-status-pill {
-                grid-column: 2; justify-self: end;
+                grid-column: 2; grid-row: 1;
+                justify-self: end;
+                flex-shrink: 0;
             }
             .b2-cell-money .b2-receipt-btn {
-                grid-column: 1 / -1;
-                justify-self: stretch;
-                margin-top: 4px;
-                padding: 8px 12px;
-                font-size: 0.78rem;
-                justify-content: center;
-            }
-
-            /* Inputs — touch-friendly height */
-            .b2-amount-input {
-                font-size: 16px; /* prevents iOS zoom */
-                padding: 10px 12px 10px 38px;
-                min-height: 40px;
-            }
-            .b2-amount-wrap .currency-prefix { font-size: 0.72rem; }
-
-            /* Status pills bigger tap target */
-            .b2-status-pill {
+                grid-column: 1 / -1; grid-row: 2;
+                justify-self: end;
                 padding: 6px 12px;
+                font-size: 0.74rem;
+            }
+
+            /* Inputs — touch-friendly, prevents iOS zoom */
+            .b2-amount-input {
+                font-size: 16px;
+                padding: 9px 10px 9px 38px;
+                min-height: 38px;
+            }
+            .b2-amount-wrap .currency-prefix { font-size: 0.7rem; }
+
+            /* Status pills — guaranteed legible, no clipping */
+            .b2-status-pill {
+                padding: 5px 11px;
                 font-size: 0.7rem;
-                min-height: 28px;
+                min-height: 26px;
+                min-width: 64px;
+                justify-content: center;
+                white-space: nowrap;
+                flex-shrink: 0;
             }
 
             /* Footer */
-            .b2-footer {
-                padding: 12px;
-                gap: 12px;
-            }
-            .b2-footer-section h4 {
-                font-size: 0.66rem;
-                margin: 0 0 6px 0;
-            }
+            .b2-footer { padding: 12px; gap: 12px; }
+            .b2-footer-section h4 { font-size: 0.66rem; margin: 0 0 6px 0; }
             .b2-extras-list { padding: 6px 10px; max-height: 100px; }
             .b2-extra-row { font-size: 0.78rem; padding: 3px 0; }
             .b2-add-extra-btn { padding: 7px 12px; font-size: 0.74rem; }
-            .b2-notes-textarea {
-                font-size: 16px; /* prevent iOS zoom */
-                min-height: 50px;
-                padding: 8px 10px;
-            }
+            .b2-notes-textarea { font-size: 16px; min-height: 50px; padding: 8px 10px; }
 
             /* Show-more reveal bar */
-            .b2-reveal-bar { margin: 4px 0 16px; }
-            .b2-reveal-btn {
-                padding: 10px 16px; font-size: 0.82rem; gap: 6px;
-            }
+            .b2-reveal-bar { margin: 4px 0 14px; }
+            .b2-reveal-btn { padding: 10px 16px; font-size: 0.82rem; gap: 6px; }
             .b2-reveal-btn .b2-reveal-count { font-size: 0.72rem; padding: 2px 7px; }
 
-            /* Sync indicator on mobile — slimmer, top center */
+            /* Sync indicator */
             #bee26-sync-indicator {
                 top: 10px !important;
                 right: 10px !important;
@@ -1187,28 +1176,31 @@
 
         /* === SMALL PHONE ≤ 380px ======================================= */
         @media (max-width: 380px) {
-            /* KPI cards drop to 1 column to give labels breathing room */
             .kpi-grid { grid-template-columns: 1fr; }
             .kpi-card.kpi-batches { grid-column: auto; }
             .kpi-value { font-size: 1.05rem; }
 
-            /* Selection bar: stack 2 rows of 2 stats */
-            .pay-selection-bar { gap: 6px 10px; padding: 9px 10px; }
+            .pay-selection-bar { gap: 5px 10px; padding: 8px 10px; }
             .pay-selection-bar .sel-stat strong { font-size: 0.82rem; }
 
-            /* Batch card extra-tight padding */
-            .b2-stat { padding: 9px 10px; min-height: 70px; }
-            .b2-stat-value { font-size: 0.92rem; }
-            .b2-table tbody tr { padding: 10px 12px; }
+            .b2-stat { padding: 8px 10px; min-height: 60px; }
+            .b2-stat-value { font-size: 0.9rem; }
+            .b2-table tbody tr { padding: 10px 11px; }
+
+            /* On the smallest screens, total amount shrinks slightly so it
+               never wraps next to a long invoice number */
+            .b2-table tbody td:nth-child(3) strong { font-size: 0.98rem; }
+            .b2-status-pill { min-width: 58px; padding: 5px 9px; font-size: 0.66rem; }
+            .b2-cell-money .b2-status-pill { min-width: 70px; }
         }
 
-        /* === LANDSCAPE / SHORT VIEWPORTS — keep things scannable ======== */
+        /* === LANDSCAPE / SHORT VIEWPORTS ================================ */
         @media (max-width: 760px) and (orientation: landscape) {
             .pay-hero { padding: 12px; }
             .kpi-grid { grid-template-columns: repeat(3, 1fr); }
             .kpi-card.kpi-batches { grid-column: auto; }
             .b2-headline { grid-template-columns: repeat(4, 1fr); }
-            .b2-stat { min-height: 70px; padding: 10px 12px; }
+            .b2-stat { min-height: 64px; padding: 10px 12px; }
         }
 
 
