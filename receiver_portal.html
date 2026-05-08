@@ -911,6 +911,100 @@
         }
         .scan-voice-block audio { width: 100%; height: 36px; }
 
+        /* --- SCAN QTY PICKER --- */
+        .scan-qty-block {
+            background: #f7faff;
+            border: 1px solid #d6e4ff;
+            border-radius: 12px;
+            padding: 12px 14px;
+            margin-top: 12px;
+        }
+        .scan-qty-label {
+            font-size: 0.78rem;
+            font-weight: 700;
+            color: #0a4ea8;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .scan-qty-label .scan-qty-remaining {
+            color: #636366;
+            font-weight: 600;
+            font-size: 0.72rem;
+        }
+        .scan-qty-pills {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+        .scan-qty-pill {
+            min-width: 38px;
+            padding: 8px 12px;
+            border-radius: 10px;
+            border: 1.5px solid #cfe0ff;
+            background: #fff;
+            color: #0a4ea8;
+            font-weight: 700;
+            font-size: 0.92rem;
+            cursor: pointer;
+            transition: transform 0.08s ease, background 0.15s ease, border-color 0.15s ease;
+        }
+        .scan-qty-pill:active { transform: scale(0.95); }
+        .scan-qty-pill.active {
+            background: #007aff;
+            border-color: #007aff;
+            color: #fff;
+            box-shadow: 0 2px 6px rgba(0, 122, 255, 0.3);
+        }
+        .scan-qty-pill.qty-all {
+            background: #fff7e6;
+            border-color: #ffd591;
+            color: #d46b08;
+        }
+        .scan-qty-pill.qty-all.active {
+            background: #fa8c16;
+            border-color: #fa8c16;
+            color: #fff;
+            box-shadow: 0 2px 6px rgba(250, 140, 22, 0.3);
+        }
+        .scan-qty-select-wrap {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .scan-qty-select {
+            flex: 1;
+            padding: 10px 12px;
+            border-radius: 10px;
+            border: 1.5px solid #cfe0ff;
+            background: #fff;
+            color: #1c1c1e;
+            font-weight: 700;
+            font-size: 0.95rem;
+            -webkit-appearance: none;
+            appearance: none;
+            background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'><path fill='%23007aff' d='M6 8L0 0h12z'/></svg>");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            padding-right: 32px;
+        }
+        .scan-qty-select:focus { outline: none; border-color: #007aff; }
+        .scan-qty-quick-all {
+            padding: 10px 14px;
+            border-radius: 10px;
+            border: 1.5px solid #ffd591;
+            background: #fff7e6;
+            color: #d46b08;
+            font-weight: 700;
+            font-size: 0.85rem;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+        .scan-qty-quick-all:active { transform: scale(0.95); }
+
         /* Brief flash on the matched card in the list */
         .scan-flash {
             animation: scanFlash 1.4s ease;
@@ -2347,6 +2441,65 @@
                             <audio controls preload="none" src="${item.voiceNote}"></audio>
                         </div>` : '';
 
+                    // ── QUANTITY PICKER ──
+                    // The receiver picks HOW MANY of this item they're marking received in this scan.
+                    // The picker NEVER allows a value > remaining (so we can't exceed expected qty).
+                    // Default selected = remaining (fastest workflow: one tap if all are coming out at once).
+                    //
+                    // Layout strategy:
+                    //   • remaining === 0 → no picker (item already fully received)
+                    //   • remaining === 1 → no picker, simple "+1 Received" button (nothing to choose)
+                    //   • remaining ≤ 10  → horizontal pill row 1..N (mobile-friendly, one-tap)
+                    //   • remaining  > 10 → native <select> dropdown 1..N + "All" quick button
+                    let qtyPickerHtml = '';
+                    let actionBtnHtml = '';
+                    if (remaining > 0) {
+                        if (remaining === 1) {
+                            // Trivial case — no picker needed
+                            actionBtnHtml = `<button class="scan-action-btn scan-action-receive" id="scan-btn-receive" data-qty="1" type="button">+1 Received</button>`;
+                        } else if (remaining <= 10) {
+                            // Pill row: 1, 2, …, remaining   (last one styled as "All N")
+                            let pillsRow = '';
+                            for (let n = 1; n <= remaining; n++) {
+                                const isAll = (n === remaining);
+                                const isActive = (n === remaining); // default selection = All
+                                const cls = `scan-qty-pill${isAll ? ' qty-all' : ''}${isActive ? ' active' : ''}`;
+                                const label = isAll ? `All ${n}` : `${n}`;
+                                pillsRow += `<button type="button" class="${cls}" data-qty="${n}">${label}</button>`;
+                            }
+                            qtyPickerHtml = `
+                                <div class="scan-qty-block">
+                                    <div class="scan-qty-label">
+                                        <span>📦 How many are you receiving?</span>
+                                        <span class="scan-qty-remaining">${received}/${expected} so far · ${remaining} left</span>
+                                    </div>
+                                    <div class="scan-qty-pills" id="scan-qty-pills">${pillsRow}</div>
+                                </div>
+                            `;
+                            actionBtnHtml = `<button class="scan-action-btn scan-action-receive" id="scan-btn-receive" data-qty="${remaining}" type="button">Mark ${remaining} Received</button>`;
+                        } else {
+                            // Dropdown for larger counts
+                            let opts = '';
+                            for (let n = 1; n <= remaining; n++) {
+                                const sel = (n === remaining) ? ' selected' : '';
+                                opts += `<option value="${n}"${sel}>${n}${n === remaining ? ' (All remaining)' : ''}</option>`;
+                            }
+                            qtyPickerHtml = `
+                                <div class="scan-qty-block">
+                                    <div class="scan-qty-label">
+                                        <span>📦 How many are you receiving?</span>
+                                        <span class="scan-qty-remaining">${received}/${expected} so far · ${remaining} left</span>
+                                    </div>
+                                    <div class="scan-qty-select-wrap">
+                                        <select class="scan-qty-select" id="scan-qty-select">${opts}</select>
+                                        <button type="button" class="scan-qty-quick-all" id="scan-qty-quick-all">All ${remaining}</button>
+                                    </div>
+                                </div>
+                            `;
+                            actionBtnHtml = `<button class="scan-action-btn scan-action-receive" id="scan-btn-receive" data-qty="${remaining}" type="button">Mark ${remaining} Received</button>`;
+                        }
+                    }
+
                     scanResultCard.innerHTML = `
                         <div class="scan-result-banner ${bannerClass}">${bannerText}</div>
                         <div class="scan-result-body">
@@ -2373,11 +2526,12 @@
                                     ${voiceHtml}
                                 </div>
                             </div>
+                            ${qtyPickerHtml}
                         </div>
                         <div class="scan-result-actions">
                             <button class="scan-action-btn scan-action-skip" id="scan-btn-close" type="button">Close</button>
                             <button class="scan-action-btn scan-action-jump" id="scan-btn-jump" type="button">Show in list</button>
-                            ${remaining > 0 ? `<button class="scan-action-btn scan-action-receive" id="scan-btn-receive" type="button">+1 Received</button>` : ''}
+                            ${actionBtnHtml}
                         </div>
                     `;
 
@@ -2395,10 +2549,48 @@
                             card.classList.add('scan-flash');
                         }
                     };
+
+                    // ── Wire qty picker (pill row OR dropdown) ──
+                    // The chosen qty lives on data-qty of the receive button; updating it updates the label too.
                     const recvBtn = document.getElementById('scan-btn-receive');
+                    function setChosenQty(n) {
+                        if (!recvBtn) return;
+                        const safe = Math.max(1, Math.min(remaining, parseInt(n, 10) || 1));
+                        recvBtn.dataset.qty = String(safe);
+                        // Live-update label so user sees exactly what they're committing
+                        recvBtn.textContent = (safe === 1 && remaining === 1) ? '+1 Received' : `Mark ${safe} Received`;
+                    }
+
+                    if (remaining > 1 && remaining <= 10) {
+                        const pillContainer = document.getElementById('scan-qty-pills');
+                        if (pillContainer) {
+                            pillContainer.querySelectorAll('.scan-qty-pill').forEach(p => {
+                                p.onclick = () => {
+                                    pillContainer.querySelectorAll('.scan-qty-pill').forEach(x => x.classList.remove('active'));
+                                    p.classList.add('active');
+                                    setChosenQty(p.dataset.qty);
+                                };
+                            });
+                        }
+                    } else if (remaining > 10) {
+                        const sel = document.getElementById('scan-qty-select');
+                        if (sel) sel.onchange = () => setChosenQty(sel.value);
+                        const allBtn = document.getElementById('scan-qty-quick-all');
+                        if (allBtn) {
+                            allBtn.onclick = () => {
+                                if (sel) sel.value = String(remaining);
+                                setChosenQty(remaining);
+                            };
+                        }
+                    }
+
+                    // ── Wire the receive action ──
                     if (recvBtn) {
                         recvBtn.onclick = () => {
-                            const newReceived = Math.min(expected, received + 1);
+                            // Read chosen qty from data-qty (set by picker) and clamp defensively against
+                            // remaining — never let receivedQty exceed expected, no matter what.
+                            const chosen = Math.max(1, Math.min(remaining, parseInt(recvBtn.dataset.qty, 10) || 1));
+                            const newReceived = Math.min(expected, received + chosen);
                             currentBoxItems[index].data.receivedQty = newReceived;
                             autoSaveItem(currentBoxItems[index]); // instant Firebase sync to admin
                             renderItems();
@@ -2407,7 +2599,8 @@
                             renderActiveMatch(code);
                         };
                     }
-                    // Pill switching
+
+                    // Pill switching (multi-match)
                     if (activeMatches.length > 1) {
                         scanResultCard.querySelectorAll('.scan-multi-pill').forEach(p => {
                             p.onclick = () => {
