@@ -4787,8 +4787,11 @@
                         // Format: "Jan 2025"
                         const key = d.toLocaleString('default', { month: 'short', year: 'numeric' });
                         // For sorting, keep a timestamp
-                        if (!monthlyData[key]) monthlyData[key] = { count: 0, sortVal: d.getTime() };
-                        monthlyData[key].count++;
+                        if (!monthlyData[key]) monthlyData[key] = { senders: new Set(), sortVal: d.getTime() };
+                        if (s.senderName) {
+                            // Add sender name to Set (automatically ignores duplicates)
+                            monthlyData[key].senders.add(s.senderName.trim().toLowerCase());
+                        }
                     }
                 });
 
@@ -4843,21 +4846,23 @@
                     // Prepare Data: Sort chronologically
                     const sortedKeys = Object.keys(monthlyData).sort((a, b) => monthlyData[a].sortVal - monthlyData[b].sortVal);
                     const labels = sortedKeys;
-                    const dataPoints = sortedKeys.map(k => monthlyData[k].count);
+                    // Map unique sender counts for each month
+                    const dataPoints = sortedKeys.map(k => monthlyData[k].senders.size);
 
-                    if (dashboardChart) {
+                    // Explicitly bind to window.dashboardChart to prevent ReferenceErrors
+                    if (window.dashboardChart instanceof Chart) {
                         // Update existing chart
-                        dashboardChart.data.labels = labels;
-                        dashboardChart.data.datasets[0].data = dataPoints;
-                        dashboardChart.update();
+                        window.dashboardChart.data.labels = labels;
+                        window.dashboardChart.data.datasets[0].data = dataPoints;
+                        window.dashboardChart.update();
                     } else {
                         // Create new chart
-                        dashboardChart = new Chart(chartCtx, {
+                        window.dashboardChart = new Chart(chartCtx, {
                             type: 'bar',
                             data: {
                                 labels: labels,
                                 datasets: [{
-                                    label: 'Number of Shipments',
+                                    label: 'Unique Senders per Month',
                                     data: dataPoints,
                                     backgroundColor: '#5856d6',
                                     borderRadius: 6,
@@ -4867,7 +4872,7 @@
                                 responsive: true,
                                 maintainAspectRatio: false,
                                 plugins: {
-                                    legend: { display: false }
+                                    legend: { display: true }
                                 },
                                 scales: {
                                     y: { beginAtZero: true, ticks: { stepSize: 1 } }
