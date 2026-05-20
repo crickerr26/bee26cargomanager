@@ -1841,18 +1841,44 @@
         </div>
 
         <div id="page-customers" class="page-content">
-             <div class="card">
-                <h2>Customer List</h2>
-                <div class="table-container">
-                    <table class="styled-table">
-                        <thead><tr><th>Name (Sender)</th><th>Phone</th><th>Last Shipment</th><th>Total Shipments</th><th>Actions</th></tr></thead>
-                        <tbody id="customersTableTbody">
-                            <tr><td colspan="5" style="text-align: center;">Loading data from Firebase...</td></tr>
-                        </tbody>
-                    </table>
+             <div class="card" style="padding: 0; overflow: hidden; background: #fff;">
+                <div style="padding: 1.5rem 1.5rem 0.5rem; border-bottom: 1px solid #f0f0f5;">
+                    <h2 style="margin: 0; font-size: 1.4rem;">Contacts</h2>
+                    <input type="text" id="customerSearchInput" placeholder="🔍 Search customers..." style="width: 100%; padding: 10px 15px; margin-top: 15px; border-radius: 10px; border: 1px solid #e2e8f0; background: #f8f9fa; font-size: 0.95rem; outline: none; box-sizing: border-box;">
+                </div>
+                <div id="customersContactList" style="max-height: 70vh; overflow-y: auto; background: #fff;">
+                    <div style="padding: 2rem; text-align: center; color: #888;">Loading contacts...</div>
                 </div>
             </div>
         </div>
+
+        <div id="customerDetailsModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9999; align-items:flex-end; justify-content:center; padding:0;">
+            <div style="background:white; width:100%; max-width:500px; max-height:85vh; border-radius:20px 20px 0 0; overflow-y:auto; box-shadow:0 -10px 30px rgba(0,0,0,0.2); animation:slideUpContact 0.3s ease-out; padding-bottom: 30px;">
+                <div style="position: sticky; top: 0; background: rgba(255,255,255,0.9); backdrop-filter: blur(10px); padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; z-index: 10;">
+                    <h3 style="margin: 0; color: #1a1a2e; font-size: 1.2rem;">Contact Details</h3>
+                    <button onclick="document.getElementById('customerDetailsModal').style.display='none'" style="background: #f0f0f5; border: none; width: 30px; height: 30px; border-radius: 50%; font-size: 1.2rem; cursor: pointer; display: flex; align-items: center; justify-content: center; color: #666;">&times;</button>
+                </div>
+                <div id="customerModalContent" style="padding: 20px;"></div>
+            </div>
+        </div>
+        <style>
+            @keyframes slideUpContact { from { transform: translateY(100%); } to { transform: translateY(0); } }
+            .contact-letter-header { background: #f4f4f8; padding: 6px 20px; font-weight: 700; color: #5856d6; font-size: 0.85rem; position: sticky; top: 0; z-index: 2; border-bottom: 1px solid #ececf5; border-top: 1px solid #ececf5; text-transform: uppercase; }
+            .contact-row { display: flex; align-items: center; padding: 12px 20px; border-bottom: 1px solid #f0f0f5; cursor: pointer; transition: background 0.2s; }
+            .contact-row:active { background: #f0f0f5; }
+            .contact-avatar { width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, #a1c4fd, #c2e9fb); color: #0056b3; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1.1rem; margin-right: 15px; flex-shrink: 0; }
+            .contact-info { flex-grow: 1; min-width: 0; }
+            .contact-name { font-weight: 600; font-size: 1rem; color: #1a1a2e; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+            .contact-meta { font-size: 0.8rem; color: #888; margin-top: 2px; }
+            .contact-chevron { color: #ccc; font-size: 1.2rem; margin-left: 10px; }
+            
+            .cd-section { background: #f8f9fa; border-radius: 12px; padding: 15px; margin-bottom: 15px; border: 1px solid #eee; }
+            .cd-section h4 { margin: 0 0 10px 0; font-size: 0.8rem; text-transform: uppercase; color: #5856d6; letter-spacing: 0.5px; }
+            .cd-row { display: flex; flex-direction: column; margin-bottom: 10px; }
+            .cd-row:last-child { margin-bottom: 0; }
+            .cd-label { font-size: 0.75rem; color: #888; font-weight: 600; margin-bottom: 2px; }
+            .cd-val { font-size: 0.95rem; color: #1a1a2e; font-weight: 500; word-break: break-word; }
+        </style>
 
         <div id="page-web-submissions" class="page-content">
              <div class="card">
@@ -2814,6 +2840,12 @@
             const steps = wizard.querySelectorAll('.step');
             const stepContents = wizard.querySelectorAll('.step-content');
             const totalSteps = 4;
+
+            // FIX: Explicitly declare the wizard's state variables to prevent ReferenceErrors in strict mode
+            let wizardCurrentStep = 1;
+            let currentEditShipmentId = null;
+            let currentEditItemId = null;
+            let local_items = [];
 
             const nextLabels = [
                  'Next: Add Items →',
@@ -4648,35 +4680,182 @@
                 }
             }
             
+            // Advanced customer map including all details for modal and autofill
+            window.customerDataMap = new Map(); 
+
             function renderCustomersTable() { 
-                customersTableTbody.innerHTML = '';
-                const customers = new Map(); 
+                const listContainer = document.getElementById('customersContactList');
+                if (!listContainer) return;
+                
+                window.customerDataMap.clear();
+                
+                // Aggregate latest customer data from shipments
                 local_shipments_cache.forEach(s => {
-                    if (!s.senderName || !s.senderPhone) return;
-                    if (customers.has(s.senderPhone)) {
-                        const customer = customers.get(s.senderPhone);
-                        customer.totalShipments += 1;
-                        if (new Date(s.invoiceDate) > new Date(customer.lastShipment)) {
-                            customer.lastShipment = s.invoiceDate;
+                    if (!s.senderName && !s.senderPhone) return;
+                    // Use phone as primary key, fallback to name
+                    const key = (s.senderPhone || '').replace(/[^\d+]/g, '') || s.senderName; 
+                    if (!key) return;
+
+                    const sDate = s.invoiceDate ? new Date(s.invoiceDate) : new Date(0);
+
+                    if (window.customerDataMap.has(key)) {
+                        const existing = window.customerDataMap.get(key);
+                        existing.totalShipments += 1;
+                        if (sDate > new Date(existing.lastShipmentDate || 0)) {
+                            // Update to latest details
+                            existing.name = s.senderName || existing.name;
+                            existing.phone = s.senderPhone || existing.phone;
+                            existing.address = s.senderAddress || existing.address;
+                            existing.nic = s.senderNic || existing.nic;
+                            existing.lastShipment = s.invoiceDate;
+                            existing.lastShipmentDate = sDate;
+                            
+                            // Track latest receiver
+                            existing.latestReceiver = {
+                                name: s.receiverName || '',
+                                phone: s.receiverPhone || '',
+                                email: s.receiverEmail || '',
+                                address: s.receiverAddress || ''
+                            };
                         }
                     } else {
-                        customers.set(s.senderPhone, {
-                            name: s.senderName, phone: s.senderPhone, lastShipment: s.invoiceDate, totalShipments: 1
+                        window.customerDataMap.set(key, {
+                            id: key,
+                            name: s.senderName || 'Unknown Sender',
+                            phone: s.senderPhone || '',
+                            address: s.senderAddress || '',
+                            nic: s.senderNic || '',
+                            lastShipment: s.invoiceDate,
+                            lastShipmentDate: sDate,
+                            totalShipments: 1,
+                            latestReceiver: {
+                                name: s.receiverName || '',
+                                phone: s.receiverPhone || '',
+                                email: s.receiverEmail || '',
+                                address: s.receiverAddress || ''
+                            }
                         });
                     }
                 });
-                if (customers.size === 0) {
-                    customersTableTbody.innerHTML = '<tr><td colspan="5" style="text-align: center;">No customers found.</td></tr>';
+
+                window.renderContactListUI('');
+            }
+
+            window.renderContactListUI = function(searchTerm = '') {
+                const listContainer = document.getElementById('customersContactList');
+                if (!listContainer) return;
+                listContainer.innerHTML = '';
+
+                if (window.customerDataMap.size === 0) {
+                    listContainer.innerHTML = '<div style="padding: 2rem; text-align: center; color: #888;">No contacts found.</div>';
                     return;
                 }
-                customers.forEach(cust => {
-                    customersTableTbody.innerHTML += `
-                        <tr>
-                            <td>${cust.name}</td><td>${cust.phone}</td><td>${cust.lastShipment || 'N/A'}</td>
-                            <td>${cust.totalShipments}</td><td class="table-actions"><button class="btn btn-secondary btn-small">View</button></td>
-                        </tr>`;
+
+                // Filter and sort alphabetically
+                const filtered = Array.from(window.customerDataMap.values()).filter(c => {
+                    const term = searchTerm.toLowerCase();
+                    return (c.name || '').toLowerCase().includes(term) || (c.phone || '').toLowerCase().includes(term);
                 });
-            }
+
+                if (filtered.length === 0) {
+                    listContainer.innerHTML = '<div style="padding: 2rem; text-align: center; color: #888;">No matches found.</div>';
+                    return;
+                }
+
+                filtered.sort((a, b) => (a.name).localeCompare(b.name));
+
+                // Group by first letter
+                const grouped = {};
+                filtered.forEach(c => {
+                    const letter = (c.name.charAt(0) || '#').toUpperCase();
+                    const validLetter = /[A-Z]/.test(letter) ? letter : '#';
+                    if (!grouped[validLetter]) grouped[validLetter] = [];
+                    grouped[validLetter].push(c);
+                });
+
+                Object.keys(grouped).sort().forEach(letter => {
+                    // Letter Header
+                    const header = document.createElement('div');
+                    header.className = 'contact-letter-header';
+                    header.textContent = letter;
+                    listContainer.appendChild(header);
+
+                    // Contacts in this letter
+                    grouped[letter].forEach(cust => {
+                        const row = document.createElement('div');
+                        row.className = 'contact-row';
+                        const initial = (cust.name.charAt(0) || '?').toUpperCase();
+                        
+                        row.onclick = () => window.openCustomerDetailsModal(cust.id);
+
+                        row.innerHTML = `
+                            <div class="contact-avatar">${initial}</div>
+                            <div class="contact-info">
+                                <div class="contact-name">${cust.name}</div>
+                                <div class="contact-meta">${cust.phone || 'No phone'} • ${cust.totalShipments} shipment(s)</div>
+                            </div>
+                            <div class="contact-chevron">›</div>
+                        `;
+                        listContainer.appendChild(row);
+                    });
+                });
+            };
+
+            window.openCustomerDetailsModal = function(custId) {
+                const cust = window.customerDataMap.get(custId);
+                if (!cust) return;
+
+                const content = document.getElementById('customerModalContent');
+                const rec = cust.latestReceiver || {};
+
+                content.innerHTML = `
+                    <div style="text-align: center; margin-bottom: 20px;">
+                        <div style="width: 80px; height: 80px; border-radius: 50%; background: linear-gradient(135deg, #a1c4fd, #c2e9fb); color: #0056b3; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 2.5rem; margin: 0 auto 10px;">
+                            ${(cust.name.charAt(0)||'?').toUpperCase()}
+                        </div>
+                        <h2 style="margin: 0 0 5px 0; font-size: 1.4rem; color: #1a1a2e;">${cust.name}</h2>
+                        <div style="color: #888; font-size: 0.9rem;">Total Shipments: ${cust.totalShipments} | Last: ${cust.lastShipment || '--'}</div>
+                    </div>
+
+                    <div class="cd-section">
+                        <h4>Sender Details (Canada)</h4>
+                        <div class="cd-row"><span class="cd-label">Phone</span><span class="cd-val">${cust.phone || '--'}</span></div>
+                        <div class="cd-row"><span class="cd-label">Address</span><span class="cd-val">${cust.address || '--'}</span></div>
+                        <div class="cd-row"><span class="cd-label">NIC / DL Number</span><span class="cd-val">${cust.nic || '--'}</span></div>
+                    </div>
+
+                    <div class="cd-section">
+                        <h4>Latest Receiver Details (Sri Lanka)</h4>
+                        <div class="cd-row"><span class="cd-label">Receiver Name</span><span class="cd-val">${rec.name || '--'}</span></div>
+                        <div class="cd-row"><span class="cd-label">Receiver Phone</span><span class="cd-val">${rec.phone || '--'}</span></div>
+                        <div class="cd-row"><span class="cd-label">Receiver Email</span><span class="cd-val">${rec.email || '--'}</span></div>
+                        <div class="cd-row"><span class="cd-label">Receiver Address</span><span class="cd-val">${rec.address || '--'}</span></div>
+                    </div>
+                    
+                    <button class="btn btn-primary" style="width: 100%; padding: 12px; border-radius: 10px; font-size: 1rem;" onclick="window.startNewShipmentFromContact('${cust.id}')">Start New Shipment</button>
+                `;
+
+                document.getElementById('customerDetailsModal').style.display = 'flex';
+            };
+
+            window.startNewShipmentFromContact = function(custId) {
+                document.getElementById('customerDetailsModal').style.display = 'none';
+                const cust = window.customerDataMap.get(custId);
+                if (!cust) return;
+
+                clearWizard();
+                window.applyAutofillCustomerData(cust);
+                
+                navigateToPage('page-new-shipment');
+                window.showToast("Customer details loaded into new shipment.", "success");
+            };
+
+            // Search Listener for Contacts
+            document.addEventListener('input', (e) => {
+                if (e.target.id === 'customerSearchInput') {
+                    window.renderContactListUI(e.target.value);
+                }
+            });
 
             function renderWebSubmissionsTable() {
                 const tbody = document.getElementById('webSubmissionsTbody');
@@ -8366,6 +8545,50 @@ async function generateThermalLabel() {
             // Init Autocomplete
             setupAutocomplete('senderAddress', 'senderSuggestions', 'senderLat', 'senderLon');
             setupAutocomplete('receiverAddress', 'receiverSuggestions', 'receiverLat', 'receiverLon');
+
+            // --- AUTOFILL SENDER / RECEIVER LOGIC ---
+            window.applyAutofillCustomerData = function(cust) {
+                document.getElementById('senderName').value = cust.name || '';
+                document.getElementById('senderPhone').value = cust.phone || '';
+                document.getElementById('senderAddress').value = cust.address || '';
+                document.getElementById('senderNic').value = cust.nic || '';
+
+                if (cust.latestReceiver) {
+                    document.getElementById('receiverName').value = cust.latestReceiver.name || '';
+                    document.getElementById('receiverPhone').value = cust.latestReceiver.phone || '';
+                    document.getElementById('receiverEmail').value = cust.latestReceiver.email || '';
+                    document.getElementById('receiverAddress').value = cust.latestReceiver.address || '';
+                }
+                saveDraft();
+            };
+
+            const senderPhoneInput = document.getElementById('senderPhone');
+            if (senderPhoneInput) {
+                let autofillTimeout = null;
+                senderPhoneInput.addEventListener('input', (e) => {
+                    // Only auto-fill if not editing an existing completed shipment
+                    if (currentEditShipmentId !== null) return;
+                    
+                    const val = e.target.value.replace(/[^\d+]/g, '');
+                    if (val.length < 7) return; // Wait until reasonable length
+
+                    clearTimeout(autofillTimeout);
+                    autofillTimeout = setTimeout(() => {
+                        // Check if we have this phone in customer map
+                        if (window.customerDataMap && window.customerDataMap.has(val)) {
+                            const cust = window.customerDataMap.get(val);
+                            // Avoid prompting if they already typed the same name
+                            const currentName = document.getElementById('senderName').value.trim().toLowerCase();
+                            if (currentName !== '' && currentName === cust.name.toLowerCase()) return;
+
+                            if (confirm(`Existing customer found: ${cust.name}. Do you want to autofill their Sender and Receiver details?`)) {
+                                window.applyAutofillCustomerData(cust);
+                                window.showToast('Customer data auto-filled!', 'success');
+                            }
+                        }
+                    }, 800); // 800ms debounce after typing phone number
+                });
+            }
 
             // --- 2. VOLUMETRIC CALCULATOR LOGIC ---
             function updateVolumetric() {
