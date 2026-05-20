@@ -237,6 +237,27 @@
             }
         }
 
+        /* --- FROZEN COLUMNS for All Shipments table (Mobile - Sender Only) --- */
+        @media (max-width: 899px) {
+            #page-all-shipments .styled-table th:nth-child(4),
+            #page-all-shipments .styled-table td:nth-child(4) {
+                position: sticky;
+                left: 0;
+                background-color: var(--bg-white, #fff);
+                z-index: 2;
+                box-shadow: 2px 0 4px -2px rgba(0,0,0,0.1);
+                border-right: 1px solid var(--grey-mid);
+            }
+            #page-all-shipments .styled-table thead th:nth-child(4) {
+                background-color: #fcfcfc;
+                z-index: 3;
+            }
+            /* Keep hover color sane on sticky cells */
+            #page-all-shipments .styled-table tbody tr:hover td:nth-child(4) {
+                background-color: var(--grey-light);
+            }
+        }
+
         /* --- PAGINATION CONTROLS for All Shipments --- */
         .pagination-bar {
             display: flex;
@@ -2042,6 +2063,10 @@
                             <tr><td colspan="7" style="text-align: center;">Loading receiving data...</td></tr>
                         </tbody>
                     </table>
+                </div>
+                <div id="receivingPaginationBar" class="pagination-bar" style="display:none;">
+                    <div class="pagination-info" id="receivingPaginationInfo"></div>
+                    <div class="pagination-pages" id="receivingPaginationPages"></div>
                 </div>
             </div>
         </div>
@@ -8092,15 +8117,73 @@ async function generateThermalLabel() {
                 };
 
                 // --- NEW: RECEIVING PROGRESS RENDERER ---
+                let currentReceivingPage = 1;
+                const RECEIVING_PER_PAGE = 15;
+
+                function renderReceivingPagination(totalItems, totalPages) {
+                    const bar = document.getElementById('receivingPaginationBar');
+                    const info = document.getElementById('receivingPaginationInfo');
+                    const pagesEl = document.getElementById('receivingPaginationPages');
+                    if (!bar || !info || !pagesEl) return;
+
+                    if (totalPages <= 1) {
+                        bar.style.display = 'none';
+                        return;
+                    }
+                    bar.style.display = 'flex';
+
+                    const startIdx = (currentReceivingPage - 1) * RECEIVING_PER_PAGE + 1;
+                    const endIdx = Math.min(currentReceivingPage * RECEIVING_PER_PAGE, totalItems);
+                    info.textContent = `Showing ${startIdx}–${endIdx} of ${totalItems} shipments`;
+
+                    const pages = [];
+                    const cur = currentReceivingPage;
+                    const last = totalPages;
+                    const windowSize = 1;
+                    const add = (v) => { if (!pages.includes(v)) pages.push(v); };
+
+                    add(1);
+                    for (let i = cur - windowSize; i <= cur + windowSize; i++) {
+                        if (i > 1 && i < last) add(i);
+                    }
+                    if (last > 1) add(last);
+                    pages.sort((a, b) => a - b);
+
+                    let html = '';
+                    html += `<button class="page-btn" data-page="prev" ${cur === 1 ? 'disabled' : ''}>‹</button>`;
+                    let prev = 0;
+                    pages.forEach(p => {
+                        if (prev && p - prev > 1) html += `<span class="page-ellipsis">…</span>`;
+                        html += `<button class="page-btn ${p === cur ? 'active' : ''}" data-page="${p}">${p}</button>`;
+                        prev = p;
+                    });
+                    html += `<button class="page-btn" data-page="next" ${cur === last ? 'disabled' : ''}>›</button>`;
+                    pagesEl.innerHTML = html;
+
+                    pagesEl.onclick = (e) => {
+                        const btn = e.target.closest('.page-btn');
+                        if (!btn || btn.disabled) return;
+                        const action = btn.dataset.page;
+                        if (action === 'prev') currentReceivingPage = Math.max(1, currentReceivingPage - 1);
+                        else if (action === 'next') currentReceivingPage = Math.min(last, currentReceivingPage + 1);
+                        else currentReceivingPage = parseInt(action, 10);
+                        window.renderReceivingTable();
+                        const tc = document.querySelector('#page-receiving .table-container');
+                        if (tc) tc.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    };
+                }
+
                 window.renderReceivingTable = function() {
                     const tbody = document.getElementById('receivingTableTbody');
+                    const paginationBar = document.getElementById('receivingPaginationBar');
                     if (!tbody) return;
                     tbody.innerHTML = '';
                     
                     const searchInput = document.getElementById('receivingSearch');
                     const searchTerm = searchInput ? searchInput.value.toLowerCase().trim() : '';
 
-                    let filteredShipments = [...local_shipments_cache].sort((a, b) => new Date(b.invoiceDate) - new Date(a.invoiceDate));
+                    // Sort newest first based on invoiceDate
+                    let filteredShipments = [...local_shipments_cache].sort((a, b) => new Date(b.invoiceDate || 0) - new Date(a.invoiceDate || 0));
                     
                     if (searchTerm) {
                         filteredShipments = filteredShipments.filter(s => 
@@ -8111,10 +8194,19 @@ async function generateThermalLabel() {
 
                     if (filteredShipments.length === 0) {
                         tbody.innerHTML = '<tr><td colspan="7" style="text-align: center;">No shipments match your criteria.</td></tr>';
+                        if (paginationBar) paginationBar.style.display = 'none';
                         return;
                     }
 
-                    filteredShipments.forEach(shipment => {
+                    // Pagination Logic
+                    const totalItems = filteredShipments.length;
+                    const totalPages = Math.max(1, Math.ceil(totalItems / RECEIVING_PER_PAGE));
+                    if (currentReceivingPage > totalPages) currentReceivingPage = totalPages;
+                    if (currentReceivingPage < 1) currentReceivingPage = 1;
+                    const sliceStart = (currentReceivingPage - 1) * RECEIVING_PER_PAGE;
+                    const pagedShipments = filteredShipments.slice(sliceStart, sliceStart + RECEIVING_PER_PAGE);
+
+                    pagedShipments.forEach(shipment => {
                         let totalExpected = 0;
                         let totalReceived = 0;
                         let totalMissing = 0;
@@ -8167,11 +8259,14 @@ async function generateThermalLabel() {
                         `;
                         tbody.appendChild(tr);
                     });
+
+                    renderReceivingPagination(totalItems, totalPages);
                 };
 
                 // Attach search listener for Receiving
                 document.addEventListener('input', (e) => {
                     if (e.target.id === 'receivingSearch') {
+                        currentReceivingPage = 1;
                         window.renderReceivingTable();
                     }
                 });
