@@ -8186,13 +8186,27 @@ async function generateThermalLabel() {
                     const searchInput = document.getElementById('receivingSearch');
                     const searchTerm = searchInput ? searchInput.value.toLowerCase().trim() : '';
 
-                    // Sort newest first based on invoiceDate
-                    let filteredShipments = [...local_shipments_cache].sort((a, b) => new Date(b.invoiceDate || 0) - new Date(a.invoiceDate || 0));
+                    // Sort by Batch Descending (Latest Top: 14, 13, 12...), then newest first based on invoiceDate
+                    let filteredShipments = [...local_shipments_cache].sort((a, b) => {
+                        const batchA = (a.batchNo || '').trim() || 'Unassigned';
+                        const batchB = (b.batchNo || '').trim() || 'Unassigned';
+                        
+                        if (batchA !== batchB) {
+                            if (batchA === 'Unassigned') return 1;
+                            if (batchB === 'Unassigned') return -1;
+                            const numA = parseInt((batchA.match(/\d+/) || ['0'])[0], 10);
+                            const numB = parseInt((batchB.match(/\d+/) || ['0'])[0], 10);
+                            if (numA !== numB) return numB - numA; // Descending: 14 before 13
+                            return batchB.localeCompare(batchA); // Fallback string sort
+                        }
+                        return new Date(b.invoiceDate || 0) - new Date(a.invoiceDate || 0);
+                    });
                     
                     if (searchTerm) {
                         filteredShipments = filteredShipments.filter(s => 
                             (s.invoiceNumber || '').toLowerCase().includes(searchTerm) || 
-                            (s.senderName || '').toLowerCase().includes(searchTerm)
+                            (s.senderName || '').toLowerCase().includes(searchTerm) ||
+                            (s.batchNo || '').toLowerCase().includes(searchTerm)
                         );
                     }
 
@@ -8210,7 +8224,23 @@ async function generateThermalLabel() {
                     const sliceStart = (currentReceivingPage - 1) * RECEIVING_PER_PAGE;
                     const pagedShipments = filteredShipments.slice(sliceStart, sliceStart + RECEIVING_PER_PAGE);
 
+                    let currentBatchGroup = null;
+
                     pagedShipments.forEach(shipment => {
+                        const batchName = (shipment.batchNo || '').trim() || 'Unassigned';
+                        
+                        // Insert Highlighted Batch Group Header
+                        if (batchName !== currentBatchGroup) {
+                            const groupTr = document.createElement('tr');
+                            groupTr.innerHTML = `
+                                <td colspan="7" style="background: linear-gradient(90deg, #ecebfa 0%, #f7f6ff 100%); padding: 12px 15px; border-top: 3px solid #5856d6; border-bottom: 1px solid #ddd9f0; font-weight: bold; color: #1a1a2e; font-size: 0.95rem; letter-spacing: 0.2px;">
+                                    <span style="display:inline-block; background:rgba(88,86,214,0.15); color:#5856d6; padding:6px 12px; border-radius:8px; margin-right:8px;">📦 ${batchName}</span>
+                                </td>
+                            `;
+                            tbody.appendChild(groupTr);
+                            currentBatchGroup = batchName;
+                        }
+
                         let totalExpected = 0;
                         let totalReceived = 0;
                         let totalMissing = 0;
