@@ -1659,7 +1659,11 @@
                  <div class="card">
                     <h2>Sender Details (Canada)</h2>
                     <div class="form-grid-two-col">
-                        <div class="input-group"><label for="senderName">Full Name</label><input type="text" id="senderName" placeholder="John Doe"></div>
+                        <div class="input-group" style="position:relative;">
+                            <label for="senderName">Full Name</label>
+                            <input type="text" id="senderName" placeholder="John Doe" autocomplete="off">
+                            <ul id="senderNameSuggestions" class="suggestions-list" style="display:none;"></ul>
+                        </div>
                         <div class="input-group"><label for="senderPhone">Phone Number</label><input type="tel" id="senderPhone" placeholder="+1 416-123-4567"></div>
                         <div class="input-group" style="position:relative;">
                             <label for="senderAddress">Address (Auto-Search)</label>
@@ -8682,6 +8686,59 @@ async function generateThermalLabel() {
                             }
                         }
                     }, 800); // 800ms debounce after typing phone number
+                });
+            }
+
+            // --- SENDER NAME AUTOCOMPLETE LOGIC ---
+            const senderNameInput = document.getElementById('senderName');
+            const senderNameSuggestions = document.getElementById('senderNameSuggestions');
+            
+            if (senderNameInput && senderNameSuggestions) {
+                let nameTimeout = null;
+                
+                senderNameInput.addEventListener('input', (e) => {
+                    if (currentEditShipmentId !== null) return; // Don't autofill if editing
+                    
+                    const query = e.target.value.toLowerCase().trim();
+                    if (query.length < 2) {
+                        senderNameSuggestions.style.display = 'none';
+                        return;
+                    }
+
+                    clearTimeout(nameTimeout);
+                    nameTimeout = setTimeout(() => {
+                        if (!window.customerDataMap) return;
+                        
+                        // Find matching customers by name
+                        const matches = Array.from(window.customerDataMap.values()).filter(cust => 
+                            cust.name && cust.name.toLowerCase().includes(query)
+                        );
+
+                        senderNameSuggestions.innerHTML = '';
+                        if (matches.length > 0) {
+                            senderNameSuggestions.style.display = 'block';
+                            // Show top 5 matches
+                            matches.slice(0, 5).forEach(cust => {
+                                const li = document.createElement('li');
+                                li.innerHTML = `<strong>${cust.name}</strong> <small style="color:#888;">${cust.phone || ''}</small>`;
+                                li.addEventListener('click', () => {
+                                    window.applyAutofillCustomerData(cust);
+                                    window.showToast('Customer data auto-filled!', 'success');
+                                    senderNameSuggestions.style.display = 'none';
+                                });
+                                senderNameSuggestions.appendChild(li);
+                            });
+                        } else {
+                            senderNameSuggestions.style.display = 'none';
+                        }
+                    }, 300); // 300ms debounce for smooth typing
+                });
+
+                // Hide list if clicked outside
+                document.addEventListener('click', (e) => {
+                    if (e.target !== senderNameInput && e.target !== senderNameSuggestions) {
+                        senderNameSuggestions.style.display = 'none';
+                    }
                 });
             }
 
