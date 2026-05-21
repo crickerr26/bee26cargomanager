@@ -1611,6 +1611,10 @@
 
     <main class="main-content">
 
+        <button id="globalUndoBtn" style="display: none; position: fixed; top: 15px; right: 20px; z-index: 10000; background-color: #5856d6; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: bold; font-size: 0.9rem; box-shadow: 0 4px 15px rgba(0,0,0,0.2); cursor: pointer; align-items: center; gap: 5px;">
+            ↩ Undo <span style="opacity: 0.8; font-size: 0.8rem; margin-left: 5px;" id="undoShortcutText"></span>
+        </button>
+
         <header>
             <div class="header-left">
                 <h1 style="color: #850000;" id="page-title">Dashboard</h1>
@@ -2365,6 +2369,74 @@
                 document.body.innerHTML = '<div style="padding: 50px; text-align: center; font-family: sans-serif; color: #cc0000;"><h1>FATAL ERROR: Firebase Connection Lost</h1><p>One or more required Firebase functions (set, push, onValue, remove, update) failed to load. Check your console.</p></div>';
                 return;
             }
+
+            // --- SCALABLE GLOBAL UNDO SYSTEM ---
+            const globalActionHistory = {
+                stack: [],
+                push: function(action) {
+                    this.stack.push(action);
+                    if (this.stack.length > 30) this.stack.shift(); // Keep last 30 actions
+                    this.updateBtn();
+                },
+                undo: async function() {
+                    if (this.stack.length === 0) return;
+                    const action = this.stack.pop();
+                    
+                    try {
+                        if (action.type === 'FIREBASE_RESTORE') {
+                            await window.dbSet(window.dbRef(window.db, action.path), action.data);
+                            window.showToast('Entry restored successfully ↩', 'info');
+                        } else if (action.type === 'LOCAL_ITEM_RESTORE') {
+                            local_items.splice(action.index, 0, action.data);
+                            if (typeof renderItemTable === 'function') renderItemTable();
+                            window.showToast('Item restored successfully ↩', 'info');
+                        } else if (action.type === 'LOCAL_ITEM_ADD') {
+                            local_items.splice(action.index, 1);
+                            if (typeof renderItemTable === 'function') renderItemTable();
+                            window.showToast('Added item removed ↩', 'info');
+                        } else if (action.type === 'LOCAL_ITEM_EDIT') {
+                            local_items[action.index] = action.data;
+                            if (typeof renderItemTable === 'function') renderItemTable();
+                            window.showToast('Edit reverted ↩', 'info');
+                        }
+                    } catch (e) {
+                        console.error("Undo failed:", e);
+                        window.showToast("Failed to undo action", "error");
+                    }
+                    this.updateBtn();
+                },
+                clear: function() {
+                    this.stack = [];
+                    this.updateBtn();
+                },
+                updateBtn: function() {
+                    const undoBtn = document.getElementById('globalUndoBtn');
+                    if (undoBtn) {
+                        undoBtn.style.display = this.stack.length > 0 ? 'flex' : 'none';
+                    }
+                }
+            };
+
+            // Global Keyboard Shortcut (Cmd+Z / Ctrl+Z)
+            document.addEventListener('keydown', function(e) {
+                if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') {
+                    const activeTag = document.activeElement ? document.activeElement.tagName.toLowerCase() : '';
+                    const isInput = activeTag === 'input' || activeTag === 'textarea';
+                    if (!isInput && globalActionHistory.stack.length > 0) {
+                        e.preventDefault();
+                        globalActionHistory.undo();
+                    }
+                }
+            });
+
+            setTimeout(() => {
+                const undoBtn = document.getElementById('globalUndoBtn');
+                const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
+                const shortcutTxt = document.getElementById('undoShortcutText');
+                if (shortcutTxt) shortcutTxt.textContent = isMac ? '(Cmd+Z)' : '(Ctrl+Z)';
+                if (undoBtn) undoBtn.addEventListener('click', () => globalActionHistory.undo());
+            }, 0);
+
             // --- INTERNATIONAL DIAL CODES (for new shipment phone fields) ---
 
 
@@ -2626,6 +2698,10 @@
 
             window.deleteExpense = async (id) => {
                 if(confirm("Delete this expense?")) {
+                    const deletedData = local_expenses_cache[id];
+                    if (deletedData) {
+                        globalActionHistory.push({ type: 'FIREBASE_RESTORE', path: 'expenses/' + id, data: deletedData });
+                    }
                     await dbRemove(dbRef(db, 'expenses/' + id));
                 }
             };
@@ -3730,9 +3806,12 @@
                 };
 
                 if (currentEditItemId !== null) {
+                    const originalItem = JSON.parse(JSON.stringify(local_items[currentEditItemId]));
+                    globalActionHistory.push({ type: 'LOCAL_ITEM_EDIT', index: currentEditItemId, data: originalItem });
                     if (!item.image) item.image = local_items[currentEditItemId].image;
                     local_items[currentEditItemId] = item;
                 } else {
+                    globalActionHistory.push({ type: 'LOCAL_ITEM_ADD', index: local_items.length });
                     local_items.push(item);
                 }
 
@@ -3870,7 +3949,11 @@
                 const deleteBtn = e.target.closest('.delete-item-btn');
                 if (deleteBtn) {
                     if (confirm('Delete item?')) {
-                        local_items.splice(deleteBtn.dataset.index, 1);
+                        const idx = parseInt(deleteBtn.dataset.index, 10);
+                        const deletedItem = JSON.parse(JSON.stringify(local_items[idx]));
+                        globalActionHistory.push({ type: 'LOCAL_ITEM_RESTORE', index: idx, data: deletedItem });
+                        
+                        local_items.splice(idx, 1);
                         renderItemTable();
                     }
                     return;
@@ -4700,9 +4783,16 @@
             async function deleteShipment(shipmentId) {
                 if (!shipmentId) return;
                 try {
+                    const shipmentData = local_shipments_cache.find(s => s.id === shipmentId);
+                    if (shipmentData) {
+                        const copy = { ...shipmentData };
+                        delete copy.id;
+                        globalActionHistory.push({ type: 'FIREBASE_RESTORE', path: 'shipments/' + shipmentId, data: copy });
+                    }
+                    
                     const shipmentRef = dbRef(db, 'shipments/' + shipmentId);
                     await dbRemove(shipmentRef); 
-                    alert('Shipment deleted successfully.');
+                    alert('Shipment deleted successfully. (Use Undo top right if this was a mistake)');
                 } catch (error) {
                     console.error("Error deleting shipment:", error);
                     alert("Error: Could not delete shipment. See console for details.");
@@ -4965,6 +5055,12 @@
             window.deleteSubmission = async function(id, ask = true) {
                 if(ask && !confirm("Are you sure you want to permanently delete this customer submission?")) return;
                 try {
+                    const deletedData = local_web_submissions_cache.find(s => s.id === id);
+                    if (deletedData) {
+                        const copy = { ...deletedData };
+                        delete copy.id;
+                        globalActionHistory.push({ type: 'FIREBASE_RESTORE', path: 'web_submissions/' + id, data: copy });
+                    }
                     await dbRemove(dbRef(db, 'web_submissions/' + id));
                     if(ask) window.showToast("Submission removed", "info");
                 } catch(e) {
@@ -5218,7 +5314,14 @@
             };
             window.deleteBatchExtra = async (batchKey, extraId) => {
                 const safeKey = batchKey.replace(/[.#$\[\]]/g, "_");
-                if(confirm("Delete this extra?")) await dbRemove(dbRef(db, `batches/${safeKey}/extras/${extraId}`));
+                if(confirm("Delete this extra?")) {
+                    const batchData = local_batches_cache[safeKey] || local_batches_cache[batchKey] || {};
+                    const extraData = (batchData.extras || {})[extraId];
+                    if (extraData) {
+                        globalActionHistory.push({ type: 'FIREBASE_RESTORE', path: `batches/${safeKey}/extras/${extraId}`, data: extraData });
+                    }
+                    await dbRemove(dbRef(db, `batches/${safeKey}/extras/${extraId}`));
+                }
             };
 
             // --- C.2 PAYMENT RECEIPT (PDF + WHATSAPP) ---
