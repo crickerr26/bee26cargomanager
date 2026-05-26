@@ -2210,15 +2210,24 @@
                     <h3 style="color:var(--orange); font-size:1.1rem; margin-top:0; text-align:center; margin-bottom:15px;">Quantity & Value</h3>
                     
                     <label style="font-weight:700; font-size:0.85rem; color:#1c1c1e; display:block; margin-bottom:6px;">Quantity</label>
-                    <select id="modalItemQty" style="width:100%; padding:12px; border:2px solid #e5e5ea; border-radius:10px; font-size:1rem; font-weight:bold; box-sizing:border-box; margin-bottom:15px; background-color:#f9f9f9; cursor:pointer;">
-                        <option value="" disabled selected>Select Quantity</option>
-                        <option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option>
-                        <option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10">10</option>
-                        <option value="11">11</option><option value="12">12</option><option value="13">13</option><option value="14">14</option><option value="15">15</option>
-                        <option value="16">16</option><option value="17">17</option><option value="18">18</option><option value="19">19</option><option value="20">20</option>
-                        <option value="21">21</option><option value="22">22</option><option value="23">23</option><option value="24">24</option><option value="25">25</option>
-                        <option value="26">26</option><option value="27">27</option><option value="28">28</option><option value="29">29</option><option value="30">30</option>
-                    </select>
+                    <div id="qtyQuickGrid" style="display:grid; grid-template-columns:repeat(5,1fr); gap:8px; margin-bottom:10px;">
+                        <button type="button" class="qty-quick-btn" data-qty="1">1</button>
+                        <button type="button" class="qty-quick-btn" data-qty="2">2</button>
+                        <button type="button" class="qty-quick-btn" data-qty="3">3</button>
+                        <button type="button" class="qty-quick-btn" data-qty="4">4</button>
+                        <button type="button" class="qty-quick-btn" data-qty="5">5</button>
+                        <button type="button" class="qty-quick-btn" data-qty="6">6</button>
+                        <button type="button" class="qty-quick-btn" data-qty="7">7</button>
+                        <button type="button" class="qty-quick-btn" data-qty="8">8</button>
+                        <button type="button" class="qty-quick-btn" data-qty="9">9</button>
+                        <button type="button" class="qty-quick-btn" data-qty="10">10</button>
+                        <button type="button" class="qty-quick-btn qty-quick-more" data-qty="more" style="grid-column:span 5;">＋ More (type a number)</button>
+                    </div>
+                    <div id="qtyMoreWrap" style="display:none; margin-bottom:15px;">
+                        <input type="number" id="qtyMoreInput" min="11" placeholder="Type quantity (11 or more)" inputmode="numeric"
+                            style="width:100%; padding:12px; border:2px solid #007aff; border-radius:10px; font-size:1.1rem; font-weight:bold; box-sizing:border-box; text-align:center;">
+                    </div>
+                    <input type="hidden" id="modalItemQty" value="">
 
                     <label style="font-weight:700; font-size:0.85rem; color:#1c1c1e; display:block; margin-bottom:6px;">Unit Value (CAD)</label>
                     <div style="background:#f9f9f9; border:1.5px solid #e5e5ea; border-radius:10px; padding:12px 15px; text-align:center; margin-bottom:10px; min-height:50px; display:flex; align-items:center; justify-content:center; gap:6px;">
@@ -2332,6 +2341,47 @@
         @media (prefers-color-scheme: dark) {
             .apple-pad-btn { background:#2c2c2e; color:#fff; box-shadow:0 1px 0 rgba(255,255,255,0.08); }
             .apple-pad-del { background:#636366; }
+        }
+
+        /* ===== Quick Quantity Buttons (1-10 + More) ===== */
+        .qty-quick-btn {
+            background:#f0f0f5;
+            border:2px solid #e5e5ea;
+            border-radius:10px;
+            padding:0;
+            height:48px;
+            font-size:1.15rem;
+            font-weight:700;
+            color:#1c1c1e;
+            cursor:pointer;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            transition:all 0.12s ease;
+            user-select:none;
+            -webkit-tap-highlight-color:transparent;
+        }
+        .qty-quick-btn:active { transform:scale(0.94); }
+        .qty-quick-btn.selected {
+            background:#007aff;
+            border-color:#007aff;
+            color:#fff;
+            box-shadow:0 4px 10px rgba(0,122,255,0.3);
+        }
+        .qty-quick-more {
+            font-size:0.95rem;
+            color:#007aff;
+            background:#e6f2ff;
+            border-color:#cfe6ff;
+        }
+        .qty-quick-more.selected {
+            background:#007aff;
+            border-color:#007aff;
+            color:#fff;
+        }
+        @media (prefers-color-scheme: dark) {
+            .qty-quick-btn { background:#2c2c2e; color:#fff; border-color:#3a3a3c; }
+            .qty-quick-more { background:#10243a; color:#4da3ff; border-color:#1c3a5a; }
         }
     </style>
 
@@ -2952,6 +3002,13 @@
             let currentEditItemId = null;
             let local_items = [];
 
+            // --- Expose live references for the bottom-of-file detail popups ---
+            // (These read the CURRENT value each time, so they stay correct even after
+            //  local_shipments_cache / local_items are reassigned on data reload.)
+            window.getShipmentsCache = () => local_shipments_cache;
+            window.getLocalItems = () => local_items;
+            window.loadShipmentForEdit = loadShipmentForEdit;
+
             const nextLabels = [
                  'Next: Add Items →',
                 'Next: Shipment →',
@@ -3456,6 +3513,76 @@
                 });
             });
 
+            // ===== Quick Quantity Buttons (1-10 + More) =====
+            function setQtyButtons(qtyVal) {
+                const grid = document.getElementById('qtyQuickGrid');
+                const moreWrap = document.getElementById('qtyMoreWrap');
+                const moreInput = document.getElementById('qtyMoreInput');
+                const hidden = document.getElementById('modalItemQty');
+                if (!grid) return;
+
+                const n = parseInt(qtyVal, 10);
+                const isPreset = (!isNaN(n) && n >= 1 && n <= 10);
+
+                // Clear all selections first
+                grid.querySelectorAll('.qty-quick-btn').forEach(b => b.classList.remove('selected'));
+
+                if (isPreset) {
+                    // Highlight matching 1-10 button, hide the More input
+                    const match = grid.querySelector(`.qty-quick-btn[data-qty="${n}"]`);
+                    if (match) match.classList.add('selected');
+                    if (moreWrap) moreWrap.style.display = 'none';
+                    if (moreInput) moreInput.value = '';
+                    if (hidden) hidden.value = String(n);
+                } else if (!isNaN(n) && n >= 11) {
+                    // Custom (11+) — highlight More, show + fill the input
+                    const moreBtn = grid.querySelector('.qty-quick-more');
+                    if (moreBtn) moreBtn.classList.add('selected');
+                    if (moreWrap) moreWrap.style.display = 'block';
+                    if (moreInput) moreInput.value = String(n);
+                    if (hidden) hidden.value = String(n);
+                } else {
+                    // Nothing selected
+                    if (moreWrap) moreWrap.style.display = 'none';
+                    if (moreInput) moreInput.value = '';
+                    if (hidden) hidden.value = '';
+                }
+            }
+
+            (function setupQtyQuickButtons() {
+                const grid = document.getElementById('qtyQuickGrid');
+                const moreWrap = document.getElementById('qtyMoreWrap');
+                const moreInput = document.getElementById('qtyMoreInput');
+                const hidden = document.getElementById('modalItemQty');
+                if (!grid) return;
+
+                grid.querySelectorAll('.qty-quick-btn').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        const v = btn.dataset.qty;
+                        if (v === 'more') {
+                            grid.querySelectorAll('.qty-quick-btn').forEach(b => b.classList.remove('selected'));
+                            btn.classList.add('selected');
+                            if (moreWrap) moreWrap.style.display = 'block';
+                            if (hidden) hidden.value = (moreInput && moreInput.value) ? String(parseInt(moreInput.value, 10) || '') : '';
+                            if (moreInput) moreInput.focus();
+                        } else {
+                            setQtyButtons(v);
+                        }
+                    });
+                });
+
+                if (moreInput) {
+                    moreInput.addEventListener('input', () => {
+                        const n = parseInt(moreInput.value, 10);
+                        if (!isNaN(n) && n >= 1) {
+                            if (hidden) hidden.value = String(n);
+                        } else {
+                            if (hidden) hidden.value = '';
+                        }
+                    });
+                }
+            })();
+
             // Reset numpad displays when wizard opens / resets
             function resetNumpads() {
                 qtyRawStr = '';
@@ -3468,6 +3595,7 @@
                 const hv = document.getElementById('modalItemValue');
                 if (hq) hq.value = '';
                 if (hv) hv.value = '';
+                setQtyButtons('');
             }
 
             // Enter key advance for text steps (Advance to step 3 after form fields are complete)
@@ -3928,7 +4056,7 @@
                         const row = document.createElement('tr');
                         row.innerHTML = `
                             <td style="text-align: center;">${imgHtml}</td>
-                            <td>${item.desc}<br><small>${item.brand||''}</small></td>
+                            <td><span class="item-detail-link" data-index="${index}" style="color:#007aff; font-weight:600; cursor:pointer; text-decoration:underline; text-decoration-style:dotted; text-underline-offset:3px;">${item.desc}</span><br><small>${item.brand||''}</small></td>
                             <td>${item.condition || '--'}</td>
                             <td>${item.brand || '--'}</td>
                             <td>${qty}</td>
@@ -3946,6 +4074,16 @@
             }
 
             itemTableTbody.addEventListener('click', (e) => {
+                // NEW: Item description click → open Item Details popup (with easy Edit)
+                const detailLink = e.target.closest('.item-detail-link');
+                if (detailLink) {
+                    const idx = parseInt(detailLink.dataset.index, 10);
+                    if (!isNaN(idx) && typeof window.openItemDetailsModal === 'function') {
+                        window.openItemDetailsModal(idx);
+                    }
+                    return;
+                }
+
                 const deleteBtn = e.target.closest('.delete-item-btn');
                 if (deleteBtn) {
                     if (confirm('Delete item?')) {
@@ -3982,6 +4120,8 @@
                     qtyRawStr = (editQty && editQty > 0) ? String(editQty) : '';
                     const qd = document.getElementById('qty-display');
                     if (qd) qd.textContent = qtyRawStr || '0';
+                    // Rehydrate the quick-quantity buttons (1-10 highlight, or More input for 11+)
+                    setQtyButtons((editQty && editQty > 0) ? editQty : '');
 
                     const editVal = parseFloat(item.value);
                     if (!isNaN(editVal) && editVal > 0) {
@@ -4516,7 +4656,7 @@
                     row.innerHTML = `
                         <td>${shipment.invoiceNumber}</td>
                         <td></td> <td style="white-space: nowrap;">${shortDate}</td>
-                        <td>${shipment.senderName}</td>
+                        <td><span class="sender-name-link" data-id="${safeId}" style="color:#007aff; font-weight:600; cursor:pointer; text-decoration:underline; text-decoration-style:dotted; text-underline-offset:3px;">${shipment.senderName}</span></td>
                         <td>${shipment.receiverName}</td>
                         <td>${weightDisplay}</td> <td class="number-cell">$${totalAmount.toFixed(2)}</td> 
                     `;
@@ -4661,6 +4801,17 @@
             });
 
             shipmentsTableTbody.addEventListener('click', (e) => {
+                // NEW: Sender name click → open full Shipment Details popup
+                const senderLink = e.target.closest('.sender-name-link');
+                if (senderLink) {
+                    e.preventDefault();
+                    const sid = senderLink.dataset.id;
+                    if (sid && typeof window.openShipmentDetailsModal === 'function') {
+                        window.openShipmentDetailsModal(sid);
+                    }
+                    return;
+                }
+
                 // FIXED: Robust Event Delegation with Error Handling
                 const btn = e.target.closest('button');
                 if (!btn) return;
@@ -8896,6 +9047,378 @@ async function generateThermalLabel() {
             });
 
         });
+    </script>
+
+    <!-- ===== NEW: Shipment Details Popup (click sender name) + Item Details Popup (click item) ===== -->
+    <div id="shipmentDetailsModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:10000; align-items:flex-end; justify-content:center; padding:0;">
+        <div style="background:white; width:100%; max-width:520px; height:82vh; max-height:82vh; border-radius:20px 20px 0 0; overflow:hidden; box-shadow:0 -10px 30px rgba(0,0,0,0.25); animation:slideUpContact 0.3s ease-out; display:flex; flex-direction:column;">
+            <div style="flex-shrink:0; background:rgba(255,255,255,0.95); backdrop-filter:blur(10px); padding:10px 14px; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #eee; z-index:10;">
+                <h3 style="margin:0; color:#1a1a2e; font-size:1rem;">Shipment Details</h3>
+                <button type="button" onclick="document.getElementById('shipmentDetailsModal').style.display='none'" style="background:#f0f0f5; border:none; width:26px; height:26px; border-radius:50%; font-size:1.1rem; cursor:pointer; display:flex; align-items:center; justify-content:center; color:#666;">&times;</button>
+            </div>
+            <div id="sdTabBar" style="flex-shrink:0; padding:0 14px;"></div>
+            <div id="sdPanelArea" style="flex:1 1 auto; overflow-y:auto; -webkit-overflow-scrolling:touch; padding:10px 14px; position:relative;"></div>
+            <div id="sdFooter" style="flex-shrink:0; padding:10px 14px; border-top:1px solid #eee; background:#fff;"></div>
+            <div id="shipmentDetailsContent" style="display:none;"></div>
+        </div>
+    </div>
+
+    <div id="itemDetailsModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:10000; align-items:flex-end; justify-content:center; padding:0;">
+        <div style="background:white; width:100%; max-width:500px; max-height:88vh; border-radius:20px 20px 0 0; overflow-y:auto; box-shadow:0 -10px 30px rgba(0,0,0,0.25); animation:slideUpContact 0.3s ease-out; padding-bottom:30px;">
+            <div style="position:sticky; top:0; background:rgba(255,255,255,0.92); backdrop-filter:blur(10px); padding:15px 20px; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #eee; z-index:10;">
+                <h3 style="margin:0; color:#1a1a2e; font-size:1.2rem;">Item Details</h3>
+                <button type="button" onclick="document.getElementById('itemDetailsModal').style.display='none'" style="background:#f0f0f5; border:none; width:30px; height:30px; border-radius:50%; font-size:1.2rem; cursor:pointer; display:flex; align-items:center; justify-content:center; color:#666;">&times;</button>
+            </div>
+            <div id="itemDetailsContent" style="padding:20px;"></div>
+        </div>
+    </div>
+
+    <style>
+        /* Compact card/section */
+        .sd-section { background:#f8f9fa; border-radius:10px; padding:10px 12px; margin-bottom:10px; border:1px solid #eee; }
+        .sd-section h4 { margin:0 0 8px 0; font-size:0.68rem; text-transform:uppercase; color:#5856d6; letter-spacing:0.4px; }
+        .sd-grid { display:grid; grid-template-columns:1fr 1fr; gap:7px 12px; }
+        .sd-cell { display:flex; flex-direction:column; }
+        .sd-cell.full { grid-column:span 2; }
+        .sd-label { font-size:0.62rem; color:#999; font-weight:600; margin-bottom:1px; text-transform:uppercase; letter-spacing:0.3px; }
+        .sd-val { font-size:0.82rem; color:#1a1a2e; font-weight:500; word-break:break-word; }
+        .sd-edit-input { width:100%; padding:7px 10px; border:1.5px solid #e5e5ea; border-radius:8px; font-size:0.82rem; box-sizing:border-box; transition:border-color 0.15s; background:#fff; }
+        .sd-edit-input:focus { outline:none; border-color:#007aff; }
+        .sd-edit-row { margin-bottom:8px; }
+        .sd-edit-row:last-child { margin-bottom:0; }
+        .sd-edit-row label { font-size:0.62rem; color:#999; font-weight:700; display:block; margin-bottom:3px; text-transform:uppercase; letter-spacing:0.3px; }
+        .sd-save-flag { font-size:0.62rem; font-weight:700; margin-left:6px; opacity:0; transition:opacity 0.2s; }
+        .sd-save-flag.show { opacity:1; }
+        .sd-status-badge { display:inline-block; padding:3px 9px; border-radius:20px; font-size:0.72rem; font-weight:700; }
+
+        /* Tab bar (horizontally scrollable on small screens) */
+        .sd-tabs { display:flex; gap:4px; overflow-x:auto; -webkit-overflow-scrolling:touch; padding:8px 0 10px; margin:0; border-bottom:1px solid #eee; scrollbar-width:none; }
+        .sd-tabs::-webkit-scrollbar { display:none; }
+        .sd-tab { flex:0 0 auto; background:#f0f0f5; border:none; border-radius:16px; padding:6px 12px; font-size:0.7rem; font-weight:700; color:#636366; cursor:pointer; white-space:nowrap; transition:background 0.2s ease, color 0.2s ease, box-shadow 0.2s ease, transform 0.08s ease; -webkit-tap-highlight-color:transparent; }
+        .sd-tab:active { transform:scale(0.96); }
+        .sd-tab.active { background:#007aff; color:#fff; box-shadow:0 2px 6px rgba(0,122,255,0.3); }
+        /* Panels are stacked in the same box so the body never resizes; we crossfade between them. */
+        .sd-tab-panel { position:absolute; top:0; left:0; right:0; padding:10px 14px 4px; opacity:0; visibility:hidden; transform:translateX(8px); transition:opacity 0.22s ease, transform 0.22s ease, visibility 0s linear 0.22s; pointer-events:none; }
+        .sd-tab-panel.active { position:relative; opacity:1; visibility:visible; transform:translateX(0); transition:opacity 0.22s ease, transform 0.22s ease; pointer-events:auto; }
+
+        /* Compact itemized rows inside the popup */
+        .sd-item-row { display:flex; align-items:center; gap:8px; padding:7px 0; border-bottom:1px solid #f0f0f0; }
+        .sd-item-row:last-child { border-bottom:none; }
+        .sd-item-thumb { width:34px; height:34px; border-radius:6px; object-fit:cover; border:1px solid #eee; flex-shrink:0; }
+        .sd-item-thumb-empty { width:34px; height:34px; border-radius:6px; background:#f0f0f5; display:flex; align-items:center; justify-content:center; color:#bbb; font-size:0.55rem; font-weight:600; flex-shrink:0; }
+        .sd-item-main { flex:1; min-width:0; }
+        .sd-item-desc { font-size:0.78rem; font-weight:600; color:#1a1a2e; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+        .sd-item-sub { font-size:0.65rem; color:#999; }
+        .sd-item-amt { font-size:0.78rem; font-weight:700; color:#28a745; flex-shrink:0; text-align:right; }
+        .sd-empty { text-align:center; color:#aaa; font-size:0.78rem; padding:16px 0; }
+
+        @media (prefers-color-scheme: dark) {
+            .sd-tab { background:#2c2c2e; color:#aeaeb2; }
+        }
+    </style>
+
+    <script type="text/javascript">
+    (function setupDetailPopups() {
+
+        // Tiny inline "Saved ✓" flag near the editing header
+        function flashSaved() {
+            const flag = document.getElementById('sdSaveFlag');
+            if (!flag) return;
+            flag.textContent = 'Saved ✓';
+            flag.style.color = '#28a745';
+            flag.classList.add('show');
+            clearTimeout(window.__sdSaveTimer);
+            window.__sdSaveTimer = setTimeout(() => flag.classList.remove('show'), 1200);
+        }
+        function flashSaving() {
+            const flag = document.getElementById('sdSaveFlag');
+            if (!flag) return;
+            flag.textContent = 'Saving…';
+            flag.style.color = '#8a8a8e';
+            flag.classList.add('show');
+        }
+
+        const esc = (s) => (s == null ? '' : String(s)).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+
+        // Live accessors (exposed from the main scope). Falling back gracefully if absent.
+        const getShipments = () => (typeof window.getShipmentsCache === 'function') ? (window.getShipmentsCache() || []) : [];
+        const getItems = () => (typeof window.getLocalItems === 'function') ? (window.getLocalItems() || []) : [];
+
+        // ===== SHIPMENT DETAILS POPUP (opened by clicking sender name) — TABBED =====
+        window.openShipmentDetailsModal = function(shipmentId) {
+            const shipment = getShipments().find(s => s.id === shipmentId) || null;
+            if (!shipment) { alert('Shipment data not found.'); return; }
+
+            const serviceFee = parseFloat(shipment.paymentTotal) || 0;
+            const addCharges = parseFloat(shipment.additionalChargesAmt) || 0;
+            const totalAmount = serviceFee + addCharges;
+            const amountPaid = parseFloat(shipment.amountPaid) || 0;
+            const balanceDue = totalAmount - amountPaid;
+            const weightDisplay = shipment.totalWeight ? `${shipment.totalWeight} kg` : '--';
+
+            const delivery = shipment.deliveryStatus || 'Pending';
+            const payment = (shipment.paymentStatus || 'Not-Paid');
+            const payLabel = payment.replace('-', ' ');
+            const delColor = delivery === 'Delivered' ? '#28a745' : (delivery === 'Shipped' ? '#007aff' : '#d46b08');
+            const delBg = delivery === 'Delivered' ? '#e9f7eb' : (delivery === 'Shipped' ? '#e6f2ff' : '#fffbe6');
+            const payColor = payment === 'Paid' ? '#28a745' : (payment === 'Partially-Paid' ? '#d46b08' : '#c70000');
+            const payBg = payment === 'Paid' ? '#e9f7eb' : (payment === 'Partially-Paid' ? '#fffbe6' : '#fff1f0');
+
+            // Normalize items (array or object)
+            let items = [];
+            if (shipment.items) {
+                items = Array.isArray(shipment.items) ? shipment.items : Object.values(shipment.items);
+            }
+            items = items.filter(it => it && typeof it === 'object');
+
+            // Build itemized rows
+            let itemsHtml = '';
+            if (items.length === 0) {
+                itemsHtml = `<div class="sd-empty">No items added.</div>`;
+            } else {
+                items.forEach(it => {
+                    const q = parseFloat(it.qty) || 0;
+                    const v = parseFloat(it.value) || 0;
+                    const lineTotal = (q * v).toFixed(2);
+                    const thumb = it.image
+                        ? `<img src="${it.image}" class="sd-item-thumb" alt="item">`
+                        : `<div class="sd-item-thumb-empty">No img</div>`;
+                    itemsHtml += `
+                        <div class="sd-item-row">
+                            ${thumb}
+                            <div class="sd-item-main">
+                                <div class="sd-item-desc">${esc(it.desc) || '--'}</div>
+                                <div class="sd-item-sub">${esc(it.brand) || ''}${it.brand ? ' · ' : ''}${esc(it.condition) || ''} · Qty ${q} × $${v.toFixed(2)}</div>
+                            </div>
+                            <div class="sd-item-amt">$${lineTotal}</div>
+                        </div>`;
+                });
+            }
+
+            const content = document.getElementById('sdPanelArea');
+            document.getElementById('sdTabBar').innerHTML = `
+                <div class="sd-tabs">
+                    <button type="button" class="sd-tab active" data-tab="ov">Overview</button>
+                    <button type="button" class="sd-tab" data-tab="sr">Sender &amp; Receiver</button>
+                    <button type="button" class="sd-tab" data-tab="it">Itemized List</button>
+                </div>
+            `;
+            document.getElementById('sdFooter').innerHTML = `
+                <button type="button" class="btn btn-primary" style="width:100%; padding:11px; border-radius:10px; font-size:0.9rem;" onclick="(window.loadShipmentForEdit && window.loadShipmentForEdit('${shipmentId}')); document.getElementById('shipmentDetailsModal').style.display='none';">✏️ Open Full Edit</button>
+            `;
+            content.scrollTop = 0;
+            content.innerHTML = `
+
+                <!-- OVERVIEW (now includes Shipment Details + Payment Details) -->
+                <div class="sd-tab-panel active" data-panel="ov">
+                    <div class="sd-section" style="border-left:4px solid #007aff;">
+                        <h4>Overview</h4>
+                        <div class="sd-grid">
+                            <div class="sd-cell"><span class="sd-label">Invoice #</span><span class="sd-val">${esc(shipment.invoiceNumber) || '--'}</span></div>
+                            <div class="sd-cell"><span class="sd-label">Batch No</span><span class="sd-val">${esc(shipment.batchNo) || '--'}</span></div>
+                            <div class="sd-cell"><span class="sd-label">Date</span><span class="sd-val">${esc(shipment.invoiceDate) || '--'}</span></div>
+                            <div class="sd-cell"><span class="sd-label">Weight</span><span class="sd-val">${weightDisplay}</span></div>
+                            <div class="sd-cell"><span class="sd-label">Total Amount</span><span class="sd-val" style="color:#28a745; font-weight:700;">$${totalAmount.toFixed(2)}</span></div>
+                            <div class="sd-cell"><span class="sd-label">Receiver</span><span class="sd-val">${esc(shipment.receiverName) || '--'}</span></div>
+                            <div class="sd-cell full"><span class="sd-label">Status</span>
+                                <span><span class="sd-status-badge" style="color:${delColor}; background:${delBg};">${esc(delivery)}</span>
+                                <span class="sd-status-badge" style="color:${payColor}; background:${payBg}; margin-left:6px;">${esc(payLabel)}</span></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="sd-section" style="border-left:4px solid #d46b08;">
+                        <h4>Shipment Details</h4>
+                        <div class="sd-grid">
+                            <div class="sd-cell"><span class="sd-label">Total Packages</span><span class="sd-val">${esc(shipment.totalPackages) || '--'}</span></div>
+                            <div class="sd-cell"><span class="sd-label">Total Weight</span><span class="sd-val">${weightDisplay}</span></div>
+                            <div class="sd-cell"><span class="sd-label">Invoice #</span><span class="sd-val">${esc(shipment.invoiceNumber) || '--'}</span></div>
+                            <div class="sd-cell"><span class="sd-label">Invoice Date</span><span class="sd-val">${esc(shipment.invoiceDate) || '--'}</span></div>
+                            <div class="sd-cell"><span class="sd-label">HS Code</span><span class="sd-val">${esc(shipment.hsCode) || '--'}</span></div>
+                            <div class="sd-cell"><span class="sd-label">Delivery Status</span><span class="sd-val">${esc(delivery)}</span></div>
+                            ${shipment.customerRemarks ? `<div class="sd-cell full"><span class="sd-label">Customer Remarks</span><span class="sd-val">${esc(shipment.customerRemarks)}</span></div>` : ''}
+                        </div>
+                    </div>
+
+                    <div class="sd-section" style="border-left:4px solid #c70000;">
+                        <h4>Payment Details</h4>
+                        <div class="sd-grid">
+                            <div class="sd-cell"><span class="sd-label">Service Fee</span><span class="sd-val">$${serviceFee.toFixed(2)}</span></div>
+                            <div class="sd-cell"><span class="sd-label">Additional Charges</span><span class="sd-val">$${addCharges.toFixed(2)}</span></div>
+                            <div class="sd-cell"><span class="sd-label">Total Amount</span><span class="sd-val" style="color:#28a745; font-weight:700;">$${totalAmount.toFixed(2)}</span></div>
+                            <div class="sd-cell"><span class="sd-label">Amount Paid</span><span class="sd-val">$${amountPaid.toFixed(2)}</span></div>
+                            <div class="sd-cell"><span class="sd-label">Balance Due</span><span class="sd-val" style="color:${balanceDue > 0 ? '#c70000' : '#28a745'}; font-weight:700;">$${balanceDue.toFixed(2)}</span></div>
+                            <div class="sd-cell"><span class="sd-label">Payment Method</span><span class="sd-val">${esc(shipment.paymentMethod) || 'N/A'}</span></div>
+                            <div class="sd-cell"><span class="sd-label">Payment Status</span><span class="sd-val"><span class="sd-status-badge" style="color:${payColor}; background:${payBg};">${esc(payLabel)}</span></span></div>
+                            ${shipment.additionalChargesDesc ? `<div class="sd-cell full"><span class="sd-label">Charges Description</span><span class="sd-val">${esc(shipment.additionalChargesDesc)}</span></div>` : ''}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SENDER & RECEIVER -->
+                <div class="sd-tab-panel" data-panel="sr">
+                    <div class="sd-section" style="border-left:4px solid #28a745;">
+                        <h4>Sender (Canada) — saves instantly <span id="sdSaveFlag" class="sd-save-flag"></span></h4>
+                        <div class="sd-edit-row">
+                            <label>Sender Name</label>
+                            <input type="text" class="sd-edit-input sd-auto" data-field="senderName" value="${esc(shipment.senderName)}">
+                        </div>
+                        <div class="sd-edit-row">
+                            <label>Phone</label>
+                            <input type="text" class="sd-edit-input sd-auto" data-field="senderPhone" value="${esc(shipment.senderPhone)}">
+                        </div>
+                        <div class="sd-edit-row">
+                            <label>Address</label>
+                            <input type="text" class="sd-edit-input sd-auto" data-field="senderAddress" value="${esc(shipment.senderAddress)}">
+                        </div>
+                        <div class="sd-edit-row">
+                            <label>NIC / DL Number</label>
+                            <input type="text" class="sd-edit-input sd-auto" data-field="senderNic" value="${esc(shipment.senderNic)}">
+                        </div>
+                    </div>
+                    <div class="sd-section" style="border-left:4px solid #5856d6;">
+                        <h4>Receiver (Sri Lanka) — saves instantly</h4>
+                        <div class="sd-edit-row">
+                            <label>Receiver Name</label>
+                            <input type="text" class="sd-edit-input sd-auto" data-field="receiverName" value="${esc(shipment.receiverName)}">
+                        </div>
+                        <div class="sd-edit-row">
+                            <label>Phone</label>
+                            <input type="text" class="sd-edit-input sd-auto" data-field="receiverPhone" value="${esc(shipment.receiverPhone)}">
+                        </div>
+                        <div class="sd-edit-row">
+                            <label>Email</label>
+                            <input type="text" class="sd-edit-input sd-auto" data-field="receiverEmail" value="${esc(shipment.receiverEmail)}">
+                        </div>
+                        <div class="sd-edit-row">
+                            <label>Address</label>
+                            <input type="text" class="sd-edit-input sd-auto" data-field="receiverAddress" value="${esc(shipment.receiverAddress)}">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ITEMIZED LIST -->
+                <div class="sd-tab-panel" data-panel="it">
+                    <div class="sd-section" style="border-left:4px solid #20c997;">
+                        <h4>Itemized List (${items.length})</h4>
+                        ${itemsHtml}
+                    </div>
+                </div>
+
+                
+            `;
+
+            // --- Tab switching (fixed body size + smooth crossfade) ---
+            const tabBar = document.getElementById('sdTabBar');
+            const panelArea = document.getElementById('sdPanelArea');
+            const tabs = tabBar.querySelectorAll('.sd-tab');
+            const panels = panelArea.querySelectorAll('.sd-tab-panel');
+            tabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    const target = tab.dataset.tab;
+                    if (tab.classList.contains('active')) return; // no-op if already on this tab
+                    tabs.forEach(t => t.classList.remove('active'));
+                    panels.forEach(p => p.classList.remove('active'));
+                    tab.classList.add('active');
+                    const panel = panelArea.querySelector(`.sd-tab-panel[data-panel="${target}"]`);
+                    if (panel) panel.classList.add('active');
+                    // Reset scroll to top so each tab starts cleanly; the body box itself never resizes.
+                    panelArea.scrollTop = 0;
+                    // Keep the chosen tab visible in the horizontal tab rail.
+                    tab.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+                });
+            });
+
+            // --- Instant-save wiring: each sender/receiver field writes straight to Firebase ---
+            // 'input' = debounced live save while typing; 'change'/'blur' = immediate save.
+            const inputs = content.querySelectorAll('.sd-auto');
+            const saveField = async (field, value) => {
+                try {
+                    flashSaving();
+                    const shipmentRef = window.dbRef(window.db, 'shipments/' + shipmentId);
+                    const upd = {}; upd[field] = value;
+                    await window.dbUpdate(shipmentRef, upd);
+                    // Keep local cache in sync so the table reflects changes without a full reload
+                    const cached = getShipments().find(s => s.id === shipmentId);
+                    if (cached) cached[field] = value;
+                    flashSaved();
+                } catch (err) {
+                    console.error('Instant-save failed:', err);
+                    const flag = document.getElementById('sdSaveFlag');
+                    if (flag) { flag.textContent = 'Save failed'; flag.style.color = '#c70000'; flag.classList.add('show'); }
+                }
+            };
+            inputs.forEach(inp => {
+                let t = null;
+                inp.addEventListener('input', (e) => {
+                    clearTimeout(t);
+                    const field = e.target.dataset.field;
+                    const value = e.target.value;
+                    t = setTimeout(() => saveField(field, value), 600); // debounce while typing
+                });
+                inp.addEventListener('change', (e) => { // fires on blur / done
+                    clearTimeout(t);
+                    saveField(e.target.dataset.field, e.target.value);
+                });
+            });
+
+            document.getElementById('shipmentDetailsModal').style.display = 'flex';
+        };
+
+        // ===== ITEM DETAILS POPUP (opened by clicking an item description) =====
+        window.openItemDetailsModal = function(index) {
+            const items = getItems();
+            const item = items ? items[index] : null;
+            if (!item) { alert('Item not found.'); return; }
+
+            const qty = parseFloat(item.qty) || 0;
+            const val = parseFloat(item.value) || 0;
+            const totalVal = (qty * val).toFixed(2);
+            const imgBlock = item.image
+                ? `<img src="${item.image}" alt="item" onclick="window.openItemImageModal && window.openItemImageModal('${item.image}')" style="width:100%; max-width:220px; aspect-ratio:1/1; object-fit:cover; border-radius:12px; border:1px solid #eee; cursor:zoom-in; display:block; margin:0 auto 15px;">`
+                : `<div style="width:100%; max-width:220px; aspect-ratio:1/1; border-radius:12px; background:#f0f0f5; display:flex; align-items:center; justify-content:center; color:#bbb; font-weight:600; margin:0 auto 15px;">No Image</div>`;
+
+            const content = document.getElementById('itemDetailsContent');
+            content.innerHTML = `
+                ${imgBlock}
+                <div class="sd-section" style="border-left:4px solid #20c997;">
+                    <h4>Item Information</h4>
+                    <div class="sd-grid">
+                        <div class="sd-cell full"><span class="sd-label">Description</span><span class="sd-val">${esc(item.desc) || '--'}</span></div>
+                        <div class="sd-cell"><span class="sd-label">Condition</span><span class="sd-val">${esc(item.condition) || '--'}</span></div>
+                        <div class="sd-cell"><span class="sd-label">Brand</span><span class="sd-val">${esc(item.brand) || '--'}</span></div>
+                        <div class="sd-cell"><span class="sd-label">Quantity</span><span class="sd-val">${qty}</span></div>
+                        <div class="sd-cell"><span class="sd-label">Unit Value</span><span class="sd-val">$${val.toFixed(2)}</span></div>
+                        <div class="sd-cell"><span class="sd-label">Total Value</span><span class="sd-val" style="color:#28a745; font-weight:700;">$${totalVal}</span></div>
+                        <div class="sd-cell"><span class="sd-label">Category</span><span class="sd-val">${esc(item.category) || '--'}</span></div>
+                        ${item.note ? `<div class="sd-cell full"><span class="sd-label">Notes</span><span class="sd-val">${esc(item.note)}</span></div>` : ''}
+                        ${item.barcode ? `<div class="sd-cell full"><span class="sd-label">Barcode</span><span class="sd-val">${esc(item.barcode)}</span></div>` : ''}
+                    </div>
+                </div>
+                <button type="button" class="btn btn-primary" id="itemDetailsEditBtn" style="width:100%; padding:13px; border-radius:10px; font-size:1rem;">✏️ Edit This Item</button>
+            `;
+
+            // Easy edit: close popup, then trigger the existing edit flow for this row.
+            const editBtn = document.getElementById('itemDetailsEditBtn');
+            if (editBtn) {
+                editBtn.onclick = () => {
+                    document.getElementById('itemDetailsModal').style.display = 'none';
+                    const tbody = document.getElementById('itemTableTbody');
+                    const realBtn = tbody ? tbody.querySelector(`.edit-item-btn[data-index="${index}"]`) : null;
+                    if (realBtn) { realBtn.click(); }
+                };
+            }
+
+            document.getElementById('itemDetailsModal').style.display = 'flex';
+        };
+
+        // Close popups when tapping the dark backdrop
+        ['shipmentDetailsModal', 'itemDetailsModal'].forEach(id => {
+            const m = document.getElementById(id);
+            if (m) m.addEventListener('click', (e) => { if (e.target === m) m.style.display = 'none'; });
+        });
+
+    })();
     </script>
 
 </body>
