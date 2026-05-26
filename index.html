@@ -2206,11 +2206,11 @@
                     <input type="hidden" id="modalItemCat">
                 </div>
 
-                <div id="wiz-s4" class="wiz-step-content" style="display:none;">
-                    <h3 style="color:var(--orange); font-size:1.1rem; margin-top:0; text-align:center; margin-bottom:15px;">Quantity & Value</h3>
+                <div id="wiz-s4" class="wiz-step-content wiz-s4-compact" style="display:none;">
+                    <h3 style="color:var(--orange); font-size:0.95rem; margin-top:0; text-align:center; margin-bottom:8px;">Quantity & Value</h3>
                     
-                    <label style="font-weight:700; font-size:0.85rem; color:#1c1c1e; display:block; margin-bottom:6px;">Quantity</label>
-                    <div id="qtyQuickGrid" style="display:grid; grid-template-columns:repeat(5,1fr); gap:8px; margin-bottom:10px;">
+                    <label style="font-weight:700; font-size:0.72rem; color:#1c1c1e; display:block; margin-bottom:4px;">Quantity</label>
+                    <div id="qtyQuickGrid" style="display:grid; grid-template-columns:repeat(5,1fr); gap:5px; margin-bottom:6px;">
                         <button type="button" class="qty-quick-btn" data-qty="1">1</button>
                         <button type="button" class="qty-quick-btn" data-qty="2">2</button>
                         <button type="button" class="qty-quick-btn" data-qty="3">3</button>
@@ -2221,22 +2221,22 @@
                         <button type="button" class="qty-quick-btn" data-qty="8">8</button>
                         <button type="button" class="qty-quick-btn" data-qty="9">9</button>
                         <button type="button" class="qty-quick-btn" data-qty="10">10</button>
-                        <button type="button" class="qty-quick-btn qty-quick-more" data-qty="more" style="grid-column:span 5;">＋ More (type a number)</button>
+                        <button type="button" class="qty-quick-btn qty-quick-more" data-qty="more" style="grid-column:span 5;">＋ More</button>
                     </div>
-                    <div id="qtyMoreWrap" style="display:none; margin-bottom:15px;">
+                    <div id="qtyMoreWrap" style="display:none; margin-bottom:8px;">
                         <input type="number" id="qtyMoreInput" min="11" placeholder="Type quantity (11 or more)" inputmode="numeric"
-                            style="width:100%; padding:12px; border:2px solid #007aff; border-radius:10px; font-size:1.1rem; font-weight:bold; box-sizing:border-box; text-align:center;">
+                            style="width:100%; padding:8px; border:2px solid #007aff; border-radius:9px; font-size:0.95rem; font-weight:bold; box-sizing:border-box; text-align:center;">
                     </div>
                     <input type="hidden" id="modalItemQty" value="">
 
-                    <label style="font-weight:700; font-size:0.85rem; color:#1c1c1e; display:block; margin-bottom:6px;">Unit Value (CAD)</label>
-                    <div style="background:#f9f9f9; border:1.5px solid #e5e5ea; border-radius:10px; padding:12px 15px; text-align:center; margin-bottom:10px; min-height:50px; display:flex; align-items:center; justify-content:center; gap:6px;">
-                        <span style="font-size:1.2rem; font-weight:400; color:#8a8a8e;">$</span>
-                        <span id="val-display" style="font-size:2rem; font-weight:500; color:#1c1c1e; letter-spacing:-1px; min-width:60px; display:inline-block;">0.00</span>
+                    <label style="font-weight:700; font-size:0.72rem; color:#1c1c1e; display:block; margin-bottom:4px;">Unit Value (CAD)</label>
+                    <div style="background:#f9f9f9; border:1.5px solid #e5e5ea; border-radius:9px; padding:5px 12px; text-align:center; margin-bottom:6px; min-height:38px; display:flex; align-items:center; justify-content:center; gap:5px;">
+                        <span style="font-size:1rem; font-weight:400; color:#8a8a8e;">$</span>
+                        <span id="val-display" style="font-size:1.5rem; font-weight:500; color:#1c1c1e; letter-spacing:-1px; min-width:50px; display:inline-block;">0.00</span>
                     </div>
                     <input type="hidden" id="modalItemValue" value="">
                     
-                    <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:8px;">
+                    <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:5px;">
                         <button type="button" class="apple-pad-btn" data-pad="1" data-target="val">1</button>
                         <button type="button" class="apple-pad-btn" data-pad="2" data-target="val">2</button>
                         <button type="button" class="apple-pad-btn" data-pad="3" data-target="val">3</button>
@@ -2382,6 +2382,32 @@
         @media (prefers-color-scheme: dark) {
             .qty-quick-btn { background:#2c2c2e; color:#fff; border-color:#3a3a3c; }
             .qty-quick-more { background:#10243a; color:#4da3ff; border-color:#1c3a5a; }
+        }
+
+        /* ===== Step 4 compact mode (fit on one mobile screen, no scroll) ===== */
+        .wiz-s4-compact .qty-quick-btn {
+            height:38px;
+            font-size:0.95rem;
+            border-width:1.5px;
+            border-radius:9px;
+        }
+        .wiz-s4-compact .qty-quick-more {
+            height:32px;
+            font-size:0.8rem;
+        }
+        .wiz-s4-compact .apple-pad-btn {
+            height:42px;
+            font-size:1.2rem;
+            border-radius:9px;
+        }
+        .wiz-s4-compact .apple-pad-del {
+            font-size:1.05rem;
+        }
+        /* On very short screens, tighten a touch more so nothing clips */
+        @media (max-height: 720px) {
+            .wiz-s4-compact .qty-quick-btn { height:34px; font-size:0.9rem; }
+            .wiz-s4-compact .qty-quick-more { height:30px; }
+            .wiz-s4-compact .apple-pad-btn { height:38px; font-size:1.1rem; }
         }
     </style>
 
@@ -3461,7 +3487,7 @@
 
             // ===== Apple Numpad Logic =====
             let qtyRawStr = '';   // raw digit string for qty
-            let valRawStr = '';   // raw cent string for value (last 2 digits = cents)
+            let valRawStr = '';   // literal typed value string for price (e.g. "20", "20.", "20.00") — iPhone-calculator style
 
             function qtyDisplay() {
                 const n = parseInt(qtyRawStr || '0', 10);
@@ -3472,12 +3498,13 @@
             }
 
             function valDisplay() {
-                const cents = parseInt(valRawStr || '0', 10);
-                const dollars = (cents / 100).toFixed(2);
+                // Show exactly what the user has typed (no auto-decimal). Empty = "0".
+                const shown = (valRawStr === '' || valRawStr === '.') ? '0' : valRawStr;
                 const display = document.getElementById('val-display');
-                if (display) display.textContent = dollars;
+                if (display) display.textContent = shown;
                 const hidden = document.getElementById('modalItemValue');
-                if (hidden) hidden.value = cents === 0 ? '' : dollars;
+                const num = parseFloat(valRawStr);
+                if (hidden) hidden.value = (!isNaN(num) && num > 0) ? String(num) : '';
             }
 
             document.querySelectorAll('.apple-pad-btn').forEach(btn => {
@@ -3503,10 +3530,30 @@
                         if (pad === 'del') {
                             valRawStr = valRawStr.slice(0, -1);
                         } else if (pad === '.') {
-                            return; // decimal handled automatically by cent logic
+                            // Add a decimal point only if there isn't one already.
+                            if (valRawStr.indexOf('.') === -1) {
+                                // A leading "." becomes "0." like the iPhone calculator.
+                                valRawStr = (valRawStr === '') ? '0.' : valRawStr + '.';
+                            }
                         } else {
-                            if (valRawStr.length >= 7) return; // max $99999.99
-                            valRawStr += pad;
+                            // Digit pressed
+                            const dotIndex = valRawStr.indexOf('.');
+                            if (dotIndex !== -1) {
+                                // Already has a decimal: allow at most 2 digits after it (cents).
+                                const decimals = valRawStr.length - dotIndex - 1;
+                                if (decimals >= 2) return;
+                            } else {
+                                // No decimal yet: cap the whole-number part at 6 digits (max 999999).
+                                if (valRawStr.replace(/^0+/, '').length >= 6) return;
+                            }
+                            // Avoid stacking leading zeros like "0005" (but keep a single "0" before a dot).
+                            if (valRawStr === '0' && pad !== '0') {
+                                valRawStr = pad;
+                            } else if (valRawStr === '0' && pad === '0') {
+                                return;
+                            } else {
+                                valRawStr += pad;
+                            }
                         }
                         valDisplay();
                     }
@@ -4125,17 +4172,14 @@
 
                     const editVal = parseFloat(item.value);
                     if (!isNaN(editVal) && editVal > 0) {
-                        // Convert to cents string, e.g. 12.50 -> "1250"
-                        const cents = Math.round(editVal * 100);
-                        valRawStr = String(cents);
+                        // Store the literal value string (iPhone-calculator style), e.g. 12.5 -> "12.50", 20 -> "20".
+                        valRawStr = (editVal % 1 === 0) ? String(editVal) : editVal.toFixed(2);
                     } else {
                         valRawStr = '';
                     }
                     const vd = document.getElementById('val-display');
                     if (vd) {
-                        const cents = parseInt(valRawStr || '0', 10);
-                        const dollars = (cents / 100).toFixed(2);
-                        vd.textContent = dollars;
+                        vd.textContent = (valRawStr === '' || valRawStr === '.') ? '0' : valRawStr;
                     }
 
                     document.querySelectorAll('.condition-btn').forEach(b => {
