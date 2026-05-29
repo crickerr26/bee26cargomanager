@@ -299,9 +299,43 @@
             border-radius: 0 0 12px 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.1);
             top: 100%; left: 0;
         }
-        .suggestions-list li { padding: 12px 16px; cursor: pointer; border-bottom: 1px solid var(--border-light); font-size: 14px; color: var(--text-heading); transition: background 0.2s ease; }
-        .suggestions-list li:hover { background-color: var(--bg-body); color: var(--brand-accent); }
-        .suggestions-list li:last-child { border-bottom: none; }
+        @keyframes wizardSlideUp {
+            from { opacity:0; transform:translateY(30px) scale(0.97); }
+            to { opacity:1; transform:translateY(0) scale(1); }
+        }
+        .wiz-cat-btn {
+            background:#f0f0f5; border:2px solid transparent; border-radius:10px;
+            padding:12px 8px; font-size:0.8rem; font-weight:600; cursor:pointer;
+            text-align:center; transition:all 0.15s; line-height:1.3; color:#1c1c1e;
+        }
+        .wiz-cat-btn:active { transform:scale(0.96); }
+        .wiz-cat-btn.selected { background:#e6f2ff; border-color:#007aff; color:#007aff; }
+        .condition-btn.selected { background:#007aff !important; color:#fff !important; }
+        .apple-pad-btn {
+            background: #ffffff; border: none; border-radius: 10px; padding: 0;
+            height: 52px; font-size: 1.4rem; font-weight: 400;
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
+            color: #1c1c1e; cursor: pointer; display: flex; align-items: center;
+            justify-content: center; box-shadow: 0 1px 0 rgba(0,0,0,0.18), 0 0 0 0.5px rgba(0,0,0,0.08);
+            transition: background 0.08s ease, transform 0.08s ease;
+            user-select: none; -webkit-tap-highlight-color: transparent;
+        }
+        .apple-pad-btn:active { background: #d1d1d6; transform: scale(0.96); }
+        .apple-pad-del { background: #d1d1d6; font-size: 1.3rem; color: #3c3c43; }
+        .apple-pad-del:active { background: #aeaeb2; }
+        .qty-quick-btn {
+            background:#f0f0f5; border:2px solid #e5e5ea; border-radius:10px;
+            padding:0; height:44px; font-size:1.1rem; font-weight:700; color:#1c1c1e;
+            cursor:pointer; display:flex; align-items:center; justify-content:center;
+            transition:all 0.12s ease; user-select:none; -webkit-tap-highlight-color:transparent;
+        }
+        .qty-quick-btn:active { transform:scale(0.94); }
+        .qty-quick-btn.selected { background:#007aff; border-color:#007aff; color:#fff; box-shadow:0 4px 10px rgba(0,122,255,0.3); }
+        .qty-quick-more { font-size:0.9rem; color:#007aff; background:#e6f2ff; border-color:#cfe6ff; }
+        .qty-quick-more.selected { background:#007aff; border-color:#007aff; color:#fff; }
+        .wiz-s4-compact .qty-quick-btn { height:36px; font-size:0.9rem; border-width:1.5px; border-radius:9px; }
+        .wiz-s4-compact .qty-quick-more { height:30px; font-size:0.78rem; }
+        .wiz-s4-compact .apple-pad-btn { height:40px; font-size:1.1rem; }
 
         /* --- Apple-Style Tabs / Stepper --- */
         .tab-stepper {
@@ -376,11 +410,206 @@
             <div class="form-grid-two-col">
                 <div class="input-group"><label>Full Name</label><input type="text" id="senderName" placeholder="John Doe" required></div>
                 <div class="input-group"><label>Phone Number</label><input type="tel" id="senderPhone" placeholder="+1 (000) 000-0000" required></div>
-                <div class="input-group"><label>Email Address</label><input type="email" id="senderEmail" placeholder="name@example.com" required></div>
+                <div class="input-group"><label>Email Address <span style="font-weight:400; color: var(--text-muted); font-size:10px; text-transform:none;">(Optional)</span></label><input type="email" id="senderEmail" placeholder="name@example.com"></div>
                 <div class="input-group"><label>Driver's License / Passport No.</label><input type="text" id="senderNic" placeholder="Required" required></div>
+                <div class="input-group" style="grid-column: 1 / -1;">
+                    <label>Country</label>
+                    <select id="senderCountry" autocomplete="off">
+                        <option value="">Select your country...</option>
+                        <option value="CA">🇨🇦 Canada</option>
+                        <option value="US">🇺🇸 United States</option>
+                        <option value="GB">🇬🇧 United Kingdom</option>
+                        <option value="AU">🇦🇺 Australia</option>
+                        <option value="AF">Afghanistan</option>
+                        <option value="AL">Albania</option>
+                        <option value="DZ">Algeria</option>
+                        <option value="AD">Andorra</option>
+                        <option value="AO">Angola</option>
+                        <option value="AG">Antigua and Barbuda</option>
+                        <option value="AR">Argentina</option>
+                        <option value="AM">Armenia</option>
+                        <option value="AT">Austria</option>
+                        <option value="AZ">Azerbaijan</option>
+                        <option value="BS">Bahamas</option>
+                        <option value="BH">Bahrain</option>
+                        <option value="BD">Bangladesh</option>
+                        <option value="BB">Barbados</option>
+                        <option value="BY">Belarus</option>
+                        <option value="BE">Belgium</option>
+                        <option value="BZ">Belize</option>
+                        <option value="BJ">Benin</option>
+                        <option value="BT">Bhutan</option>
+                        <option value="BO">Bolivia</option>
+                        <option value="BA">Bosnia and Herzegovina</option>
+                        <option value="BW">Botswana</option>
+                        <option value="BR">Brazil</option>
+                        <option value="BN">Brunei</option>
+                        <option value="BG">Bulgaria</option>
+                        <option value="BF">Burkina Faso</option>
+                        <option value="BI">Burundi</option>
+                        <option value="CV">Cabo Verde</option>
+                        <option value="KH">Cambodia</option>
+                        <option value="CM">Cameroon</option>
+                        <option value="CF">Central African Republic</option>
+                        <option value="TD">Chad</option>
+                        <option value="CL">Chile</option>
+                        <option value="CN">China</option>
+                        <option value="CO">Colombia</option>
+                        <option value="KM">Comoros</option>
+                        <option value="CG">Congo</option>
+                        <option value="CR">Costa Rica</option>
+                        <option value="HR">Croatia</option>
+                        <option value="CU">Cuba</option>
+                        <option value="CY">Cyprus</option>
+                        <option value="CZ">Czech Republic</option>
+                        <option value="DK">Denmark</option>
+                        <option value="DJ">Djibouti</option>
+                        <option value="DM">Dominica</option>
+                        <option value="DO">Dominican Republic</option>
+                        <option value="EC">Ecuador</option>
+                        <option value="EG">Egypt</option>
+                        <option value="SV">El Salvador</option>
+                        <option value="GQ">Equatorial Guinea</option>
+                        <option value="ER">Eritrea</option>
+                        <option value="EE">Estonia</option>
+                        <option value="SZ">Eswatini</option>
+                        <option value="ET">Ethiopia</option>
+                        <option value="FJ">Fiji</option>
+                        <option value="FI">Finland</option>
+                        <option value="FR">France</option>
+                        <option value="GA">Gabon</option>
+                        <option value="GM">Gambia</option>
+                        <option value="GE">Georgia</option>
+                        <option value="DE">Germany</option>
+                        <option value="GH">Ghana</option>
+                        <option value="GR">Greece</option>
+                        <option value="GD">Grenada</option>
+                        <option value="GT">Guatemala</option>
+                        <option value="GN">Guinea</option>
+                        <option value="GW">Guinea-Bissau</option>
+                        <option value="GY">Guyana</option>
+                        <option value="HT">Haiti</option>
+                        <option value="HN">Honduras</option>
+                        <option value="HU">Hungary</option>
+                        <option value="IS">Iceland</option>
+                        <option value="IN">India</option>
+                        <option value="ID">Indonesia</option>
+                        <option value="IR">Iran</option>
+                        <option value="IQ">Iraq</option>
+                        <option value="IE">Ireland</option>
+                        <option value="IL">Israel</option>
+                        <option value="IT">Italy</option>
+                        <option value="JM">Jamaica</option>
+                        <option value="JP">Japan</option>
+                        <option value="JO">Jordan</option>
+                        <option value="KZ">Kazakhstan</option>
+                        <option value="KE">Kenya</option>
+                        <option value="KI">Kiribati</option>
+                        <option value="KW">Kuwait</option>
+                        <option value="KG">Kyrgyzstan</option>
+                        <option value="LA">Laos</option>
+                        <option value="LV">Latvia</option>
+                        <option value="LB">Lebanon</option>
+                        <option value="LS">Lesotho</option>
+                        <option value="LR">Liberia</option>
+                        <option value="LY">Libya</option>
+                        <option value="LI">Liechtenstein</option>
+                        <option value="LT">Lithuania</option>
+                        <option value="LU">Luxembourg</option>
+                        <option value="MG">Madagascar</option>
+                        <option value="MW">Malawi</option>
+                        <option value="MY">Malaysia</option>
+                        <option value="MV">Maldives</option>
+                        <option value="ML">Mali</option>
+                        <option value="MT">Malta</option>
+                        <option value="MH">Marshall Islands</option>
+                        <option value="MR">Mauritania</option>
+                        <option value="MU">Mauritius</option>
+                        <option value="MX">Mexico</option>
+                        <option value="FM">Micronesia</option>
+                        <option value="MD">Moldova</option>
+                        <option value="MC">Monaco</option>
+                        <option value="MN">Mongolia</option>
+                        <option value="ME">Montenegro</option>
+                        <option value="MA">Morocco</option>
+                        <option value="MZ">Mozambique</option>
+                        <option value="MM">Myanmar</option>
+                        <option value="NA">Namibia</option>
+                        <option value="NR">Nauru</option>
+                        <option value="NP">Nepal</option>
+                        <option value="NL">Netherlands</option>
+                        <option value="NZ">New Zealand</option>
+                        <option value="NI">Nicaragua</option>
+                        <option value="NE">Niger</option>
+                        <option value="NG">Nigeria</option>
+                        <option value="NO">Norway</option>
+                        <option value="OM">Oman</option>
+                        <option value="PK">Pakistan</option>
+                        <option value="PW">Palau</option>
+                        <option value="PA">Panama</option>
+                        <option value="PG">Papua New Guinea</option>
+                        <option value="PY">Paraguay</option>
+                        <option value="PE">Peru</option>
+                        <option value="PH">Philippines</option>
+                        <option value="PL">Poland</option>
+                        <option value="PT">Portugal</option>
+                        <option value="QA">Qatar</option>
+                        <option value="RO">Romania</option>
+                        <option value="RU">Russia</option>
+                        <option value="RW">Rwanda</option>
+                        <option value="KN">Saint Kitts and Nevis</option>
+                        <option value="LC">Saint Lucia</option>
+                        <option value="VC">Saint Vincent and the Grenadines</option>
+                        <option value="WS">Samoa</option>
+                        <option value="SM">San Marino</option>
+                        <option value="ST">Sao Tome and Principe</option>
+                        <option value="SA">Saudi Arabia</option>
+                        <option value="SN">Senegal</option>
+                        <option value="RS">Serbia</option>
+                        <option value="SC">Seychelles</option>
+                        <option value="SL">Sierra Leone</option>
+                        <option value="SG">Singapore</option>
+                        <option value="SK">Slovakia</option>
+                        <option value="SI">Slovenia</option>
+                        <option value="SB">Solomon Islands</option>
+                        <option value="SO">Somalia</option>
+                        <option value="ZA">South Africa</option>
+                        <option value="SS">South Sudan</option>
+                        <option value="ES">Spain</option>
+                        <option value="LK">🇱🇰 Sri Lanka</option>
+                        <option value="SD">Sudan</option>
+                        <option value="SR">Suriname</option>
+                        <option value="SE">Sweden</option>
+                        <option value="CH">Switzerland</option>
+                        <option value="SY">Syria</option>
+                        <option value="TW">Taiwan</option>
+                        <option value="TJ">Tajikistan</option>
+                        <option value="TZ">Tanzania</option>
+                        <option value="TH">Thailand</option>
+                        <option value="TL">Timor-Leste</option>
+                        <option value="TG">Togo</option>
+                        <option value="TO">Tonga</option>
+                        <option value="TT">Trinidad and Tobago</option>
+                        <option value="TN">Tunisia</option>
+                        <option value="TR">Turkey</option>
+                        <option value="TM">Turkmenistan</option>
+                        <option value="TV">Tuvalu</option>
+                        <option value="UG">Uganda</option>
+                        <option value="UA">Ukraine</option>
+                        <option value="AE">United Arab Emirates</option>
+                        <option value="UY">Uruguay</option>
+                        <option value="UZ">Uzbekistan</option>
+                        <option value="VU">Vanuatu</option>
+                        <option value="VE">Venezuela</option>
+                        <option value="VN">Vietnam</option>
+                        <option value="YE">Yemen</option>
+                        <option value="ZM">Zambia</option>
+                        <option value="ZW">Zimbabwe</option>
+                    </select>
+                </div>
                 <div class="input-group" style="grid-column: 1 / -1; position: relative;">
                     <label>Full Address</label>
-                    <input type="text" id="senderAddress" placeholder="Start typing address..." required autocomplete="off">
+                    <input type="text" id="senderAddress" placeholder="Start typing your address..." required autocomplete="off">
                     <ul id="senderSuggestions" class="suggestions-list" style="display:none;"></ul>
                 </div>
             </div>
@@ -396,6 +625,201 @@
             <div class="form-grid-two-col">
                 <div class="input-group"><label>Full Name</label><input type="text" id="receiverName" placeholder="Jane Smith" required></div>
                 <div class="input-group"><label>Phone Number</label><input type="tel" id="receiverPhone" placeholder="+94 77 000 0000" required></div>
+                <div class="input-group" style="grid-column: 1 / -1;">
+                    <label>Country</label>
+                    <select id="receiverCountry" autocomplete="off">
+                        <option value="">Select receiver's country...</option>
+                        <option value="AF">Afghanistan</option>
+                        <option value="AL">Albania</option>
+                        <option value="DZ">Algeria</option>
+                        <option value="AD">Andorra</option>
+                        <option value="AO">Angola</option>
+                        <option value="AG">Antigua and Barbuda</option>
+                        <option value="AR">Argentina</option>
+                        <option value="AM">Armenia</option>
+                        <option value="AU">🇦🇺 Australia</option>
+                        <option value="AT">Austria</option>
+                        <option value="AZ">Azerbaijan</option>
+                        <option value="BS">Bahamas</option>
+                        <option value="BH">Bahrain</option>
+                        <option value="BD">Bangladesh</option>
+                        <option value="BB">Barbados</option>
+                        <option value="BY">Belarus</option>
+                        <option value="BE">Belgium</option>
+                        <option value="BZ">Belize</option>
+                        <option value="BJ">Benin</option>
+                        <option value="BT">Bhutan</option>
+                        <option value="BO">Bolivia</option>
+                        <option value="BA">Bosnia and Herzegovina</option>
+                        <option value="BW">Botswana</option>
+                        <option value="BR">Brazil</option>
+                        <option value="BN">Brunei</option>
+                        <option value="BG">Bulgaria</option>
+                        <option value="BF">Burkina Faso</option>
+                        <option value="BI">Burundi</option>
+                        <option value="CV">Cabo Verde</option>
+                        <option value="KH">Cambodia</option>
+                        <option value="CM">Cameroon</option>
+                        <option value="CA">🇨🇦 Canada</option>
+                        <option value="CF">Central African Republic</option>
+                        <option value="TD">Chad</option>
+                        <option value="CL">Chile</option>
+                        <option value="CN">China</option>
+                        <option value="CO">Colombia</option>
+                        <option value="KM">Comoros</option>
+                        <option value="CG">Congo</option>
+                        <option value="CR">Costa Rica</option>
+                        <option value="HR">Croatia</option>
+                        <option value="CU">Cuba</option>
+                        <option value="CY">Cyprus</option>
+                        <option value="CZ">Czech Republic</option>
+                        <option value="DK">Denmark</option>
+                        <option value="DJ">Djibouti</option>
+                        <option value="DM">Dominica</option>
+                        <option value="DO">Dominican Republic</option>
+                        <option value="EC">Ecuador</option>
+                        <option value="EG">Egypt</option>
+                        <option value="SV">El Salvador</option>
+                        <option value="GQ">Equatorial Guinea</option>
+                        <option value="ER">Eritrea</option>
+                        <option value="EE">Estonia</option>
+                        <option value="SZ">Eswatini</option>
+                        <option value="ET">Ethiopia</option>
+                        <option value="FJ">Fiji</option>
+                        <option value="FI">Finland</option>
+                        <option value="FR">France</option>
+                        <option value="GA">Gabon</option>
+                        <option value="GM">Gambia</option>
+                        <option value="GE">Georgia</option>
+                        <option value="DE">Germany</option>
+                        <option value="GH">Ghana</option>
+                        <option value="GR">Greece</option>
+                        <option value="GD">Grenada</option>
+                        <option value="GT">Guatemala</option>
+                        <option value="GN">Guinea</option>
+                        <option value="GW">Guinea-Bissau</option>
+                        <option value="GY">Guyana</option>
+                        <option value="HT">Haiti</option>
+                        <option value="HN">Honduras</option>
+                        <option value="HU">Hungary</option>
+                        <option value="IS">Iceland</option>
+                        <option value="IN">India</option>
+                        <option value="ID">Indonesia</option>
+                        <option value="IR">Iran</option>
+                        <option value="IQ">Iraq</option>
+                        <option value="IE">Ireland</option>
+                        <option value="IL">Israel</option>
+                        <option value="IT">Italy</option>
+                        <option value="JM">Jamaica</option>
+                        <option value="JP">Japan</option>
+                        <option value="JO">Jordan</option>
+                        <option value="KZ">Kazakhstan</option>
+                        <option value="KE">Kenya</option>
+                        <option value="KI">Kiribati</option>
+                        <option value="KW">Kuwait</option>
+                        <option value="KG">Kyrgyzstan</option>
+                        <option value="LA">Laos</option>
+                        <option value="LV">Latvia</option>
+                        <option value="LB">Lebanon</option>
+                        <option value="LS">Lesotho</option>
+                        <option value="LR">Liberia</option>
+                        <option value="LY">Libya</option>
+                        <option value="LI">Liechtenstein</option>
+                        <option value="LT">Lithuania</option>
+                        <option value="LU">Luxembourg</option>
+                        <option value="MG">Madagascar</option>
+                        <option value="MW">Malawi</option>
+                        <option value="MY">Malaysia</option>
+                        <option value="MV">Maldives</option>
+                        <option value="ML">Mali</option>
+                        <option value="MT">Malta</option>
+                        <option value="MH">Marshall Islands</option>
+                        <option value="MR">Mauritania</option>
+                        <option value="MU">Mauritius</option>
+                        <option value="MX">Mexico</option>
+                        <option value="FM">Micronesia</option>
+                        <option value="MD">Moldova</option>
+                        <option value="MC">Monaco</option>
+                        <option value="MN">Mongolia</option>
+                        <option value="ME">Montenegro</option>
+                        <option value="MA">Morocco</option>
+                        <option value="MZ">Mozambique</option>
+                        <option value="MM">Myanmar</option>
+                        <option value="NA">Namibia</option>
+                        <option value="NR">Nauru</option>
+                        <option value="NP">Nepal</option>
+                        <option value="NL">Netherlands</option>
+                        <option value="NZ">New Zealand</option>
+                        <option value="NI">Nicaragua</option>
+                        <option value="NE">Niger</option>
+                        <option value="NG">Nigeria</option>
+                        <option value="NO">Norway</option>
+                        <option value="OM">Oman</option>
+                        <option value="PK">Pakistan</option>
+                        <option value="PW">Palau</option>
+                        <option value="PA">Panama</option>
+                        <option value="PG">Papua New Guinea</option>
+                        <option value="PY">Paraguay</option>
+                        <option value="PE">Peru</option>
+                        <option value="PH">Philippines</option>
+                        <option value="PL">Poland</option>
+                        <option value="PT">Portugal</option>
+                        <option value="QA">Qatar</option>
+                        <option value="RO">Romania</option>
+                        <option value="RU">Russia</option>
+                        <option value="RW">Rwanda</option>
+                        <option value="KN">Saint Kitts and Nevis</option>
+                        <option value="LC">Saint Lucia</option>
+                        <option value="VC">Saint Vincent and the Grenadines</option>
+                        <option value="WS">Samoa</option>
+                        <option value="SM">San Marino</option>
+                        <option value="ST">Sao Tome and Principe</option>
+                        <option value="SA">Saudi Arabia</option>
+                        <option value="SN">Senegal</option>
+                        <option value="RS">Serbia</option>
+                        <option value="SC">Seychelles</option>
+                        <option value="SL">Sierra Leone</option>
+                        <option value="SG">Singapore</option>
+                        <option value="SK">Slovakia</option>
+                        <option value="SI">Slovenia</option>
+                        <option value="SB">Solomon Islands</option>
+                        <option value="SO">Somalia</option>
+                        <option value="ZA">South Africa</option>
+                        <option value="SS">South Sudan</option>
+                        <option value="ES">Spain</option>
+                        <option value="LK">🇱🇰 Sri Lanka</option>
+                        <option value="SD">Sudan</option>
+                        <option value="SR">Suriname</option>
+                        <option value="SE">Sweden</option>
+                        <option value="CH">Switzerland</option>
+                        <option value="SY">Syria</option>
+                        <option value="TW">Taiwan</option>
+                        <option value="TJ">Tajikistan</option>
+                        <option value="TZ">Tanzania</option>
+                        <option value="TH">Thailand</option>
+                        <option value="TL">Timor-Leste</option>
+                        <option value="TG">Togo</option>
+                        <option value="TO">Tonga</option>
+                        <option value="TT">Trinidad and Tobago</option>
+                        <option value="TN">Tunisia</option>
+                        <option value="TR">Turkey</option>
+                        <option value="TM">Turkmenistan</option>
+                        <option value="TV">Tuvalu</option>
+                        <option value="UG">Uganda</option>
+                        <option value="UA">Ukraine</option>
+                        <option value="AE">United Arab Emirates</option>
+                        <option value="GB">🇬🇧 United Kingdom</option>
+                        <option value="US">🇺🇸 United States</option>
+                        <option value="UY">Uruguay</option>
+                        <option value="UZ">Uzbekistan</option>
+                        <option value="VU">Vanuatu</option>
+                        <option value="VE">Venezuela</option>
+                        <option value="VN">Vietnam</option>
+                        <option value="YE">Yemen</option>
+                        <option value="ZM">Zambia</option>
+                        <option value="ZW">Zimbabwe</option>
+                    </select>
+                </div>
                 <div class="input-group" style="grid-column: 1 / -1; position: relative;">
                     <label>Full Address</label>
                     <input type="text" id="receiverAddress" placeholder="Start typing address..." required autocomplete="off">
@@ -417,8 +841,21 @@
         <div class="form-section">
             <h3>Shipment Details</h3>
             <div class="form-grid-two-col">
-                <div class="input-group"><label>Total Packages</label><input type="number" id="totalPackages" placeholder="e.g., 2" min="1" required></div>
-                <div class="input-group"><label>Total Weight (KG)</label><input type="number" id="totalWeight" placeholder="e.g., 15.5" step="0.01" min="0.1" required></div>
+                <div class="input-group"><label>Total Packages</label><input type="number" id="totalPackages" placeholder="e.g., 2" min="1"></div>
+                <div class="input-group" style="grid-column: 1 / -1;">
+                    <label>Total Weight (KG)</label>
+                    <div style="background: #F0F9FF; border: 1.5px solid #BAE6FD; border-radius: 12px; padding: 14px 16px; margin-bottom: 10px;">
+                        <p style="margin: 0 0 10px 0; font-size: 13px; color: #0369A1; font-weight: 600;">Do you know the exact weight?</p>
+                        <div style="display: flex; gap: 10px; margin-bottom: 12px;">
+                            <button type="button" id="weightYesBtn" onclick="toggleWeightKnown(true)" style="flex: 1; padding: 12px; border-radius: 10px; border: 2px solid #BAE6FD; background: #F0F9FF; color: #0369A1; font-weight: 700; font-size: 15px; cursor: pointer; transition: all 0.2s;">✅ Yes</button>
+                            <button type="button" id="weightNoBtn" onclick="toggleWeightKnown(false)" style="flex: 1; padding: 12px; border-radius: 10px; border: 2px solid #BAE6FD; background: #F0F9FF; color: #0369A1; font-weight: 700; font-size: 15px; cursor: pointer; transition: all 0.2s;">❓ No</button>
+                        </div>
+                        <div id="weightInputWrap" style="display: none;">
+                            <input type="number" id="totalWeight" placeholder="e.g., 15.5" step="0.01" min="0.1" style="width: 100%; padding: 12px 14px; font-size: 16px; font-weight: 500; color: var(--text-heading); background-color: #fff; border: 1.5px solid var(--border-light); border-radius: 10px; box-sizing: border-box; font-family: inherit;">
+                        </div>
+                        <div id="weightUnknownMsg" style="display: none; font-size: 13px; color: #64748B; font-style: italic; padding: 6px 0;">No problem — our team will weigh your package upon arrival.</div>
+                    </div>
+                </div>
             </div>
             <div style="margin-top: 20px; display: flex; gap: 12px;">
                 <button type="button" class="btn btn-secondary" onclick="goToTab(2)" style="flex: 1;">← Back</button>
@@ -443,162 +880,154 @@
                 </table>
             </div>
 
-            <div id="itemWizardOverlay" style="display:none; position:fixed; inset:0; background:rgba(15,23,42,0.7); z-index:2000; overflow-y:auto; -webkit-overflow-scrolling:touch; backdrop-filter: blur(4px); align-items:center; justify-content:center;">
-                <div id="itemWizardPanel" style="background:var(--bg-surface); border-radius:24px; width:92%; max-width:480px; margin:auto; box-shadow:0 20px 60px rgba(0,0,0,0.3); overflow:hidden; display:flex; flex-direction:column; max-height:85vh;">
+            <div id="itemWizardOverlay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.75); z-index:2000; align-items:center; justify-content:center; padding: 15px; box-sizing: border-box;">
+                <div id="itemWizardPanel" style="background:#fff; border-radius:20px; width:100%; max-width:480px; max-height: 85vh; display: flex; flex-direction: column; box-shadow:0 20px 60px rgba(0,0,0,0.3); animation:wizardSlideUp 0.35s cubic-bezier(0.34,1.56,0.64,1);">
                     
-                    <div style="background:var(--brand-primary); padding:18px 20px 14px; position:relative; flex-shrink:0;">
+                    <div style="background:linear-gradient(135deg,#007aff,#0056b3); padding:18px 20px 14px; position:relative; flex-shrink: 0; border-radius:20px 20px 0 0;">
                         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-                            <span id="wiz-step-label" style="color:#fff; font-weight:700; font-size:16px;">Step 1 of 8</span>
-                            <button id="wizCloseBtn" type="button" onclick="wizClose()" style="background:rgba(255,255,255,0.2); border:none; color:#fff; width:32px; height:32px; border-radius:50%; font-size:1.2rem; cursor:pointer; display:flex; align-items:center; justify-content:center; line-height:1;">&times;</button>
+                            <span id="wiz-step-label" style="color:#fff; font-weight:700; font-size:1rem; letter-spacing:-0.3px;">Step 1 of 4</span>
+                            <button id="wizCloseBtn" type="button" style="background:rgba(255,255,255,0.2); border:none; color:#fff; width:32px; height:32px; border-radius:50%; font-size:1.2rem; cursor:pointer; display:flex; align-items:center; justify-content:center; line-height:1;">&times;</button>
                         </div>
                         <div style="background:rgba(255,255,255,0.25); border-radius:10px; height:6px; overflow:hidden;">
-                            <div id="wiz-progress-bar" style="background:var(--brand-accent); height:100%; border-radius:10px; transition:width 0.4s ease; width:12.5%;"></div>
+                            <div id="wiz-progress-bar" style="background:#fff; height:100%; border-radius:10px; transition:width 0.4s ease; width:25%;"></div>
                         </div>
                         <div style="display:flex; justify-content:space-between; margin-top:6px;">
-                            <span id="wiz-step-name" style="color:rgba(255,255,255,0.9); font-size:13px; font-weight:600;">Item Barcode</span>
-                            <span id="wiz-step-hint" style="color:rgba(255,255,255,0.65); font-size:12px;">Optional</span>
+                            <span id="wiz-step-name" style="color:rgba(255,255,255,0.9); font-size:0.8rem; font-weight:600;">Scan &amp; Photo</span>
+                            <span id="wiz-step-hint" style="color:rgba(255,255,255,0.65); font-size:0.75rem;">Capture Item</span>
                         </div>
                     </div>
 
-                    <div id="wiz-body" style="padding:24px 20px 10px; min-height:260px; overflow-y:auto; flex:1;">
-                        
+                    <div id="wiz-body" style="padding:24px 20px 10px; min-height:260px; overflow-y: auto; flex-grow: 1;">
+
                         <div id="wiz-s1" class="wiz-step-content">
-                            <div style="text-align:center; margin-bottom:16px;">
-                                <div style="font-size:3rem; margin-bottom:8px;">📦</div>
-                                <p style="color:var(--text-muted); font-size:14px; margin:0;">Scan barcode or type manually</p>
-                            </div>
-                            <div id="scanner-container" style="display: none; margin-bottom: 12px; border-radius: 12px; overflow: hidden; border: 2px solid var(--brand-accent); flex-direction: column;">
-                                <div id="reader" style="width: 100%; background: #000; max-height: 40vh; overflow: hidden;"></div>
-                                <button type="button" class="btn btn-secondary" onclick="stopScanner()" style="border-radius: 0; background:var(--danger); color:white; border:none; width: 100%; padding: 16px; font-size: 16px; font-weight: bold; z-index: 10;">🛑 Cancel Camera</button>
+                            <h3 style="color:#007aff; font-size:1.1rem; margin-top:0; text-align:center; margin-bottom:12px;">1. Scan Barcode (Optional)</h3>
+                            <div id="scanner-container" style="display:none; border:2px solid #007aff; border-radius:12px; overflow:hidden; margin-bottom:12px;">
+                                <div id="reader" style="width:100%;"></div>
+                                <button type="button" id="wiz-stopScanBtn" style="width:100%; background:#ff3b30; color:#fff; border:none; padding:10px; font-weight:700; font-size:0.9rem; cursor:pointer; border-radius:0;">🛑 Stop Camera</button>
                             </div>
                             <div style="display:flex; gap:10px; margin-bottom:12px;">
-                                <button type="button" id="startScanBtn" class="btn btn-primary" onclick="startScanner()" style="flex:1;">📷 Scan Camera</button>
+                                <button type="button" id="startScanBtn" style="flex:1; background:#007aff; color:#fff; border:none; border-radius:10px; padding:12px; font-weight:700; font-size:0.9rem; cursor:pointer;">📷 Scan Barcode</button>
                             </div>
-                            <input type="text" id="itemBarcode" placeholder="Or type barcode here..." autocomplete="off" onchange="fetchBarcodeData(this.value)"
-                                style="width:100%; padding:14px; border:2px solid var(--border-light); border-radius:12px; font-size:16px; font-weight:700; text-align:center; box-sizing:border-box;">
-                            <small id="barcodeStatus" style="color: var(--brand-accent); margin-top: 8px; display: none; font-weight: 600; text-align:center;"></small>
-                        </div>
+                            <input type="text" id="itemBarcode" placeholder="Or type barcode here, press Enter →" autocomplete="off" inputmode="text"
+                                style="width:100%; padding:12px; border:2px solid #e5e5ea; border-radius:10px; font-size:0.95rem; font-weight:700; text-align:center; box-sizing:border-box; transition:border-color 0.2s; margin-bottom:20px;">
+                            <small id="barcodeStatus" style="color: #007aff; margin-top: 8px; display: none; font-weight: 600; text-align:center; display:block;"></small>
 
-                        <div id="wiz-s2" class="wiz-step-content" style="display:none;">
-                            <div style="text-align:center; margin-bottom:16px;">
-                                <div style="font-size:3rem; margin-bottom:8px;">📷</div>
-                                <p style="color:var(--text-muted); font-size:14px; margin:0;">Take a photo of the item</p>
+                            <h3 style="color:#5856d6; font-size:1.1rem; margin-top:0; text-align:center; margin-bottom:12px;">2. Product Photo</h3>
+                            <div id="wiz-photo-preview-wrap" style="display:none; text-align:center; margin-bottom:12px;">
+                                <img id="imagePreview" src="" alt="Preview" style="max-height:120px; border-radius:10px; border:2px solid #007aff; display:inline-block;">
+                                <div style="margin-top:4px;">
+                                    <span style="color:#28a745; font-weight:700; font-size:0.8rem;">✅ Photo captured!</span>
+                                </div>
                             </div>
-                            <div style="text-align:center; margin-bottom:14px;">
-                                <img id="imagePreview" src="" alt="Preview" style="max-height:160px; border-radius:12px; border:2px solid var(--brand-accent); display:none; margin: 0 auto;">
-                            </div>
-                            <div class="input-group">
-                                <label style="background:var(--brand-accent); color:#fff; border-radius:12px; padding:16px; font-weight:700; font-size:16px; cursor:pointer; text-align:center; text-transform:none; letter-spacing:0;">
-                                    📸 Capture Photo
-                                    <input type="file" id="itemImage" accept="image/*" style="display:none;">
+                            <div style="display:flex; gap:10px;">
+                                <label style="flex:1; background:#5856d6; color:#fff; border-radius:10px; padding:12px; font-weight:700; font-size:0.9rem; cursor:pointer; text-align:center;">
+                                    📸 Camera
+                                    <input type="file" id="itemImage" accept="image/*" capture="environment" style="display:none;">
+                                </label>
+                                <label style="flex:1; background:#f0f0f5; color:#1c1c1e; border-radius:10px; padding:12px; font-weight:700; font-size:0.9rem; cursor:pointer; text-align:center;">
+                                    🖼️ Gallery
+                                    <input type="file" id="itemImageAlt" accept="image/jpeg,image/png" style="display:none;">
                                 </label>
                             </div>
                         </div>
 
-                        <div id="wiz-s3" class="wiz-step-content" style="display:none;">
-                            <div style="text-align:center; margin-bottom:16px;">
-                                <div style="font-size:3rem; margin-bottom:8px;">📝</div>
-                                <p style="color:var(--text-muted); font-size:14px; margin:0;">What is this item?</p>
-                            </div>
+                        <div id="wiz-s2" class="wiz-step-content" style="display:none;">
+                            <h3 style="color:#007aff; font-size:1.1rem; margin-top:0; text-align:center; margin-bottom:15px;">Item Details</h3>
+                            
+                            <label style="font-weight:700; font-size:0.85rem; color:#1c1c1e; display:block; margin-bottom:6px;">Description <span style="color:red">*</span></label>
                             <input type="text" id="itemDesc" placeholder="e.g. Men's Cotton T-Shirts" autocomplete="off"
-                                style="width:100%; padding:16px; border:2px solid var(--border-light); border-radius:12px; font-size:16px; box-sizing:border-box;">
-                        </div>
+                                style="width:100%; padding:12px; border:2px solid #e5e5ea; border-radius:10px; font-size:0.95rem; box-sizing:border-box; transition:border-color 0.2s; margin-bottom:12px;">
 
-                        <div id="wiz-s4" class="wiz-step-content" style="display:none;">
-                            <div style="text-align:center; margin-bottom:16px;">
-                                <div style="font-size:3rem; margin-bottom:8px;">🗂️</div>
-                                <p style="color:var(--text-muted); font-size:14px; margin:0;">Select a category</p>
-                            </div>
-                            <select id="itemCat" style="width:100%; padding:16px; border:2px solid var(--border-light); border-radius:12px; font-size:16px; box-sizing:border-box; background-color: white;">
-                                <option value="">Select category...</option>
-                                <optgroup label="Apparel & Personal">
-                                    <option value="Clothing">Clothing</option>
-                                    <option value="Footwear & Shoes">Footwear & Shoes</option>
-                                    <option value="Kids Clothing">Kids Clothing</option>
-                                    <option value="Men's Accessories">Men's Accessories</option>
-                                    <option value="Ladies' Accessories">Ladies' Accessories</option>
-                                    <option value="Fabrics & Textiles">Fabrics & Textiles</option>
-                                </optgroup>
-                                <optgroup label="Electronics & Media">
-                                    <option value="Computers & Laptops">Computers & Laptops</option>
-                                    <option value="Phones & Accessories">Phones & Accessories</option>
-                                    <option value="Cameras & Equipment">Cameras & Equipment</option>
-                                    <option value="Electronic Items">Electronic Items</option>
-                                </optgroup>
-                                <optgroup label="Food & Perishables">
-                                    <option value="Packaged Food (Non-Perishable)">Packaged Food (Non-Perishable)</option>
-                                    <option value="Perishables (Special Handling)">Perishables (Special Handling)</option>
-                                </optgroup>
-                                <optgroup label="Household & Others">
-                                    <option value="Kitchenware">Kitchenware</option>
-                                    <option value="Home Decor">Home Decor</option>
-                                    <option value="Toys & Hobbies">Toys & Hobbies</option>
-                                    <option value="Baby Items">Baby Items</option>
-                                    <option value="Cosmetics & Toiletries">Cosmetics & Toiletries</option>
-                                    <option value="Medicines & Vitamins">Medicines & Vitamins</option>
-                                    <option value="Books & Stationery">Books & Stationery</option>
-                                    <option value="Tools & Hardware">Tools & Hardware</option>
-                                    <option value="Automotive Parts">Automotive Parts</option>
-                                    <option value="General Merchandise">General Merchandise</option>
-                                    <option value="Other">Other</option>
-                                </optgroup>
-                            </select>
-                        </div>
+                            <label style="font-weight:700; font-size:0.85rem; color:#1c1c1e; display:block; margin-bottom:6px;">Brand <span style="color:red">*</span></label>
+                            <input type="text" id="itemBrand" placeholder="e.g. Nike, Generic" autocomplete="off"
+                                style="width:100%; padding:12px; border:2px solid #e5e5ea; border-radius:10px; font-size:0.95rem; box-sizing:border-box; transition:border-color 0.2s; margin-bottom:12px;">
 
-                        <div id="wiz-s5" class="wiz-step-content" style="display:none;">
-                            <div style="text-align:center; margin-bottom:16px;">
-                                <div style="font-size:3rem; margin-bottom:8px;">🔢</div>
-                                <p style="color:var(--text-muted); font-size:14px; margin:0;">How many are you sending?</p>
+                            <label style="font-weight:700; font-size:0.85rem; color:#1c1c1e; display:block; margin-bottom:6px;">Condition</label>
+                            <div style="display:flex; gap:10px; margin-bottom:12px;">
+                                <button type="button" class="condition-btn" data-val="New" style="flex:1; background:#f0f0f5; border:none; border-radius:10px; padding:10px; font-weight:700; font-size:0.9rem; cursor:pointer; transition:all 0.2s;">✨ New</button>
+                                <button type="button" class="condition-btn" data-val="Used" style="flex:1; background:#f0f0f5; border:none; border-radius:10px; padding:10px; font-weight:700; font-size:0.9rem; cursor:pointer; transition:all 0.2s;">♻️ Used</button>
                             </div>
-                            <input type="number" id="itemQty" placeholder="e.g. 2" min="1"
-                                style="width:100%; padding:16px; border:2px solid var(--border-light); border-radius:12px; font-size:24px; text-align:center; box-sizing:border-box;">
-                        </div>
+                            <input type="hidden" id="itemCondition" value="New">
 
-                        <div id="wiz-s6" class="wiz-step-content" style="display:none;">
-                            <div style="text-align:center; margin-bottom:16px;">
-                                <div style="font-size:3rem; margin-bottom:8px;">💲</div>
-                                <p style="color:var(--text-muted); font-size:14px; margin:0;">Estimated Value per unit (CAD)</p>
-                            </div>
-                            <div style="position:relative;">
-                                <span style="position:absolute; left:16px; top:50%; transform:translateY(-50%); font-size:20px; color:var(--text-muted);">$</span>
-                                <input type="number" id="itemValue" placeholder="15.00" step="0.01"
-                                    style="width:100%; padding:16px 16px 16px 40px; border:2px solid var(--border-light); border-radius:12px; font-size:24px; box-sizing:border-box;">
-                            </div>
-                        </div>
+                            <label style="font-weight:700; font-size:0.85rem; color:#1c1c1e; display:block; margin-bottom:6px;">Notes <span style="font-weight:400; color:#8a8a8e;">(Optional)</span></label>
+                            <input type="text" id="itemNote" placeholder="e.g. Red color, Size M" autocomplete="off"
+                                style="width:100%; padding:12px; border:2px solid #e5e5ea; border-radius:10px; font-size:0.95rem; box-sizing:border-box; transition:border-color 0.2s; margin-bottom:10px;">
 
-                        <div id="wiz-s7" class="wiz-step-content" style="display:none;">
-                            <div style="text-align:center; margin-bottom:16px;">
-                                <div style="font-size:3rem; margin-bottom:8px;">🏷️</div>
-                                <p style="color:var(--text-muted); font-size:14px; margin:0;">Brand and specific details</p>
-                            </div>
-                            <input type="text" id="itemBrand" placeholder="Brand (e.g. Nike, Generic)" autocomplete="off"
-                                style="width:100%; padding:16px; border:2px solid var(--border-light); border-radius:12px; font-size:16px; box-sizing:border-box; margin-bottom:14px;">
-                            
-                            <input type="text" id="itemNote" placeholder="Note (e.g. Red color, Size M)" autocomplete="off"
-                                style="width:100%; padding:16px; border:2px solid var(--border-light); border-radius:12px; font-size:16px; box-sizing:border-box;">
-                        </div>
-
-                        <div id="wiz-s8" class="wiz-step-content" style="display:none;">
-                            <div style="text-align:center; margin-bottom:16px;">
-                                <div style="font-size:3rem; margin-bottom:8px;">✨</div>
-                                <p style="color:var(--text-muted); font-size:14px; margin:0;">Item Condition</p>
-                            </div>
-                            <div style="display:flex; gap:10px; margin-bottom:20px;">
-                                <button type="button" class="btn btn-secondary condition-btn" data-val="New" onclick="setCondition(this)" style="flex:1; font-size:18px; padding:20px;">✨ New</button>
-                                <button type="button" class="btn btn-secondary condition-btn" data-val="Used" onclick="setCondition(this)" style="flex:1; font-size:18px; padding:20px;">♻️ Used</button>
-                            </div>
-                            
                             <div style="display:none;">
                                 <input type="text" id="itemHSCode" readonly>
                             </div>
                         </div>
 
+                        <div id="wiz-s3" class="wiz-step-content" style="display:none;">
+                            <h3 style="color:#20c997; font-size:1.1rem; margin-top:0; text-align:center; margin-bottom:10px;">Select Category</h3>
+                            <input type="text" id="wiz-cat-search" placeholder="🔍 Search categories..." autocomplete="off"
+                                style="width:100%; padding:10px; border:2px solid #e5e5ea; border-radius:8px; font-size:0.9rem; box-sizing:border-box; margin-bottom:10px;">
+                            <div id="wiz-cat-grid" style="display:grid; grid-template-columns:1fr 1fr; gap:6px; max-height:220px; overflow-y:auto; -webkit-overflow-scrolling:touch; padding-right:5px;">
+                            </div>
+                            <input type="hidden" id="itemCat">
+                        </div>
+
+                        <div id="wiz-s4" class="wiz-step-content wiz-s4-compact" style="display:none;">
+                            <h3 style="color:#d46b08; font-size:0.95rem; margin-top:0; text-align:center; margin-bottom:8px;">Quantity &amp; Value</h3>
+                            
+                            <label style="font-weight:700; font-size:0.72rem; color:#1c1c1e; display:block; margin-bottom:4px;">Quantity</label>
+                            <div id="qtyQuickGrid" style="display:grid; grid-template-columns:repeat(5,1fr); gap:5px; margin-bottom:6px;">
+                                <button type="button" class="qty-quick-btn" data-qty="1">1</button>
+                                <button type="button" class="qty-quick-btn" data-qty="2">2</button>
+                                <button type="button" class="qty-quick-btn" data-qty="3">3</button>
+                                <button type="button" class="qty-quick-btn" data-qty="4">4</button>
+                                <button type="button" class="qty-quick-btn" data-qty="5">5</button>
+                                <button type="button" class="qty-quick-btn" data-qty="6">6</button>
+                                <button type="button" class="qty-quick-btn" data-qty="7">7</button>
+                                <button type="button" class="qty-quick-btn" data-qty="8">8</button>
+                                <button type="button" class="qty-quick-btn" data-qty="9">9</button>
+                                <button type="button" class="qty-quick-btn" data-qty="10">10</button>
+                                <button type="button" class="qty-quick-btn qty-quick-more" data-qty="more" style="grid-column:span 5;">＋ More</button>
+                            </div>
+                            <div id="qtyMoreWrap" style="display:none; margin-bottom:8px;">
+                                <input type="number" id="qtyMoreInput" min="11" placeholder="Type quantity (11 or more)" inputmode="numeric"
+                                    style="width:100%; padding:8px; border:2px solid #007aff; border-radius:9px; font-size:0.95rem; font-weight:bold; box-sizing:border-box; text-align:center;">
+                            </div>
+                            <input type="hidden" id="itemQty" value="">
+
+                            <label style="font-weight:700; font-size:0.72rem; color:#1c1c1e; display:block; margin-bottom:4px;">Unit Value (CAD)</label>
+                            <div style="background:#f9f9f9; border:1.5px solid #e5e5ea; border-radius:9px; padding:5px 12px; text-align:center; margin-bottom:6px; min-height:38px; display:flex; align-items:center; justify-content:center; gap:5px;">
+                                <span style="font-size:1rem; font-weight:400; color:#8a8a8e;">$</span>
+                                <span id="val-display" style="font-size:1.5rem; font-weight:500; color:#1c1c1e; letter-spacing:-1px; min-width:50px; display:inline-block;">0.00</span>
+                            </div>
+                            <input type="hidden" id="itemValue" value="">
+                            
+                            <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:5px;">
+                                <button type="button" class="apple-pad-btn" data-pad="1">1</button>
+                                <button type="button" class="apple-pad-btn" data-pad="2">2</button>
+                                <button type="button" class="apple-pad-btn" data-pad="3">3</button>
+                                <button type="button" class="apple-pad-btn" data-pad="4">4</button>
+                                <button type="button" class="apple-pad-btn" data-pad="5">5</button>
+                                <button type="button" class="apple-pad-btn" data-pad="6">6</button>
+                                <button type="button" class="apple-pad-btn" data-pad="7">7</button>
+                                <button type="button" class="apple-pad-btn" data-pad="8">8</button>
+                                <button type="button" class="apple-pad-btn" data-pad="9">9</button>
+                                <button type="button" class="apple-pad-btn" data-pad=".">.</button>
+                                <button type="button" class="apple-pad-btn" data-pad="0">0</button>
+                                <button type="button" class="apple-pad-btn apple-pad-del" data-pad="del">⌫</button>
+                            </div>
+                        </div>
+
                     </div>
 
-                    <div style="padding:16px 20px 20px; display:flex; gap:12px; border-top:1px solid var(--border-light); background:#F8FAFC; flex-shrink:0;">
-                        <button type="button" id="wizBackBtn" class="btn btn-secondary" onclick="wizGoBack()" style="flex:1; display:none;">← Back</button>
-                        <button type="button" id="wizNextBtn" class="btn btn-primary" onclick="wizGoNext()" style="flex:2;">Next →</button>
+                    <div style="padding:14px 20px 20px; display:flex; gap:10px; border-top:1px solid #f0f0f5; flex-shrink:0;">
+                        <button type="button" id="wizBackBtn" style="background:#f0f0f5; color:#1c1c1e; border:none; border-radius:12px; padding:14px 20px; font-weight:700; font-size:0.95rem; cursor:pointer; flex-shrink:0; display:none;">← Back</button>
+                        <button type="button" id="wizNextBtn" style="flex:1; background:#007aff; color:#fff; border:none; border-radius:12px; padding:14px; font-weight:700; font-size:1rem; cursor:pointer; transition:background 0.2s;">Next →</button>
                     </div>
+                </div>
+            </div>
+
+            <!-- Item Added Success Overlay -->
+            <div id="wiz-success-overlay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:3000; align-items:center; justify-content:center;">
+                <div style="background:#fff; border-radius:24px; padding:40px 32px; text-align:center; max-width:300px; width:88%; animation:wizardSlideUp 0.3s ease;">
+                    <div style="font-size:4rem; margin-bottom:12px;">✅</div>
+                    <div style="font-size:1.3rem; font-weight:700; color:#1c1c1e; margin-bottom:6px;">Item Added!</div>
+                    <div style="font-size:0.9rem; color:#636366;">Opening next item entry…</div>
                 </div>
             </div>
             <div style="margin-top: 24px; display: flex; gap: 12px;">
@@ -694,11 +1123,8 @@
 
     <script>
         let customerItems = [];
-        let currentImageBase64 = null;
-        let selectedCondition = "";
         let html5QrcodeScanner = null;
         const DRAFT_KEY = "bee26_customer_draft_v1";
-        let currentEditIndex = -1;
 
         // --- TAB LOGIC ---
         function goToTab(tabIndex) {
@@ -753,6 +1179,7 @@
 
         // --- 0. Auto-Save (Draft) Logic ---
         function saveDraft() {
+            const twEl = document.getElementById('totalWeight');
             const draft = {
                 senderName: document.getElementById('senderName').value,
                 senderPhone: document.getElementById('senderPhone').value,
@@ -764,7 +1191,7 @@
                 receiverAddress: document.getElementById('receiverAddress').value,
                 customerRemarks: document.getElementById('customerRemarks').value,
                 totalPackages: document.getElementById('totalPackages').value,
-                totalWeight: document.getElementById('totalWeight').value,
+                totalWeight: twEl ? twEl.value : '',
                 items: customerItems
             };
             localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
@@ -901,337 +1328,7 @@
         document.getElementById('itemDesc').addEventListener('keyup', calculateHSCode);
         document.getElementById('itemCat').addEventListener('change', calculateHSCode);
 
-        // --- 2. Barcode Scanner & Auto-Fetch API Logic ---
-        function startScanner() {
-            document.getElementById('scanner-container').style.display = 'flex';
-            document.getElementById('startScanBtn').style.display = 'none';
-            if (!html5QrcodeScanner) {
-                html5QrcodeScanner = new Html5Qrcode("reader");
-            }
-            const config = { fps: 10, qrbox: { width: 250, height: 250 } };
-            html5QrcodeScanner.start({ facingMode: "environment" }, config, 
-                (decodedText) => {
-                    stopScanner();
-                    document.getElementById('itemBarcode').value = decodedText;
-                    fetchBarcodeData(decodedText);
-                }, 
-                (errorMessage) => {}
-            );
-        }
-
-        function stopScanner() {
-            if (html5QrcodeScanner) {
-                html5QrcodeScanner.stop().then(() => {
-                    document.getElementById('scanner-container').style.display = 'none';
-                    document.getElementById('startScanBtn').style.display = 'block';
-                }).catch(err => {
-                    document.getElementById('scanner-container').style.display = 'none';
-                    document.getElementById('startScanBtn').style.display = 'block';
-                });
-            } else {
-                document.getElementById('scanner-container').style.display = 'none';
-                document.getElementById('startScanBtn').style.display = 'block';
-            }
-        }
-
-        async function fetchBarcodeData(barcode) {
-            if (!barcode) return;
-            const statusEl = document.getElementById('barcodeStatus');
-            statusEl.textContent = "Fetching international product details...";
-            statusEl.style.display = "block";
-            statusEl.style.color = "var(--brand-accent)";
-
-            try {
-                let res = await fetch(`https://api.upcitemdb.com/prod/trial/lookup?upc=${barcode}`);
-                let data = await res.json();
-                
-                if (data && data.items && data.items.length > 0) {
-                    document.getElementById('itemDesc').value = data.items[0].title || '';
-                    document.getElementById('itemBrand').value = data.items[0].brand || '';
-                    statusEl.textContent = "✅ Product found via UPC Database!";
-                    statusEl.style.color = "green";
-                    calculateHSCode();
-                    setTimeout(() => { if(wizStep === 1) wizGoNext(); }, 1000);
-                    return;
-                }
-
-                res = await fetch(`https://world.openfoodfacts.org/api/v0/product/${barcode}.json`);
-                data = await res.json();
-                
-                if (data && data.status === 1) {
-                    document.getElementById('itemDesc').value = data.product.product_name || '';
-                    document.getElementById('itemBrand').value = data.product.brands || '';
-                    statusEl.textContent = "✅ Product found via OpenFoodFacts!";
-                    statusEl.style.color = "green";
-                    calculateHSCode();
-                    setTimeout(() => { if(wizStep === 1) wizGoNext(); }, 1000);
-                    return;
-                }
-
-                statusEl.textContent = "⚠️ Barcode valid, but no public info found. Please enter manually.";
-                statusEl.style.color = "#d46b08";
-                setTimeout(() => { if(wizStep === 1) wizGoNext(); }, 1200);
-            } catch(e) {
-                console.error("API Error", e);
-                statusEl.textContent = "⚠️ Error fetching data. Please enter manually.";
-                statusEl.style.color = "red";
-                setTimeout(() => { if(wizStep === 1) wizGoNext(); }, 1200);
-            }
-        }
-
-        // --- 3. Image Compression Helper ---
-        document.getElementById('itemImage').addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            if (!file) return;
-            const reader = new FileReader();
-            reader.readAsDataURL(file);
-            reader.onload = event => {
-                const img = new Image();
-                img.src = event.target.result;
-                img.onload = () => {
-                    const canvas = document.createElement('canvas');
-                    let width = img.width; let height = img.height;
-                    const max = 600;
-                    if (width > height && width > max) { height *= max / width; width = max; } 
-                    else if (height > max) { width *= max / height; height = max; }
-                    canvas.width = width; canvas.height = height;
-                    const ctx = canvas.getContext('2d');
-                    ctx.drawImage(img, 0, 0, width, height);
-                    currentImageBase64 = canvas.toDataURL('image/jpeg', 0.6);
-                    document.getElementById('imagePreview').src = currentImageBase64;
-                    document.getElementById('imagePreview').style.display = 'block';
-                    
-                    // Auto-advance to next step after a brief delay
-                    setTimeout(() => { if(wizStep === 2) wizGoNext(); }, 600);
-                };
-            };
-        });
-
-        function setCondition(btn) {
-            document.querySelectorAll('.condition-btn').forEach(b => b.classList.remove('active-condition'));
-            btn.classList.add('active-condition');
-            selectedCondition = btn.dataset.val;
-            
-            // Auto-advance/Save item after selecting condition
-            setTimeout(() => { if(wizStep === 8) wizGoNext(); }, 400);
-        }
-
-        // --- WIZARD UI LOGIC ---
-        let wizStep = 1;
-        const WIZ_TOTAL = 8;
-        const WIZ_META = [
-            { title: "Item Barcode", hint: "Optional" },
-            { title: "Product Photo", hint: "Required" },
-            { title: "Description", hint: "Required" },
-            { title: "Category", hint: "Required" },
-            { title: "Quantity", hint: "Required" },
-            { title: "Unit Value (CAD)", hint: "Required" },
-            { title: "Brand & Notes", hint: "Required" },
-            { title: "Item Condition", hint: "Required" }
-        ];
-
-        function wizUpdate() {
-            for(let i=1; i<=WIZ_TOTAL; i++) {
-                const el = document.getElementById('wiz-s'+i);
-                if(el) el.style.display = (i === wizStep) ? 'block' : 'none';
-            }
-            document.getElementById('wiz-step-label').textContent = `Step ${wizStep} of ${WIZ_TOTAL}`;
-            document.getElementById('wiz-step-name').textContent = WIZ_META[wizStep-1].title;
-            document.getElementById('wiz-step-hint').textContent = WIZ_META[wizStep-1].hint;
-            document.getElementById('wiz-progress-bar').style.width = ((wizStep / WIZ_TOTAL) * 100) + '%';
-            
-            const backBtn = document.getElementById('wizBackBtn');
-            backBtn.style.display = 'block';
-            if (wizStep === 1) {
-                backBtn.textContent = 'Cancel';
-                backBtn.onclick = wizClose;
-                backBtn.style.backgroundColor = '#FEE2E2';
-                backBtn.style.color = '#DC2626';
-                backBtn.style.borderColor = '#FCA5A5';
-            } else {
-                backBtn.textContent = '← Back';
-                backBtn.onclick = wizGoBack;
-                backBtn.style.backgroundColor = '#F1F5F9';
-                backBtn.style.color = 'var(--text-heading)';
-                backBtn.style.borderColor = 'var(--border-light)';
-            }
-            
-            document.getElementById('wizNextBtn').textContent = (wizStep === WIZ_TOTAL) ? '💾 Save Item' : 'Next →';
-            
-            if(wizStep !== 1 && typeof stopScanner === 'function') stopScanner();
-        }
-
-        window.wizOpen = function() {
-            wizStep = 1;
-            wizUpdate();
-            document.getElementById('itemWizardOverlay').style.display = 'flex';
-            document.body.style.overflow = 'hidden';
-        };
-
-        window.wizClose = function() {
-            document.getElementById('itemWizardOverlay').style.display = 'none';
-            document.body.style.overflow = '';
-            if(typeof stopScanner === 'function') stopScanner();
-        };
-
-        window.wizGoNext = function() {
-            // Validation before moving to next step
-            if (wizStep === 2 && !currentImageBase64) { alert("Photo is required to proceed!"); return; }
-            if (wizStep === 3 && !document.getElementById('itemDesc').value.trim()) { alert("Description is required!"); return; }
-            if (wizStep === 4 && !document.getElementById('itemCat').value) { alert("Please select a Category!"); return; }
-            if (wizStep === 5 && !document.getElementById('itemQty').value) { alert("Quantity is required!"); return; }
-            if (wizStep === 6 && !document.getElementById('itemValue').value) { alert("Unit Value is required!"); return; }
-            if (wizStep === 7 && (!document.getElementById('itemBrand').value || !document.getElementById('itemNote').value)) { alert("Brand and Note are required!"); return; }
-            if (wizStep === 8 && !selectedCondition) { alert("Condition is required!"); return; }
-            
-            if (wizStep < WIZ_TOTAL) {
-                wizStep++;
-                wizUpdate();
-            } else {
-                saveItemToTable();
-            }
-        };
-
-        window.wizGoBack = function() {
-            if (wizStep > 1) {
-                wizStep--;
-                wizUpdate();
-            }
-        };
-
-        // --- 4. Add to Table ---
-        function saveItemToTable() {
-            const barcode = document.getElementById('itemBarcode').value;
-            const desc = document.getElementById('itemDesc').value;
-            const cat = document.getElementById('itemCat').value;
-            const qty = document.getElementById('itemQty').value;
-            const val = document.getElementById('itemValue').value;
-            const brand = document.getElementById('itemBrand').value;
-            const note = document.getElementById('itemNote').value;
-            const hsCode = document.getElementById('itemHSCode').value || ""; 
-
-            if(!currentImageBase64 || !desc || !cat || !qty || !val || !selectedCondition || !brand || !note) {
-                alert("Please fill out all mandatory fields and attach a photo."); return;
-            }
-
-            const newItem = {
-                barcode: barcode,
-                image: currentImageBase64,
-                desc: desc, category: cat, qty: qty, value: val,
-                condition: selectedCondition, brand: brand, note: note, hsCode: hsCode
-            };
-
-            if (currentEditIndex > -1) {
-                customerItems[currentEditIndex] = newItem;
-                currentEditIndex = -1; // reset after edit
-            } else {
-                customerItems.push(newItem);
-            }
-
-            renderTable();
-            saveDraft();
-            
-            // Clear inputs
-            document.getElementById('itemBarcode').value = '';
-            document.getElementById('barcodeStatus').style.display = 'none';
-            document.getElementById('itemDesc').value = '';
-            document.getElementById('itemCat').value = '';
-            document.getElementById('itemQty').value = ''; 
-            document.getElementById('itemValue').value = '';
-            document.getElementById('itemBrand').value = '';
-            document.getElementById('itemNote').value = '';
-            document.getElementById('itemHSCode').value = '';
-            document.getElementById('itemImage').value = '';
-            document.getElementById('imagePreview').style.display = 'none';
-            currentImageBase64 = null;
-            document.querySelectorAll('.condition-btn').forEach(b => b.classList.remove('active-condition'));
-            selectedCondition = "";
-            
-            // Close Wizard cleanly
-            wizClose();
-        }
-
-        function renderTable() {
-            const tbody = document.getElementById('itemsTableBody');
-            tbody.innerHTML = '';
-            if(customerItems.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="9" style="text-align: center; color: #999;">No items added yet. Click "+ Add Item"</td></tr>';
-                return;
-            }
-            customerItems.forEach((item, idx) => {
-                const unitVal = parseFloat(item.value) || 0;
-                const qty = parseFloat(item.qty) || 0;
-                const totalVal = (unitVal * qty).toFixed(2);
-                
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td><img src="${item.image}" style="width:40px; height:40px; border-radius:4px; object-fit:cover;"></td>
-                    <td style="vertical-align: middle;">${item.desc}</td>
-                    <td style="vertical-align: middle;">${item.note || '--'}</td>
-                    <td style="vertical-align: middle;">${item.condition}</td>
-                    <td style="vertical-align: middle;">${item.brand}</td>
-                    <td style="vertical-align: middle;">${item.qty}</td>
-                    <td style="vertical-align: middle;">$${unitVal.toFixed(2)}</td>
-                    <td style="vertical-align: middle; font-weight: 600;">$${totalVal}</td>
-                    <td style="vertical-align: middle;">
-                        <div style="display: flex; gap: 12px; align-items: center;">
-                            <button onclick="editItem(${idx})" style="color: var(--brand-accent); border: none; background: transparent; cursor: pointer; font-weight: 700; font-size: 14px; padding: 6px 10px; border-radius: 6px; transition: background 0.2s;" onmouseover="this.style.background='#EFF6FF'" onmouseout="this.style.background='transparent'">Edit</button>
-                            <button onclick="removeItem(${idx})" style="color: var(--danger); border: none; background: transparent; cursor: pointer; font-weight: 700; font-size: 14px; padding: 6px 10px; border-radius: 6px; transition: background 0.2s;" onmouseover="this.style.background='#FEF2F2'" onmouseout="this.style.background='transparent'">Delete</button>
-                        </div>
-                    </td>
-                `;
-                tbody.appendChild(tr);
-            });
-        }
-
-        window.editItem = function(idx) {
-            const item = customerItems[idx];
-            currentEditIndex = idx;
-            
-            // Populate form
-            document.getElementById('itemBarcode').value = item.barcode || '';
-            document.getElementById('itemDesc').value = item.desc || '';
-            document.getElementById('itemCat').value = item.category || '';
-            document.getElementById('itemQty').value = item.qty || '';
-            document.getElementById('itemValue').value = item.value || '';
-            document.getElementById('itemBrand').value = item.brand || '';
-            document.getElementById('itemNote').value = item.note || '';
-            document.getElementById('itemHSCode').value = item.hsCode || '';
-            
-            // Handle Condition
-            document.querySelectorAll('.condition-btn').forEach(b => b.classList.remove('active-condition'));
-            const matchingBtn = Array.from(document.querySelectorAll('.condition-btn')).find(b => b.dataset.val === item.condition);
-            if(matchingBtn) {
-                matchingBtn.classList.add('active-condition');
-                selectedCondition = item.condition;
-            }
-
-            // Handle Image
-            if(item.image) {
-                currentImageBase64 = item.image;
-                document.getElementById('imagePreview').src = item.image;
-                document.getElementById('imagePreview').style.display = 'block';
-            }
-
-            // Show wizard jumping to description (Step 3) since photo is there
-            wizStep = 3;
-            wizUpdate();
-            document.getElementById('itemWizardOverlay').style.display = 'flex';
-            document.body.style.overflow = 'hidden';
-        }
-
-        window.removeItem = function(idx) {
-            if(confirm("Are you sure you want to remove this item from your list?")) {
-                customerItems.splice(idx, 1);
-                // Reset edit state if they delete the item they are currently editing
-                if (currentEditIndex === idx) {
-                    currentEditIndex = -1;
-                    wizClose();
-                }
-                renderTable();
-                saveDraft();
-            }
-        }
+        // --- 2. Barcode Scanner handled by new wizard below ---
 
         // --- 5. View Summary ---
         document.getElementById('viewSummaryBtn').addEventListener('click', () => {
@@ -1378,11 +1475,11 @@
             const tPackages = document.getElementById('totalPackages').value;
             const tWeight = document.getElementById('totalWeight').value;
 
-            if(!sName || !sPhone || !sEmail || !sNic || !sAddress || !rName || !rPhone || !rAddress || !tPackages || !tWeight) { 
-                alert("Please fill out all mandatory sender, receiver, and shipment details."); 
+            if(!sName || !sPhone || !sNic || !sAddress || !rName || !rPhone || !rAddress) { 
+                alert("Please fill out all mandatory sender and receiver details."); 
                 return; 
             }
-            if(customerItems.length === 0) { alert("Please add at least one item."); return; }
+            
             if(isSignatureEmpty) { alert("Please sign the Terms & Agreements before submitting."); return; }
 
             document.getElementById('loadingOverlay').style.display = 'flex';
@@ -1437,15 +1534,16 @@
             
             // Clear all input fields
             document.querySelectorAll('input:not([type="file"]), textarea, select').forEach(el => el.value = '');
-            
-            // Reset condition buttons
-            document.querySelectorAll('.condition-btn').forEach(b => b.classList.remove('active-condition'));
-            selectedCondition = "";
-            
-            // Clear image
-            document.getElementById('itemImage').value = '';
-            document.getElementById('imagePreview').style.display = 'none';
-            currentImageBase64 = null;
+
+            // Reset weight toggle UI
+            const weightYesBtn = document.getElementById('weightYesBtn');
+            const weightNoBtn = document.getElementById('weightNoBtn');
+            const weightInputWrap = document.getElementById('weightInputWrap');
+            const weightUnknownMsg = document.getElementById('weightUnknownMsg');
+            if (weightYesBtn) { weightYesBtn.style.background = '#F0F9FF'; weightYesBtn.style.color = '#0369A1'; weightYesBtn.style.borderColor = '#BAE6FD'; }
+            if (weightNoBtn) { weightNoBtn.style.background = '#F0F9FF'; weightNoBtn.style.color = '#0369A1'; weightNoBtn.style.borderColor = '#BAE6FD'; }
+            if (weightInputWrap) weightInputWrap.style.display = 'none';
+            if (weightUnknownMsg) weightUnknownMsg.style.display = 'none';
 
             // Clear signature
             ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -1454,10 +1552,10 @@
 
             // Clear items array and UI
             customerItems = [];
-            currentEditIndex = -1;
             renderTable();
             
-            // Close wizard safely
+            // Reset wizard fields and close
+            resetWizardFields();
             wizClose();
 
             // Reset tabs back to start
@@ -1467,50 +1565,554 @@
             window.scrollTo({ top: 0, behavior: 'smooth' });
         });
 
-        // --- 8. Address Autocomplete Logic ---
-        function setupAutocomplete(inputId, listId) {
+        // ============================================================
+        // WEIGHT TOGGLE LOGIC
+        // ============================================================
+        window.toggleWeightKnown = function(known) {
+            const yesBtn = document.getElementById('weightYesBtn');
+            const noBtn = document.getElementById('weightNoBtn');
+            const inputWrap = document.getElementById('weightInputWrap');
+            const unknownMsg = document.getElementById('weightUnknownMsg');
+
+            if (known) {
+                yesBtn.style.background = '#007aff';
+                yesBtn.style.color = '#fff';
+                yesBtn.style.borderColor = '#007aff';
+                noBtn.style.background = '#F0F9FF';
+                noBtn.style.color = '#0369A1';
+                noBtn.style.borderColor = '#BAE6FD';
+                inputWrap.style.display = 'block';
+                unknownMsg.style.display = 'none';
+                setTimeout(() => { const w = document.getElementById('totalWeight'); if (w) w.focus(); }, 100);
+            } else {
+                noBtn.style.background = '#007aff';
+                noBtn.style.color = '#fff';
+                noBtn.style.borderColor = '#007aff';
+                yesBtn.style.background = '#F0F9FF';
+                yesBtn.style.color = '#0369A1';
+                yesBtn.style.borderColor = '#BAE6FD';
+                inputWrap.style.display = 'none';
+                unknownMsg.style.display = 'block';
+                const w = document.getElementById('totalWeight');
+                if (w) w.value = '';
+            }
+        };
+
+        // ============================================================
+        // ADDRESS AUTOCOMPLETE (sender = any country, receiver = Sri Lanka only)
+        // ============================================================
+        function setupAutocomplete(inputId, listId, countrySelectId) {
             const input = document.getElementById(inputId);
             const list = document.getElementById(listId);
             let timeout = null;
 
             input.addEventListener('input', () => {
                 const query = input.value;
-                if(query.length < 3) { list.style.display = 'none'; return; }
-                
+                if (query.length < 3) { list.style.display = 'none'; return; }
                 clearTimeout(timeout);
                 timeout = setTimeout(async () => {
-                    const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`;
+                    // Build URL — if a country is selected, restrict to it
+                    let url = `https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&limit=6&q=${encodeURIComponent(query)}`;
+                    if (countrySelectId) {
+                        const sel = document.getElementById(countrySelectId);
+                        if (sel && sel.value) {
+                            url += `&countrycodes=${sel.value.toLowerCase()}`;
+                        }
+                    }
                     try {
-                        const res = await fetch(url);
+                        const res = await fetch(url, { headers: { 'Accept-Language': 'en' } });
                         const data = await res.json();
                         list.innerHTML = '';
-                        if(data.length > 0) {
+                        if (data.length > 0) {
                             list.style.display = 'block';
-                            data.slice(0, 5).forEach(place => {
+                            data.slice(0, 6).forEach(place => {
                                 const li = document.createElement('li');
                                 li.textContent = place.display_name;
                                 li.addEventListener('click', () => {
                                     input.value = place.display_name;
                                     list.style.display = 'none';
-                                    saveDraft(); // trigger auto-save
+                                    saveDraft();
                                 });
                                 list.appendChild(li);
                             });
                         } else { list.style.display = 'none'; }
-                    } catch(e) { console.error(e); }
-                }, 500); // 500ms debounce
+                    } catch (e) { console.error(e); }
+                }, 400);
             });
 
-            // Close list if clicked outside
             document.addEventListener('click', (e) => {
-                if (e.target !== input && e.target !== list) {
+                if (e.target !== input && !list.contains(e.target)) {
                     list.style.display = 'none';
                 }
             });
         }
 
-        setupAutocomplete('senderAddress', 'senderSuggestions');
-        setupAutocomplete('receiverAddress', 'receiverSuggestions');
+        // Sender: autocomplete filtered by selected country (or global if none)
+        setupAutocomplete('senderAddress', 'senderSuggestions', 'senderCountry');
+        // Receiver: always filtered to Sri Lanka only
+        setupAutocomplete('receiverAddress', 'receiverSuggestions', 'receiverCountry');
+
+        // ============================================================
+        // NEW ITEM WIZARD (4-step, cloned from 71.html)
+        // ============================================================
+        let wizItemStep = 1;
+        const WIZ_TOTAL = 4;
+        let currentEditIndex = -1;
+        let tempItemCompressedImage = null;
+        let valRawStr = '';
+
+        const WIZ_STEPS_META = [
+            { name: 'Scan & Photo',     hint: 'Capture Item' },
+            { name: 'Item Details',     hint: 'Required' },
+            { name: 'Category',         hint: 'Required — tap to select' },
+            { name: 'Quantity & Price', hint: 'Required' }
+        ];
+
+        const WIZ_CATEGORIES = [
+            { label: '🚗 Auto Parts',         val: 'Automotive Parts' },
+            { label: '🍼 Baby Items',         val: 'Baby Items' },
+            { label: '📚 Books',              val: 'Books & Stationery' },
+            { label: '📷 Cameras',            val: 'Cameras & Equipment' },
+            { label: '👗 Clothing',           val: 'Clothing' },
+            { label: '💻 Computers',          val: 'Computers & Laptops' },
+            { label: '💄 Cosmetics',          val: 'Cosmetics & Toiletries' },
+            { label: '🔌 Electronics',        val: 'Electronic Items' },
+            { label: '🧵 Fabrics',            val: 'Fabrics & Textiles' },
+            { label: '👟 Footwear',           val: 'Footwear & Shoes' },
+            { label: '📦 General',            val: 'General Merchandise' },
+            { label: '🏠 Home Decor',         val: 'Home Decor' },
+            { label: '🧒 Kids Clothing',      val: 'Kids Clothing' },
+            { label: '🍳 Kitchenware',        val: 'Kitchenware' },
+            { label: "👜 Ladies' Acc.",       val: "Ladies' Accessories" },
+            { label: '💊 Medicines',          val: 'Medicines & Vitamins' },
+            { label: "👔 Men's Accessories",  val: "Men's Accessories" },
+            { label: '🗂️ Other',             val: 'Other' },
+            { label: '🥫 Packaged Food',      val: 'Packaged Food (Non-Perishable)' },
+            { label: '🥶 Perishables',        val: 'Perishables (Special Handling)' },
+            { label: '📱 Phones',             val: 'Phones & Accessories' },
+            { label: '🔧 Tools',              val: 'Tools & Hardware' },
+            { label: '🧸 Toys',               val: 'Toys & Hobbies' }
+        ];
+
+        function wizBuildCategoryGrid(filter) {
+            filter = filter || '';
+            const grid = document.getElementById('wiz-cat-grid');
+            grid.innerHTML = '';
+            const filtered = filter
+                ? WIZ_CATEGORIES.filter(c => c.label.toLowerCase().includes(filter.toLowerCase()) || c.val.toLowerCase().includes(filter.toLowerCase()))
+                : WIZ_CATEGORIES;
+            filtered.forEach(cat => {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'wiz-cat-btn';
+                btn.textContent = cat.label;
+                btn.dataset.val = cat.val;
+                const currentCat = document.getElementById('itemCat');
+                if (currentCat && currentCat.value === cat.val) btn.classList.add('selected');
+                btn.addEventListener('click', () => {
+                    document.getElementById('itemCat').value = cat.val;
+                    document.querySelectorAll('.wiz-cat-btn').forEach(b => b.classList.remove('selected'));
+                    btn.classList.add('selected');
+                    setTimeout(() => wizGoTo(wizItemStep + 1), 250);
+                });
+                grid.appendChild(btn);
+            });
+        }
+
+        function wizUpdateHeader() {
+            const meta = WIZ_STEPS_META[wizItemStep - 1];
+            document.getElementById('wiz-step-label').textContent = `Step ${wizItemStep} of ${WIZ_TOTAL}`;
+            document.getElementById('wiz-step-name').textContent = meta.name;
+            document.getElementById('wiz-step-hint').textContent = meta.hint;
+            document.getElementById('wiz-progress-bar').style.width = ((wizItemStep / WIZ_TOTAL) * 100) + '%';
+            document.getElementById('wizBackBtn').style.display = wizItemStep > 1 ? 'block' : 'none';
+            document.getElementById('wizNextBtn').textContent = wizItemStep === WIZ_TOTAL ? '💾 Save Item' : 'Next →';
+        }
+
+        function wizShowStep(n) {
+            for (let i = 1; i <= WIZ_TOTAL; i++) {
+                const el = document.getElementById('wiz-s' + i);
+                if (el) el.style.display = (i === n) ? 'block' : 'none';
+            }
+            wizUpdateHeader();
+            setTimeout(() => {
+                const focusMap = { 1: 'itemBarcode', 2: 'itemDesc', 3: 'wiz-cat-search' };
+                const fid = focusMap[n];
+                if (fid) { const el = document.getElementById(fid); if (el) el.focus(); }
+            }, 120);
+            if (n === 3) wizBuildCategoryGrid();
+        }
+
+        function wizGoTo(n) {
+            if (n < 1 || n > WIZ_TOTAL) return;
+            if (wizItemStep === 1 && n !== 1) {
+                if (html5QrcodeScanner) {
+                    try { html5QrcodeScanner.stop().catch(() => {}); } catch(e) {}
+                    html5QrcodeScanner = null;
+                    document.getElementById('scanner-container').style.display = 'none';
+                    document.getElementById('startScanBtn').style.display = 'block';
+                }
+            }
+            if (n === 4) { valRawStr = valRawStr || ''; valDisplay(); }
+            wizItemStep = n;
+            wizShowStep(n);
+        }
+
+        window.wizOpen = function() {
+            currentEditIndex = -1;
+            resetWizardFields();
+            wizItemStep = 1;
+            wizShowStep(1);
+            document.getElementById('itemWizardOverlay').style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+            setTimeout(() => { const bc = document.getElementById('itemBarcode'); if (bc) bc.focus(); }, 200);
+        };
+
+        window.wizClose = function() {
+            if (html5QrcodeScanner) {
+                try { html5QrcodeScanner.stop().catch(() => {}); } catch(e) {}
+                html5QrcodeScanner = null;
+            }
+            document.getElementById('scanner-container').style.display = 'none';
+            document.getElementById('startScanBtn').style.display = 'block';
+            document.getElementById('itemWizardOverlay').style.display = 'none';
+            document.body.style.overflow = '';
+        };
+
+        function wizCanAdvance(step) {
+            if (step === 2) {
+                const desc = document.getElementById('itemDesc').value.trim();
+                const brand = document.getElementById('itemBrand').value.trim();
+                if (!desc) { alert('Please enter a description'); document.getElementById('itemDesc').focus(); return false; }
+                if (!brand) { alert('Please enter a brand name'); document.getElementById('itemBrand').focus(); return false; }
+            }
+            if (step === 3) {
+                const cat = document.getElementById('itemCat').value;
+                if (!cat) { alert('Please select a category'); return false; }
+            }
+            return true;
+        }
+
+        document.getElementById('wizBackBtn').addEventListener('click', () => {
+            if (wizItemStep > 1) wizGoTo(wizItemStep - 1);
+        });
+
+        document.getElementById('wizNextBtn').addEventListener('click', () => {
+            if (wizItemStep === WIZ_TOTAL) {
+                saveItemToTable();
+            } else {
+                if (wizCanAdvance(wizItemStep)) {
+                    wizGoTo(wizItemStep + 1);
+                }
+            }
+        });
+
+        document.getElementById('wizCloseBtn').addEventListener('click', wizClose);
+
+        document.getElementById('itemBarcode').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') { e.preventDefault(); wizGoTo(2); }
+        });
+
+        document.getElementById('wiz-cat-search').addEventListener('input', (e) => {
+            wizBuildCategoryGrid(e.target.value);
+        });
+
+        // Condition buttons
+        document.querySelectorAll('.condition-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.condition-btn').forEach(b => b.classList.remove('selected'));
+                btn.classList.add('selected');
+                document.getElementById('itemCondition').value = btn.dataset.val;
+            });
+        });
+        const defaultCondBtn = document.querySelector('.condition-btn[data-val="New"]');
+        if (defaultCondBtn) defaultCondBtn.classList.add('selected');
+
+        // ── Apple Value Numpad ──
+        function valDisplay() {
+            const shown = (valRawStr === '' || valRawStr === '.') ? '0' : valRawStr;
+            const display = document.getElementById('val-display');
+            if (display) display.textContent = shown;
+            const hidden = document.getElementById('itemValue');
+            const num = parseFloat(valRawStr);
+            if (hidden) hidden.value = (!isNaN(num) && num > 0) ? String(num) : '';
+        }
+
+        document.querySelectorAll('.apple-pad-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const pad = btn.dataset.pad;
+                if (pad === 'del') {
+                    valRawStr = valRawStr.slice(0, -1);
+                } else if (pad === '.') {
+                    if (valRawStr.includes('.')) return;
+                    valRawStr += '.';
+                } else {
+                    const dotIdx = valRawStr.indexOf('.');
+                    if (dotIdx !== -1) {
+                        const decimals = valRawStr.length - dotIdx - 1;
+                        if (decimals >= 2) return;
+                    } else {
+                        if (valRawStr.replace(/^0+/, '').length >= 6) return;
+                    }
+                    if (valRawStr === '0' && pad !== '0') { valRawStr = pad; }
+                    else if (valRawStr === '0' && pad === '0') { return; }
+                    else { valRawStr += pad; }
+                }
+                valDisplay();
+            });
+        });
+
+        // ── Quick Quantity Buttons ──
+        function setQtyButtons(qtyVal) {
+            const grid = document.getElementById('qtyQuickGrid');
+            const moreWrap = document.getElementById('qtyMoreWrap');
+            const moreInput = document.getElementById('qtyMoreInput');
+            const hidden = document.getElementById('itemQty');
+            if (!grid) return;
+            const n = parseInt(qtyVal, 10);
+            const isPreset = (!isNaN(n) && n >= 1 && n <= 10);
+            grid.querySelectorAll('.qty-quick-btn').forEach(b => b.classList.remove('selected'));
+            if (isPreset) {
+                const match = grid.querySelector(`.qty-quick-btn[data-qty="${n}"]`);
+                if (match) match.classList.add('selected');
+                if (moreWrap) moreWrap.style.display = 'none';
+                if (moreInput) moreInput.value = '';
+                if (hidden) hidden.value = String(n);
+            } else if (!isNaN(n) && n >= 11) {
+                const moreBtn = grid.querySelector('.qty-quick-more');
+                if (moreBtn) moreBtn.classList.add('selected');
+                if (moreWrap) moreWrap.style.display = 'block';
+                if (moreInput) moreInput.value = String(n);
+                if (hidden) hidden.value = String(n);
+            } else {
+                if (moreWrap) moreWrap.style.display = 'none';
+                if (moreInput) moreInput.value = '';
+                if (hidden) hidden.value = '';
+            }
+        }
+
+        (function setupQtyQuickButtons() {
+            const grid = document.getElementById('qtyQuickGrid');
+            const moreWrap = document.getElementById('qtyMoreWrap');
+            const moreInput = document.getElementById('qtyMoreInput');
+            const hidden = document.getElementById('itemQty');
+            if (!grid) return;
+            grid.querySelectorAll('.qty-quick-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const v = btn.dataset.qty;
+                    if (v === 'more') {
+                        grid.querySelectorAll('.qty-quick-btn').forEach(b => b.classList.remove('selected'));
+                        btn.classList.add('selected');
+                        if (moreWrap) moreWrap.style.display = 'block';
+                        if (hidden) hidden.value = (moreInput && moreInput.value) ? String(parseInt(moreInput.value, 10) || '') : '';
+                        if (moreInput) moreInput.focus();
+                    } else {
+                        setQtyButtons(v);
+                    }
+                });
+            });
+            if (moreInput) {
+                moreInput.addEventListener('input', () => {
+                    const n = parseInt(moreInput.value, 10);
+                    if (!isNaN(n) && n >= 1) { if (hidden) hidden.value = String(n); }
+                    else { if (hidden) hidden.value = ''; }
+                });
+            }
+        })();
+
+        function resetWizardFields() {
+            valRawStr = '';
+            const vd = document.getElementById('val-display');
+            if (vd) vd.textContent = '0.00';
+            const hv = document.getElementById('itemValue');
+            if (hv) hv.value = '';
+            setQtyButtons('');
+            document.getElementById('itemBarcode').value = '';
+            document.getElementById('itemDesc').value = '';
+            document.getElementById('itemBrand').value = '';
+            document.getElementById('itemCat').value = '';
+            document.getElementById('itemQty').value = '';
+            document.getElementById('itemValue').value = '';
+            document.getElementById('itemNote').value = '';
+            document.getElementById('itemHSCode').value = '';
+            document.getElementById('itemCondition').value = 'New';
+            document.querySelectorAll('.condition-btn').forEach(b => b.classList.remove('selected'));
+            const defBtn = document.querySelector('.condition-btn[data-val="New"]');
+            if (defBtn) defBtn.classList.add('selected');
+            tempItemCompressedImage = null;
+            document.getElementById('imagePreview').src = '';
+            document.getElementById('wiz-photo-preview-wrap').style.display = 'none';
+            document.getElementById('itemImage').value = '';
+            document.getElementById('itemImageAlt').value = '';
+            document.getElementById('barcodeStatus').style.display = 'none';
+        }
+
+        // ── Photo handling ──
+        function compressImage(file, callback) {
+            const maxWidth = 800;
+            const quality = 0.6;
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = event => {
+                const img = new Image();
+                img.src = event.target.result;
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    let width = img.width, height = img.height;
+                    if (width > height) { if (width > maxWidth) { height *= maxWidth / width; width = maxWidth; } }
+                    else { if (height > maxWidth) { width *= maxWidth / height; height = maxWidth; } }
+                    canvas.width = width; canvas.height = height;
+                    canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+                    callback(canvas.toDataURL('image/jpeg', quality));
+                };
+            };
+        }
+
+        function handlePhotoFile(file) {
+            if (!file) return;
+            compressImage(file, (dataUrl) => {
+                tempItemCompressedImage = dataUrl;
+                document.getElementById('imagePreview').src = dataUrl;
+                document.getElementById('wiz-photo-preview-wrap').style.display = 'block';
+                setTimeout(() => wizGoTo(2), 500);
+            });
+        }
+
+        document.getElementById('itemImage').addEventListener('change', (e) => handlePhotoFile(e.target.files[0]));
+        document.getElementById('itemImageAlt').addEventListener('change', (e) => handlePhotoFile(e.target.files[0]));
+
+        // ── + Add Item button — handled via onclick="wizOpen()" in HTML ──
+
+        // ── Save item ──
+        function saveItemToTable() {
+            const desc = document.getElementById('itemDesc').value.trim();
+            const brand = document.getElementById('itemBrand').value.trim();
+            const cat = document.getElementById('itemCat').value;
+            const qty = parseFloat(document.getElementById('itemQty').value);
+            const val = parseFloat(document.getElementById('itemValue').value);
+            const condition = document.getElementById('itemCondition').value || 'New';
+
+            if (!desc) { wizGoTo(2); alert('Please enter a description'); return; }
+            if (!brand) { wizGoTo(2); alert('Please enter a brand name'); return; }
+            if (!cat) { wizGoTo(3); alert('Please select a category'); return; }
+            if (!qty || qty < 1) { wizGoTo(4); alert('Please enter a valid quantity'); return; }
+            if (isNaN(val) || val < 0) { wizGoTo(4); alert('Please enter a valid value'); return; }
+
+            const item = {
+                barcode: document.getElementById('itemBarcode').value.trim(),
+                image: tempItemCompressedImage || null,
+                desc: desc,
+                category: cat,
+                qty: qty,
+                value: val,
+                condition: condition,
+                brand: brand,
+                note: document.getElementById('itemNote').value.trim(),
+                hsCode: document.getElementById('itemHSCode').value || ''
+            };
+
+            if (currentEditIndex > -1) {
+                if (!item.image) item.image = customerItems[currentEditIndex].image;
+                customerItems[currentEditIndex] = item;
+                currentEditIndex = -1;
+                renderTable();
+                saveDraft();
+                wizClose();
+            } else {
+                customerItems.push(item);
+                renderTable();
+                saveDraft();
+                // Show success, then reopen for next item
+                const overlay = document.getElementById('wiz-success-overlay');
+                overlay.style.display = 'flex';
+                setTimeout(() => {
+                    overlay.style.display = 'none';
+                    currentEditIndex = -1;
+                    resetWizardFields();
+                    wizItemStep = 1;
+                    wizShowStep(1);
+                    document.getElementById('itemWizardOverlay').style.display = 'flex';
+                    document.body.style.overflow = 'hidden';
+                }, 1800);
+            }
+        }
+
+        function renderTable() {
+            const tbody = document.getElementById('itemsTableBody');
+            tbody.innerHTML = '';
+            if (customerItems.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="9" style="text-align: center; color: #999;">No items added yet. Click "+ Add Item"</td></tr>';
+                return;
+            }
+            customerItems.forEach((item, idx) => {
+                const unitVal = parseFloat(item.value) || 0;
+                const qty = parseFloat(item.qty) || 0;
+                const totalVal = (unitVal * qty).toFixed(2);
+                const imgHtml = item.image
+                    ? `<img src="${item.image}" style="width:40px; height:40px; border-radius:4px; object-fit:cover;">`
+                    : '<span style="color:#ccc; font-size:11px;">No img</span>';
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td style="text-align:center;">${imgHtml}</td>
+                    <td style="vertical-align: middle;">${item.desc}</td>
+                    <td style="vertical-align: middle;">${item.note || '--'}</td>
+                    <td style="vertical-align: middle;">${item.condition}</td>
+                    <td style="vertical-align: middle;">${item.brand}</td>
+                    <td style="vertical-align: middle;">${qty}</td>
+                    <td style="vertical-align: middle;">$${unitVal.toFixed(2)}</td>
+                    <td style="vertical-align: middle; font-weight: 600;">$${totalVal}</td>
+                    <td style="vertical-align: middle;">
+                        <div style="display: flex; gap: 12px; align-items: center;">
+                            <button onclick="editItem(${idx})" style="color: var(--brand-accent); border: none; background: transparent; cursor: pointer; font-weight: 700; font-size: 14px; padding: 6px 10px; border-radius: 6px; transition: background 0.2s;" onmouseover="this.style.background='#EFF6FF'" onmouseout="this.style.background='transparent'">Edit</button>
+                            <button onclick="removeItem(${idx})" style="color: var(--danger); border: none; background: transparent; cursor: pointer; font-weight: 700; font-size: 14px; padding: 6px 10px; border-radius: 6px; transition: background 0.2s;" onmouseover="this.style.background='#FEF2F2'" onmouseout="this.style.background='transparent'">Delete</button>
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        window.editItem = function(idx) {
+            const item = customerItems[idx];
+            currentEditIndex = idx;
+            resetWizardFields();
+            document.getElementById('itemBarcode').value = item.barcode || '';
+            document.getElementById('itemDesc').value = item.desc || '';
+            document.getElementById('itemCat').value = item.category || '';
+            document.getElementById('itemQty').value = item.qty;
+            document.getElementById('itemValue').value = item.value;
+            document.getElementById('itemBrand').value = item.brand || '';
+            document.getElementById('itemNote').value = item.note || '';
+            document.getElementById('itemHSCode').value = item.hsCode || '';
+            document.getElementById('itemCondition').value = item.condition || 'New';
+            document.querySelectorAll('.condition-btn').forEach(b => b.classList.remove('selected'));
+            const matchBtn = document.querySelector(`.condition-btn[data-val="${item.condition || 'New'}"]`);
+            if (matchBtn) matchBtn.classList.add('selected');
+            const editQty = parseInt(item.qty, 10);
+            setQtyButtons((editQty && editQty > 0) ? editQty : '');
+            const editVal = parseFloat(item.value);
+            if (!isNaN(editVal) && editVal > 0) {
+                valRawStr = (editVal % 1 === 0) ? String(editVal) : editVal.toFixed(2);
+            } else { valRawStr = ''; }
+            valDisplay();
+            if (item.image) {
+                tempItemCompressedImage = item.image;
+                document.getElementById('imagePreview').src = item.image;
+                document.getElementById('wiz-photo-preview-wrap').style.display = 'block';
+            }
+            wizGoTo(2);
+            document.getElementById('itemWizardOverlay').style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+        };
+
+        window.removeItem = function(idx) {
+            if (confirm('Are you sure you want to remove this item?')) {
+                customerItems.splice(idx, 1);
+                if (currentEditIndex === idx) { currentEditIndex = -1; wizClose(); }
+                renderTable();
+                saveDraft();
+            }
+        };
     </script>
 </body>
 </html>
